@@ -1,0 +1,44 @@
+@import url("https://fonts.googleapis.com/css2?family=Abel&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@600&display=swap");
+
+.main-content {
+  height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+  background-color: #98c04b;
+  position: relative;
+}
+
+.body-content {
+  width: 100%;
+  height: 100%;
+  background-color: #eee;
+  border-radius: 25px;
+  overflow: auto;
+}
+
+.dashboard-btn:hover {
+  background-color: #294b0f !important;
+  color: #fff;
+}
+
+.dashboard-btn:hover .ant-typography {
+  color: #fff;
+}
+
+.ant-drawer-mask {
+  background: transparent !important;
+}
+
+.ant-collapse-item {
+  border-bottom: transparent !important;
+}
+
+.ant-collapse-header {
+  padding-top: 5px !important;
+  padding-bottom: 5px !important;
+}
+
+.ant-form-item-label > label {
+  display: block !important;
+}
