@@ -7,6 +7,7 @@ import {
   Space,
   Button,
   Table,
+  message,
 } from "antd";
 import { LeftOutlined, PrinterOutlined, CopyOutlined } from "@ant-design/icons";
 
@@ -17,63 +18,96 @@ import {
 } from "@/types";
 import dayjs from "dayjs";
 
-const TransactionHistory = ({ open, close }: DrawerBasicProps) => {
+const TransactionHistory = ({
+  open,
+  close,
+  title,
+  style,
+  extra,
+  onCellClick,
+}: DrawerBasicProps) => {
   const mock: TransactionHistoryDataType[] = [
     {
       id: 1,
       key: 1,
-      type: "gcash",
+      name: "gcash",
+      type: "cash-in",
       dateCreated: new Date(2024, 1, 21),
       reference: null,
       status: "pending",
+      amount: 1000,
+      mobileNumber: "09123456789",
+      accountName: "John Doe",
     },
     {
       id: 2,
       key: 2,
-      type: "gcash",
+      name: "gcash",
+      type: "cash-in",
       dateCreated: new Date(2024, 1, 20),
       reference: "090909",
       status: "completed",
+      amount: 1000,
+      mobileNumber: "09123456789",
+      accountName: "John Doe",
     },
     {
       id: 3,
       key: 3,
-      type: "ELOAD",
+      name: "eload",
+      type: null,
       dateCreated: new Date(2024, 1, 20),
       reference: "123456",
       status: "completed",
+      amount: 1000,
+      mobileNumber: "09123456789",
     },
     {
       id: 4,
       key: 4,
-      type: "gcash",
+      name: "gcash",
+      type: "cash-out",
       dateCreated: new Date(2024, 1, 22),
       reference: null,
       status: "failed",
+      amount: 1000,
+      mobileNumber: "09123456789",
+      accountName: "John Doe",
     },
     {
       id: 5,
       key: 5,
-      type: "gcash",
+      name: "gcash",
+      type: "cash-out",
       dateCreated: new Date(2024, 1, 21),
       reference: null,
       status: "pending",
+      amount: 1000,
+      mobileNumber: "09123456789",
+      accountName: "John Doe",
     },
     {
       id: 6,
       key: 6,
-      type: "gcash",
+      name: "gcash",
+      type: "cash-in",
       dateCreated: new Date(2024, 1, 20),
       reference: "090909",
       status: "completed",
+      amount: 1000,
+      mobileNumber: "09123456789",
+      accountName: "John Doe",
     },
     {
       id: 7,
       key: 7,
-      type: "ELOAD",
+      name: "eload",
+      type: null,
       dateCreated: new Date(2024, 1, 20),
       reference: "123456",
       status: "completed",
+      amount: 1000,
+      mobileNumber: "09123456789",
     },
   ];
 
@@ -98,8 +132,8 @@ const TransactionHistory = ({ open, close }: DrawerBasicProps) => {
     },
     {
       title: "Transaction Type",
-      dataIndex: "type",
-      key: "type",
+      dataIndex: "name",
+      key: "name",
       render: (type) => (
         <Tag color={type == "gcash" ? "#297BFA" : "#EFB40D"}>
           {type.toLocaleUpperCase()}
@@ -117,7 +151,13 @@ const TransactionHistory = ({ open, close }: DrawerBasicProps) => {
       key: "ref",
       render: (_, { reference }) =>
         reference ? (
-          <Typography.Link>
+          <Typography.Link
+            onClick={() => {
+              navigator.clipboard
+                .writeText(reference)
+                .then((e) => message.success("Copied Successfully"));
+            }}
+          >
             <CopyOutlined /> {reference}
           </Typography.Link>
         ) : (
@@ -150,9 +190,10 @@ const TransactionHistory = ({ open, close }: DrawerBasicProps) => {
       onClose={close}
       width="100%"
       closeIcon={<LeftOutlined />}
+      extra={extra}
       title={
         <Typography.Text style={{ fontSize: 25 }}>
-          Transaction History
+          {title ?? "Transaction History"}
         </Typography.Text>
       }
       style={{
@@ -165,7 +206,17 @@ const TransactionHistory = ({ open, close }: DrawerBasicProps) => {
         marginBottom: 20,
       }}
     >
-      <Table dataSource={mock} columns={columns} />
+      <Table
+        dataSource={mock}
+        columns={columns}
+        style={style}
+        rowKey={(e) => e.id}
+        onRow={(data) => {
+          return {
+            onClick: () => (onCellClick ? onCellClick(data) : null),
+          };
+        }}
+      />
     </Drawer>
   );
 };

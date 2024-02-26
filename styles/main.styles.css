@@ -42,3 +42,92 @@
 .ant-form-item-label > label {
   display: block !important;
 }
+
+.customInput input:-webkit-autofill,
+.customInput input:-webkit-autofill:hover,
+.customInput input:-webkit-autofill:focus,
+.customInput textarea:-webkit-autofill,
+.customInput textarea:-webkit-autofill:hover,
+.customInput textarea:-webkit-autofill:focus,
+.customInput select:-webkit-autofill,
+.customInput select:-webkit-autofill:hover,
+.customInput select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 40px #a0a0a0 inset !important;
+  -webkit-text-fill-color: #fff;
+}
+
+.customInput .ant-input-suffix .anticon {
+  color: #fff !important;
+}
+
+.signup:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.float-label {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.float-label input[type="text"] ~ label.label {
+  top: 5px;
+}
+
+.float-label input[type="text"] ~ label.label-float {
+  top: -10px;
+}
+
+.label {
+  position: absolute;
+  top: 20px;
+  left: 12px;
+  font-weight: normal;
+  font-size: 18px !important;
+  transition: 0.2s ease all;
+  pointer-events: none;
+}
+
+.label-float {
+  top: 10px;
+  font-size: 15px !important;
+  background-color: #fff;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.ant-input-affix-wrapper ~ label.label {
+  top: 10px;
+  z-index: 99;
+}
+
+.ant-input-affix-wrapper ~ label.custom-password-input {
+  top: 5px;
+  z-index: 99;
+}
+
+.ant-input-affix-wrapper ~ label.label-float {
+  top: -10px;
+}
+
+.ant-input .customInput {
+  padding: 16px 12px 4px 11px;
+}
+
+textarea.customInput {
+  padding-top: 10px;
+}
+
+.ant-select-single.customInput
+  .ant-select-selector
+  .ant-select-selection-search {
+  top: 16px;
+}
+
+.ant-select ~ label.label {
+  top: 5px;
+}
+
+.ant-select ~ label.label-float {
+  top: -10px;
+}

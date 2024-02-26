@@ -2,7 +2,7 @@ import React from "react";
 import { DashboardBtnProps } from "@/types";
 import { Typography } from "antd";
 
-const DashboardBtn = ({ title, onPress, icon }: DashboardBtnProps) => {
+const DashboardBtn = ({ title, onPress, icon, style }: DashboardBtnProps) => {
   return (
     <div
       className="dashboard-btn"
@@ -17,6 +17,7 @@ const DashboardBtn = ({ title, onPress, icon }: DashboardBtnProps) => {
         paddingBottom: 20,
         borderRadius: 10,
         cursor: "pointer",
+        ...style,
       }}
       onClick={onPress}
     >
