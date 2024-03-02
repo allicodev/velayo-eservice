@@ -3,10 +3,18 @@ import { Col, Row } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 
 import { UserBadge, DashboardBtn } from "@/app/components";
-import { GcashForm, TransactionHistory } from "@/app/components/teller";
+import {
+  GcashForm,
+  TransactionHistory,
+  TransactionDetails,
+} from "@/app/components/teller";
 
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
+  const [transactionDetailsOpt, setTransactionOpt] = useState({
+    open: false,
+    transaction: null,
+  });
 
   const menu = [
     {
@@ -44,8 +52,8 @@ const Teller = () => {
             }}
           />
           <Row gutter={[32, 32]} style={{ padding: 20 }}>
-            {menu.map((e) => (
-              <Col span={8}>
+            {menu.map((e, i) => (
+              <Col span={8} key={`btn-${i}`}>
                 <DashboardBtn {...e} />
               </Col>
             ))}
@@ -58,6 +66,13 @@ const Teller = () => {
       <TransactionHistory
         open={openedMenu == "th"}
         close={() => setOpenedMenu("")}
+        onCellClick={(e) => {
+          setTransactionOpt({ open: true, transaction: e });
+        }}
+      />
+      <TransactionDetails
+        {...transactionDetailsOpt}
+        close={() => setTransactionOpt({ open: false, transaction: null })}
       />
     </>
   );

@@ -17,6 +17,17 @@
   overflow: auto;
 }
 
+.login-container {
+  background-image: url("/login-bg.jpg");
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .dashboard-btn:hover {
   background-color: #294b0f !important;
   color: #fff;
@@ -51,9 +62,10 @@
 .customInput textarea:-webkit-autofill:focus,
 .customInput select:-webkit-autofill,
 .customInput select:-webkit-autofill:hover,
-.customInput select:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 40px #a0a0a0 inset !important;
-  -webkit-text-fill-color: #fff;
+.customInput select:-webkit-autofill:focus,
+input[type="text"].customInput {
+  -webkit-box-shadow: 0 0 0 40px #fff inset !important;
+  -webkit-text-fill-color: #000;
 }
 
 .customInput .ant-input-suffix .anticon {
@@ -130,4 +142,8 @@ textarea.customInput {
 
 .ant-select ~ label.label-float {
   top: -10px;
+}
+
+.billing-button:hover {
+  border: 0.5px solid #2f54eb !important;
 }

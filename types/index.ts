@@ -33,11 +33,17 @@ interface TransactionHistoryDataType {
   type: string | null;
   dateCreated: Date;
   reference?: string | null;
-  status: TransactionHistoryDataType_type;
   amount?: number;
   accountNumber?: string;
   accountName?: string;
   mobileNumber?: string;
+  history?: HistoryDataType[];
+}
+
+interface HistoryDataType {
+  date: Date;
+  description: String;
+  status: TransactionHistoryDataType_type;
 }
 
 type UserBadgeTitle = "Teller" | "Encoder";
@@ -81,10 +87,21 @@ interface NewUser
   password: string;
 }
 
+interface TransactionDetailsProps {
+  open: boolean;
+  close: () => void;
+  transaction: TransactionHistoryDataType | null;
+}
+
 interface NewUserProps {
   open: boolean;
   close: () => void;
   onAdd: (obj: NewUser) => void;
+}
+
+interface BillsSettings {
+  open: boolean;
+  close: () => void;
 }
 
 export type {
@@ -100,4 +117,8 @@ export type {
   UserProps,
   NewUserProps,
   NewUser,
+  TransactionDetailsProps,
+  BillsSettings,
 };
+
+export * from "./billings.types";

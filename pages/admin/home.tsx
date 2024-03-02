@@ -3,13 +3,14 @@ import { Col, Row } from "antd";
 
 import { UserBadge, DashboardBtn } from "@/app/components";
 import UserList from "@/app/components/admin/user";
+import BillingSettings from "@/app/components/admin/billing_settings";
 
 const Home = () => {
   const [openedMenu, setOpenedMenu] = useState("");
 
   const menu = [
     { title: "Users", onPress: () => setOpenedMenu("user") },
-    { title: "Bills", onPress: () => {} },
+    { title: "Bills", onPress: () => setOpenedMenu("bills") },
     { title: "E-Wallet", onPress: () => {} },
     { title: "MISCELLANEOUS POS", onPress: () => {} },
     { title: "Transaction Report", onPress: () => {} },
@@ -57,6 +58,10 @@ const Home = () => {
         style={{
           marginTop: 10,
         }}
+      />
+      <BillingSettings
+        open={openedMenu == "bills"}
+        close={() => setOpenedMenu("")}
       />
     </>
   );

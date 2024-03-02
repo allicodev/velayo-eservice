@@ -3,14 +3,13 @@ import {
   Drawer,
   Typography,
   TableProps,
-  Tag,
   Space,
   Button,
   Table,
-  message,
+  Popconfirm,
 } from "antd";
 import {
-  LeftOutlined,
+  DownOutlined,
   DeleteOutlined,
   UserAddOutlined,
 } from "@ant-design/icons";
@@ -80,7 +79,13 @@ const User = ({
       dataIndex: "functions",
       render: (_) => (
         <Space>
-          <Button icon={<DeleteOutlined />} danger />
+          <Popconfirm
+            title="Delete Confirmation"
+            description="Are you sure to archive this user?"
+            okText="Confirm"
+          >
+            <Button icon={<DeleteOutlined />} danger />
+          </Popconfirm>
         </Space>
       ),
     },
@@ -92,8 +97,10 @@ const User = ({
         open={open}
         onClose={close}
         width="100%"
-        closeIcon={<LeftOutlined />}
+        height="100%"
+        closeIcon={<DownOutlined />}
         extra={extra}
+        placement="bottom"
         title={
           <Typography.Text style={{ fontSize: 25 }}>
             {title ?? "Transaction History"}
