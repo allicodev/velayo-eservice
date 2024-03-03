@@ -1,4 +1,5 @@
 import { CSSProperties, ReactNode } from "react";
+import { BillingSettingsType } from "./billings.types";
 
 interface DashboardBtnProps {
   icon?: any;
@@ -33,11 +34,17 @@ interface TransactionHistoryDataType {
   type: string | null;
   dateCreated: Date;
   reference?: string | null;
-  status: TransactionHistoryDataType_type;
   amount?: number;
   accountNumber?: string;
   accountName?: string;
   mobileNumber?: string;
+  history?: HistoryDataType[];
+}
+
+interface HistoryDataType {
+  date: Date;
+  description: String;
+  status: TransactionHistoryDataType_type;
 }
 
 type UserBadgeTitle = "Teller" | "Encoder";
@@ -81,10 +88,42 @@ interface NewUser
   password: string;
 }
 
+interface TransactionDetailsProps {
+  open: boolean;
+  close: () => void;
+  transaction: TransactionHistoryDataType | null;
+}
+
 interface NewUserProps {
   open: boolean;
   close: () => void;
   onAdd: (obj: NewUser) => void;
+}
+
+interface BillsSettings {
+  open: boolean;
+  close: () => void;
+}
+
+interface NewBillerProps {
+  open: boolean;
+  close: () => void;
+  onSave: (str: string) => boolean | void;
+}
+
+interface NewOptionProps {
+  open: boolean;
+  close: () => void;
+  formfield?: BillingSettingsType | null;
+}
+
+//* E-Wallet types
+
+type EWalletTypes = "percent" | "fixed";
+interface EWalletDataType {
+  name: string;
+  type: EWalletTypes;
+  value: number;
 }
 
 export type {
@@ -100,4 +139,12 @@ export type {
   UserProps,
   NewUserProps,
   NewUser,
+  TransactionDetailsProps,
+  BillsSettings,
+  NewBillerProps,
+  NewOptionProps,
+  EWalletDataType,
+  EWalletTypes,
 };
+
+export * from "./billings.types";

@@ -9,7 +9,7 @@ import {
   Table,
   message,
 } from "antd";
-import { LeftOutlined, PrinterOutlined, CopyOutlined } from "@ant-design/icons";
+import { DownOutlined, PrinterOutlined, CopyOutlined } from "@ant-design/icons";
 
 import {
   DrawerBasicProps,
@@ -34,22 +34,45 @@ const TransactionHistory = ({
       type: "cash-in",
       dateCreated: new Date(2024, 1, 21),
       reference: null,
-      status: "pending",
       amount: 1000,
       mobileNumber: "09123456789",
       accountName: "John Doe",
+      history: [
+        {
+          date: new Date(2024, 1, 21, 6, 8),
+          description: "First Transaction Requested",
+          status: "pending",
+        },
+        {
+          date: new Date(2024, 1, 21, 6, 10),
+          description: "Transaction Complete",
+          status: "completed",
+        },
+      ],
     },
     {
       id: 2,
       key: 2,
-      name: "gcash",
-      type: "cash-in",
+      name: "bills",
+      type: "VECO",
       dateCreated: new Date(2024, 1, 20),
       reference: "090909",
-      status: "completed",
-      amount: 1000,
+      amount: 1,
       mobileNumber: "09123456789",
       accountName: "John Doe",
+      accountNumber: "123-456-789",
+      history: [
+        {
+          date: new Date(2024, 1, 21, 6, 8),
+          description: "First Transaction Requested",
+          status: "pending",
+        },
+        {
+          date: new Date(2024, 1, 21, 6, 10),
+          description: "Account Number is invalid",
+          status: "failed",
+        },
+      ],
     },
     {
       id: 3,
@@ -58,9 +81,20 @@ const TransactionHistory = ({
       type: null,
       dateCreated: new Date(2024, 1, 20),
       reference: "123456",
-      status: "completed",
       amount: 1000,
       mobileNumber: "09123456789",
+      history: [
+        {
+          date: new Date(2024, 1, 21, 6, 8),
+          description: "First Transaction Requested",
+          status: "pending",
+        },
+        {
+          date: new Date(2024, 1, 21, 6, 10),
+          description: "Transaction Completed",
+          status: "completed",
+        },
+      ],
     },
     {
       id: 4,
@@ -69,10 +103,21 @@ const TransactionHistory = ({
       type: "cash-out",
       dateCreated: new Date(2024, 1, 22),
       reference: null,
-      status: "failed",
       amount: 1000,
       mobileNumber: "09123456789",
       accountName: "John Doe",
+      history: [
+        {
+          date: new Date(2024, 1, 21, 6, 8),
+          description: "First Transaction Requested",
+          status: "pending",
+        },
+        {
+          date: new Date(2024, 1, 21, 6, 10),
+          description: "Invalid GCASH Number",
+          status: "failed",
+        },
+      ],
     },
     {
       id: 5,
@@ -81,10 +126,16 @@ const TransactionHistory = ({
       type: "cash-out",
       dateCreated: new Date(2024, 1, 21),
       reference: null,
-      status: "pending",
       amount: 1000,
       mobileNumber: "09123456789",
       accountName: "John Doe",
+      history: [
+        {
+          date: new Date(2024, 1, 21, 6, 8),
+          description: "First Transaction Requested",
+          status: "pending",
+        },
+      ],
     },
     {
       id: 6,
@@ -93,10 +144,21 @@ const TransactionHistory = ({
       type: "cash-in",
       dateCreated: new Date(2024, 1, 20),
       reference: "090909",
-      status: "completed",
       amount: 1000,
       mobileNumber: "09123456789",
       accountName: "John Doe",
+      history: [
+        {
+          date: new Date(2024, 1, 21, 6, 8),
+          description: "First Transaction Requested",
+          status: "pending",
+        },
+        {
+          date: new Date(2024, 1, 21, 6, 10),
+          description: "Transaction Complete",
+          status: "completed",
+        },
+      ],
     },
     {
       id: 7,
@@ -105,13 +167,24 @@ const TransactionHistory = ({
       type: null,
       dateCreated: new Date(2024, 1, 20),
       reference: "123456",
-      status: "completed",
       amount: 1000,
       mobileNumber: "09123456789",
+      history: [
+        {
+          date: new Date(2024, 1, 21, 6, 8),
+          description: "First Transaction Requested",
+          status: "pending",
+        },
+        {
+          date: new Date(2024, 1, 21, 6, 10),
+          description: "E-Load Complete",
+          status: "completed",
+        },
+      ],
     },
   ];
 
-  const getStatusBadge = (str: TransactionHistoryDataType_type) => {
+  const getStatusBadge = (str: TransactionHistoryDataType_type | null) => {
     switch (str) {
       case "pending": {
         return <Tag color="#EFB40D">PENDING</Tag>;
@@ -122,6 +195,8 @@ const TransactionHistory = ({
       case "failed": {
         return <Tag color="#FF0000">FAILED</Tag>;
       }
+      default:
+        return <Tag>No Status</Tag>;
     }
   };
   const columns: TableProps<TransactionHistoryDataType>["columns"] = [
@@ -135,7 +210,15 @@ const TransactionHistory = ({
       dataIndex: "name",
       key: "name",
       render: (type) => (
-        <Tag color={type == "gcash" ? "#297BFA" : "#EFB40D"}>
+        <Tag
+          color={
+            type == "gcash"
+              ? "#297BFA"
+              : type == "bills"
+              ? "#28a745"
+              : "#EFB40D"
+          }
+        >
           {type.toLocaleUpperCase()}
         </Tag>
       ),
@@ -169,8 +252,8 @@ const TransactionHistory = ({
     {
       title: "Status",
       key: "status",
-      render: (_, { status }: { status: TransactionHistoryDataType_type }) =>
-        getStatusBadge(status),
+      render: (_, e: TransactionHistoryDataType) =>
+        getStatusBadge(e.history?.at(-1)?.status ?? null),
     },
     {
       title: "Actions",
@@ -189,8 +272,10 @@ const TransactionHistory = ({
       open={open}
       onClose={close}
       width="100%"
-      closeIcon={<LeftOutlined />}
+      height="100%"
+      closeIcon={<DownOutlined />}
       extra={extra}
+      placement="bottom"
       title={
         <Typography.Text style={{ fontSize: 25 }}>
           {title ?? "Transaction History"}
@@ -213,7 +298,9 @@ const TransactionHistory = ({
         rowKey={(e) => e.id}
         onRow={(data) => {
           return {
-            onClick: () => (onCellClick ? onCellClick(data) : null),
+            onClick: () => {
+              if (onCellClick) onCellClick(data);
+            },
           };
         }}
       />

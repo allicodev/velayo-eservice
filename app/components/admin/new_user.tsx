@@ -49,6 +49,7 @@ const NewUser = ({ open, close, onAdd }: NewUserProps) => {
           onChange={(e) =>
             setFormInput({ ...formInput, username: e.target.value })
           }
+          className="customInput"
           size="large"
         />
       </FloatLabel>
@@ -61,6 +62,7 @@ const NewUser = ({ open, close, onAdd }: NewUserProps) => {
           onChange={(e) =>
             setFormInput({ ...formInput, password: e.target.value })
           }
+          className="customInput"
           size="large"
         />
       </FloatLabel>
