@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
-import { Typography } from "antd";
+import { Button, Popconfirm, Tooltip, Typography } from "antd";
+import { LogoutOutlined } from "@ant-design/icons";
 
 import { UserBadgeProps } from "@/types";
 
@@ -18,11 +19,28 @@ const UserBadge = ({ name, style, title }: UserBadgeProps) => {
 
   return (
     <div style={style}>
-      <Typography.Text
-        style={{ fontSize: 45, display: "block", lineHeight: 0.6 }}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+        }}
       >
-        Welcome {title} {name}
-      </Typography.Text>
+        <Typography.Text
+          style={{ fontSize: 45, display: "block", lineHeight: 0.6 }}
+        >
+          Welcome {title} {name}
+        </Typography.Text>
+        <Tooltip title="Logout">
+          <Popconfirm
+            title="Are you sure you want to logout?"
+            okText="LOGOUT"
+            okType="danger"
+          >
+            <Button icon={<LogoutOutlined />} size="large" danger />
+          </Popconfirm>
+        </Tooltip>
+      </div>
+
       <Typography.Text style={{ fontSize: 26 }}>
         {currentTime.format("MMMM DD, YYYY - hh:mma")}
       </Typography.Text>

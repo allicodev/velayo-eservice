@@ -69,6 +69,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
             value={rate}
             style={{
               width: 80,
+              paddingRight: 10,
             }}
             onChange={(e) => setRate(e)}
             controls={false}

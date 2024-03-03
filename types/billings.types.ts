@@ -50,5 +50,5 @@ export interface BillingSettingsType {
 
 export interface OptionTypeWithFlag {
   open: boolean;
-  options?: BillingSettingsType | undefined | null;
+  options?: BillingsFormField | undefined | null;
 }

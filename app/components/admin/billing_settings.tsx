@@ -66,7 +66,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
     },
   ]);
 
-  const getSideB = (biller: BillingSettingsType) => {
+  const getSideB = (billingFormField: BillingSettingsType) => {
     let billerNode:
       | InputOptions
       | NumberOptions
@@ -76,7 +76,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
       | null = null;
 
     const billingButton = (formField: BillingsFormField): ReactNode => {
-      let index = biller.formfield?.indexOf(formField);
+      let index = billingFormField.formfield?.indexOf(formField);
 
       switch (formField.type) {
         case "checkbox":
@@ -122,7 +122,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
           onClick={() => {
             setBillsOptions({
               open: true,
-              options: biller,
+              options: billingFormField.formfield![index ?? -1],
             });
           }}
           style={{
@@ -169,11 +169,11 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
     return (
       <>
         <Typography.Title style={{ textAlign: "center" }}>
-          {biller.name.toLocaleUpperCase()} bills settings
+          {billingFormField.name.toLocaleUpperCase()} bills settings
         </Typography.Title>
-        {biller?.formfield?.length != 0 && (
+        {billingFormField?.formfield?.length != 0 && (
           <Space direction="vertical">
-            {biller.formfield?.map((e) => billingButton(e))}
+            {billingFormField.formfield?.map((e) => billingButton(e))}
           </Space>
         )}
       </>

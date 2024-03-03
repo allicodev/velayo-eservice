@@ -1,5 +1,5 @@
 import { CSSProperties, ReactNode } from "react";
-import { BillingSettingsType } from "./billings.types";
+import { BillingsFormField } from "./billings.types";
 
 interface DashboardBtnProps {
   icon?: any;
@@ -114,7 +114,7 @@ interface NewBillerProps {
 interface NewOptionProps {
   open: boolean;
   close: () => void;
-  formfield?: BillingSettingsType | null;
+  formfield?: BillingsFormField | null;
 }
 
 //* E-Wallet types

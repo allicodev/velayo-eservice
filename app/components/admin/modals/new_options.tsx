@@ -1,10 +1,11 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import {
   Button,
   Form,
   Input,
   InputNumber,
   Modal,
+  Popconfirm,
   Select,
   Space,
   Tooltip,
@@ -14,12 +15,11 @@ import { QuestionCircleOutlined, CloseOutlined } from "@ant-design/icons";
 
 import { NewOptionProps, BillingOptionsType } from "@/types";
 
-const NewOption = ({ open, close }: NewOptionProps) => {
+const NewOption = ({ open, close, formfield }: NewOptionProps) => {
   const [form] = Form.useForm();
   const [selectedType, setSelectedType] = useState<BillingOptionsType | null>(
     null
   );
-
   const optionalHeader = ({ children }: { children: ReactNode }) => (
     <div style={{ marginTop: 10, display: "flex", flexDirection: "column" }}>
       <Typography.Text
@@ -50,9 +50,7 @@ const NewOption = ({ open, close }: NewOptionProps) => {
                   width: 190,
                 }}
               >
-                <label
-                  style={{ fontSize: "1.25em", marginRight: 10, width: 700 }}
-                >
+                <label style={{ fontSize: "1.25em", marginRight: 10 }}>
                   Minimum Length
                 </label>
                 <InputNumber
@@ -271,8 +269,61 @@ const NewOption = ({ open, close }: NewOptionProps) => {
     }
   };
 
+  const updateFieldValue = () => {
+    let opt = {
+      type: formfield?.type ?? null,
+      title: "",
+    };
+
+    switch (formfield?.type) {
+      case "checkbox": {
+        opt.title = formfield.checkboxOption?.name ?? "";
+        break;
+      }
+      case "input": {
+        opt.title = formfield.inputOption?.name ?? "";
+        break;
+      }
+      case "number": {
+        opt.title = formfield.inputNumberOption?.name ?? "";
+        break;
+      }
+      case "select": {
+        opt.title = formfield.selectOption?.name ?? "";
+        break;
+      }
+      case "textarea": {
+        opt.title = formfield.textareaOption?.name ?? "";
+        break;
+      }
+    }
+
+    form.setFieldsValue(opt);
+  };
+
+  useEffect(() => {
+    setSelectedType(formfield?.type ?? null);
+    updateFieldValue();
+  }, [formfield]);
+
   return (
-    <Modal open={open} onCancel={close} okText="Add Option">
+    <Modal
+      open={open}
+      onCancel={close}
+      footer={[
+        formfield != null ? (
+          <Popconfirm
+            key="remove-option-btn"
+            title="Are you sure you want to delete this?"
+          >
+            <Button danger>Delete</Button>
+          </Popconfirm>
+        ) : null,
+        <Button key="add-option-btn" type="primary" onClick={close}>
+          Add Option
+        </Button>,
+      ]}
+    >
       <Form
         form={form}
         colon={false}
