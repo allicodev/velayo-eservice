@@ -147,3 +147,8 @@ textarea.customInput {
 .billing-button:hover {
   border: 0.5px solid #2f54eb !important;
 }
+
+.custom-inputnumber div input.ant-input-number-input {
+  text-align: center;
+  min-width: 50px;
+}

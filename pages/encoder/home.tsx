@@ -5,6 +5,8 @@ import { Badge, Button, Select, Space, Typography } from "antd";
 import { TransactionHistory, EncoderForm } from "@/app/components/teller";
 import { BillsStateDataType } from "@/types";
 
+// TODO: add filter
+
 const Encoder = () => {
   const [branchOpt, setBranchOpt] = useState({
     open: false,

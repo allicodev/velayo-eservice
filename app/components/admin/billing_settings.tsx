@@ -25,12 +25,21 @@ import {
   TextAreaOptions,
   SelectOptions,
   CheckboxOptions,
+  OptionTypeWithFlag,
 } from "@/types";
 
-const BillingSettings = ({ open, close }: BillsSettings) => {
-  const [selectedBiller, setSelectedBiller] = useState<BillingSettingsType>();
+import { NewBiller, NewOption } from "./modals";
 
-  const mock: BillingSettingsType[] = [
+const BillingSettings = ({ open, close }: BillsSettings) => {
+  const [selectedBiller, setSelectedBiller] =
+    useState<BillingSettingsType | null>();
+  const [openNewBiller, setOpenNewBiller] = useState(false);
+  const [billsOptions, setBillsOptions] = useState<OptionTypeWithFlag>({
+    open: false,
+    options: null,
+  });
+
+  const [mock, setMock] = useState<BillingSettingsType[]>([
     {
       name: "VECO",
       formfield: [
@@ -55,7 +64,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
     {
       name: "MCWD",
     },
-  ];
+  ]);
 
   const getSideB = (biller: BillingSettingsType) => {
     let billerNode:
@@ -110,6 +119,12 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
 
       return (
         <div
+          onClick={() => {
+            setBillsOptions({
+              open: true,
+              options: biller,
+            });
+          }}
           style={{
             display: "flex",
             cursor: "pointer",
@@ -169,7 +184,10 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
     <>
       <Drawer
         open={open}
-        onClose={close}
+        onClose={() => {
+          setSelectedBiller(null);
+          close();
+        }}
         width="100%"
         height="100%"
         closeIcon={<DownOutlined />}
@@ -241,6 +259,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                 right: 0,
                 bottom: 0,
               }}
+              onClick={(e) => setOpenNewBiller(true)}
             >
               New Biller
             </Button>
@@ -260,7 +279,17 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                 direction="vertical"
                 style={{ position: "absolute", right: 0, bottom: 0 }}
               >
-                <Button icon={<PlusOutlined />}>Add New Option</Button>
+                <Button
+                  icon={<PlusOutlined />}
+                  onClick={() =>
+                    setBillsOptions({
+                      open: true,
+                      options: null,
+                    })
+                  }
+                >
+                  Add New Option
+                </Button>
                 <Button icon={<SaveOutlined />} type="primary">
                   SAVE SETTINGS
                 </Button>
@@ -270,6 +299,32 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
           </Col>
         </Row>
       </Drawer>
+
+      {/* context */}
+      <NewBiller
+        open={openNewBiller}
+        close={() => setOpenNewBiller(false)}
+        onSave={(e) => {
+          if (
+            mock
+              .map((_) => _.name)
+              .filter((__) => __.toLocaleUpperCase() == e.toLocaleUpperCase())
+          )
+            return true;
+          setMock([
+            ...mock,
+            {
+              name: e,
+            },
+          ]);
+        }}
+      />
+
+      <NewOption
+        open={billsOptions.open}
+        close={() => setBillsOptions({ open: false, options: null })}
+        formfield={billsOptions.options}
+      />
     </>
   );
 };

@@ -9,6 +9,8 @@ import {
   TransactionDetails,
 } from "@/app/components/teller";
 
+// TODO: add icons
+
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
   const [transactionDetailsOpt, setTransactionOpt] = useState({

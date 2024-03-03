@@ -1,15 +1,15 @@
 // TODO: create efficient and good design for "select" options dudeeeee
 
-type BillingOptionsType =
+interface FieldName {
+  name: string;
+}
+
+export type BillingOptionsType =
   | "input"
   | "number"
   | "textarea"
   | "checkbox"
   | "select";
-
-interface FieldName {
-  name: string;
-}
 
 export interface InputOptions extends FieldName {
   minLength?: number | null;
@@ -46,4 +46,9 @@ export interface BillingsFormField {
 export interface BillingSettingsType {
   name: string;
   formfield?: BillingsFormField[];
+}
+
+export interface OptionTypeWithFlag {
+  open: boolean;
+  options?: BillingSettingsType | undefined | null;
 }

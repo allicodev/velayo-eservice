@@ -1,4 +1,5 @@
 import { CSSProperties, ReactNode } from "react";
+import { BillingSettingsType } from "./billings.types";
 
 interface DashboardBtnProps {
   icon?: any;
@@ -104,6 +105,27 @@ interface BillsSettings {
   close: () => void;
 }
 
+interface NewBillerProps {
+  open: boolean;
+  close: () => void;
+  onSave: (str: string) => boolean | void;
+}
+
+interface NewOptionProps {
+  open: boolean;
+  close: () => void;
+  formfield?: BillingSettingsType | null;
+}
+
+//* E-Wallet types
+
+type EWalletTypes = "percent" | "fixed";
+interface EWalletDataType {
+  name: string;
+  type: EWalletTypes;
+  value: number;
+}
+
 export type {
   DashboardBtnProps,
   DrawerBasicProps,
@@ -119,6 +141,10 @@ export type {
   NewUser,
   TransactionDetailsProps,
   BillsSettings,
+  NewBillerProps,
+  NewOptionProps,
+  EWalletDataType,
+  EWalletTypes,
 };
 
 export * from "./billings.types";
