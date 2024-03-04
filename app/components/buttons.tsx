@@ -1,8 +1,21 @@
-import React from "react";
+import React, { ReactNode } from "react";
 import { DashboardBtnProps } from "@/types";
 import { Typography } from "antd";
 
 const DashboardBtn = ({ title, onPress, icon, style }: DashboardBtnProps) => {
+  const formatString = (str: string): ReactNode => {
+    const _str = str.split("\n");
+    return (
+      <>
+        {_str.map((e) => (
+          <>
+            {e}
+            <br />
+          </>
+        ))}
+      </>
+    );
+  };
   return (
     <div
       className="dashboard-btn"
@@ -22,7 +35,9 @@ const DashboardBtn = ({ title, onPress, icon, style }: DashboardBtnProps) => {
       onClick={onPress}
     >
       {icon}
-      <Typography.Text style={{ fontSize: 38 }}>{title}</Typography.Text>
+      <Typography.Text style={{ fontSize: 38, textAlign: "center" }}>
+        {formatString(title)}
+      </Typography.Text>
     </div>
   );
 };

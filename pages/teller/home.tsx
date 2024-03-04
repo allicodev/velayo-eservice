@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Col, Row } from "antd";
-import { UserOutlined } from "@ant-design/icons";
+import { UserOutlined, WalletOutlined } from "@ant-design/icons";
+import { MdOutlineSendToMobile } from "react-icons/md";
+import { FaMoneyBills } from "react-icons/fa6";
+import { AiOutlineFileDone } from "react-icons/ai";
 
 import { UserBadge, DashboardBtn } from "@/app/components";
 import {
@@ -20,18 +23,30 @@ const Teller = () => {
 
   const menu = [
     {
-      title: "Bills Payment",
-      icon: <UserOutlined style={{ fontSize: 80 }} />,
+      title: "Bills \nPayment",
+      icon: <FaMoneyBills style={{ fontSize: 80 }} />,
       onPress: () => {},
     },
-    { title: "Wallet Cash In/out", onPress: () => setOpenedMenu("gcash") },
-    { title: "E-Load", onPress: () => {} },
     {
-      title: "Shopee Self Collect",
-      icon: <UserOutlined style={{ fontSize: 80 }} />,
+      title: "Wallet Cash \nIn/out",
+      icon: <WalletOutlined style={{ fontSize: 80 }} />,
+      onPress: () => setOpenedMenu("gcash"),
+    },
+    {
+      title: "E-Load",
+      icon: <MdOutlineSendToMobile style={{ fontSize: 80 }} />,
       onPress: () => {},
     },
-    { title: "Transaction History", onPress: () => setOpenedMenu("th") },
+    {
+      title: "Shopee Self \nCollect",
+
+      onPress: () => {},
+    },
+    {
+      title: "Transaction History",
+      icon: <AiOutlineFileDone style={{ fontSize: 80 }} />,
+      onPress: () => setOpenedMenu("th"),
+    },
     { title: "miscellaneous", onPress: () => {} },
   ];
 
