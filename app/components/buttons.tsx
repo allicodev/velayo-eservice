@@ -7,15 +7,16 @@ const DashboardBtn = ({ title, onPress, icon, style }: DashboardBtnProps) => {
     const _str = str.split("\n");
     return (
       <>
-        {_str.map((e) => (
-          <>
+        {_str.map((e, i) => (
+          <React.Fragment key={`title-key-${i}`}>
             {e}
             <br />
-          </>
+          </React.Fragment>
         ))}
       </>
     );
   };
+
   return (
     <div
       className="dashboard-btn"

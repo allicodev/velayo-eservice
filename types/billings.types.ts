@@ -1,5 +1,3 @@
-// TODO: create efficient and good design for "select" options dudeeeee
-
 interface FieldName {
   name: string;
 }

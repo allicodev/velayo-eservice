@@ -4,6 +4,7 @@ import { Button, Popconfirm, Tooltip, Typography } from "antd";
 import { LogoutOutlined } from "@ant-design/icons";
 
 import { UserBadgeProps } from "@/types";
+import Cookies from "js-cookie";
 
 const UserBadge = ({ name, style, title }: UserBadgeProps) => {
   const [currentTime, setCurrentTime] = useState(dayjs());
@@ -35,6 +36,10 @@ const UserBadge = ({ name, style, title }: UserBadgeProps) => {
             title="Are you sure you want to logout?"
             okText="LOGOUT"
             okType="danger"
+            onConfirm={() => {
+              Cookies.remove("token");
+              window.location.reload();
+            }}
           >
             <Button icon={<LogoutOutlined />} size="large" danger />
           </Popconfirm>

@@ -1,32 +1,9 @@
-import { CSSProperties, ReactNode } from "react";
-import { BillingsFormField } from "./billings.types";
-
-interface DashboardBtnProps {
-  icon?: any;
-  title: string;
-  onPress: () => void;
-  style?: CSSProperties;
-}
-
-interface DrawerBasicProps {
-  open: boolean;
-  close: () => void;
-  title?: string;
-  style?: CSSProperties;
-  extra?: ReactNode;
-  onCellClick?: (str: any) => void;
-}
-
-interface GcashCollapseItemButtonProps {
-  key?: string;
-  label: string;
-  onClickTitle?: (str: string) => void;
-  onClickCashIn?: () => void;
-  onClickCashOut?: () => void;
-}
+import { UserProps } from "./props.types";
 
 type TransactionHistoryDataType_type = "pending" | "completed" | "failed";
 type TransactionNameType = "gcash" | "eload" | "bills";
+type UserBadgeTitle = "Teller" | "Encoder";
+
 interface TransactionHistoryDataType {
   id: number;
   key: number | string;
@@ -47,40 +24,9 @@ interface HistoryDataType {
   status: TransactionHistoryDataType_type;
 }
 
-type UserBadgeTitle = "Teller" | "Encoder";
-
-interface UserBadgeProps {
-  name: string;
-  title: UserBadgeTitle;
-  style?: CSSProperties;
-}
-interface BillsPaymentProps {
-  open: boolean;
-  close: () => void;
-  transaction: TransactionHistoryDataType | null;
-}
-
 interface BillsStateDataType {
   open: boolean;
   transaction: TransactionHistoryDataType | null;
-}
-
-interface FloatLabelProps {
-  children: ReactNode;
-  label: string;
-  value?: string;
-  style?: CSSProperties;
-  bool?: boolean;
-  labelClassName?: string;
-}
-
-interface UserProps {
-  name: string;
-  key?: number | string;
-  username: string;
-  email: string;
-  role: UserBadgeTitle | string;
-  dateCreated?: Date;
 }
 
 interface NewUser
@@ -88,33 +34,9 @@ interface NewUser
   password: string;
 }
 
-interface TransactionDetailsProps {
-  open: boolean;
-  close: () => void;
-  transaction: TransactionHistoryDataType | null;
-}
-
-interface NewUserProps {
-  open: boolean;
-  close: () => void;
-  onAdd: (obj: NewUser) => void;
-}
-
 interface BillsSettings {
   open: boolean;
   close: () => void;
-}
-
-interface NewBillerProps {
-  open: boolean;
-  close: () => void;
-  onSave: (str: string) => boolean | void;
-}
-
-interface NewOptionProps {
-  open: boolean;
-  close: () => void;
-  formfield?: BillingsFormField | null;
 }
 
 //* E-Wallet types
@@ -126,25 +48,40 @@ interface EWalletDataType {
   value: number;
 }
 
+// api interface
+interface Response {
+  code: number;
+  success: boolean;
+  message?: string;
+}
+
+interface ExtendedResponse<T> extends Response {
+  data?: T;
+}
+
+// pagination props
+
+interface PageProps {
+  pageSize: number;
+  page: number;
+  total?: number;
+}
+
 export type {
-  DashboardBtnProps,
-  DrawerBasicProps,
-  GcashCollapseItemButtonProps,
   TransactionHistoryDataType,
   TransactionHistoryDataType_type,
-  UserBadgeProps,
-  BillsPaymentProps,
   BillsStateDataType,
-  FloatLabelProps,
-  UserProps,
-  NewUserProps,
   NewUser,
-  TransactionDetailsProps,
   BillsSettings,
-  NewBillerProps,
-  NewOptionProps,
   EWalletDataType,
   EWalletTypes,
+  UserBadgeTitle,
+  Response,
+  ExtendedResponse,
+  PageProps,
 };
 
 export * from "./billings.types";
+export * from "./schema.types";
+export * from "./props.types";
+export * from "./service.types";

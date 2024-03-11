@@ -5,9 +5,12 @@ import { UserBadge, DashboardBtn } from "@/app/components";
 import UserList from "@/app/components/admin/user_list";
 import BillingSettings from "@/app/components/admin/billing_settings";
 import EWalletSettings from "@/app/components/admin/ewallet_settings";
+import { useUserStore } from "@/provider/context";
 
 const Home = () => {
   const [openedMenu, setOpenedMenu] = useState("");
+
+  const { currentUser } = useUserStore();
 
   const menu = [
     { title: "Users", onPress: () => setOpenedMenu("user") },
@@ -30,8 +33,14 @@ const Home = () => {
           }}
         >
           <UserBadge
-            name="John Doe"
-            title="Teller"
+            name={currentUser?.name ?? ""}
+            title={
+              currentUser
+                ? `${currentUser.role[0].toLocaleUpperCase()}${currentUser.role.slice(
+                    1
+                  )}`
+                : null
+            }
             style={{
               margin: 25,
             }}

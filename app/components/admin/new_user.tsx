@@ -4,8 +4,6 @@ import { Button, Input, Modal, Select, message } from "antd";
 import { NewUserProps, NewUser } from "@/types";
 import { FloatLabel } from "@/assets/ts";
 
-// TODO: add validations here
-
 const NewUser = ({ open, close, onAdd }: NewUserProps) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [formInput, setFormInput] = useState<NewUser>({
@@ -15,6 +13,25 @@ const NewUser = ({ open, close, onAdd }: NewUserProps) => {
     role: "",
     password: "",
   });
+
+  const validate = () => {
+    if (Object.values(formInput).filter((e) => e == "").length > 0) {
+      message.warning("There are blank field. Please Provide.");
+      return;
+    }
+
+    const reg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!reg.test(formInput.email)) {
+      message.warning("Email is invalid. Please provide a correct one.");
+      return;
+    }
+
+    if (formInput.password == confirmPassword) onAdd(formInput);
+    else
+      message.error(
+        "Password and Confirm Password didn't match. Please try again."
+      );
+  };
 
   return (
     <Modal
@@ -96,18 +113,7 @@ const NewUser = ({ open, close, onAdd }: NewUserProps) => {
           onChange={(e) => setFormInput({ ...formInput, role: e })}
         />
       </FloatLabel>
-      <Button
-        size="large"
-        type="primary"
-        onClick={(e) => {
-          if (formInput.password == confirmPassword) onAdd(formInput);
-          else
-            message.error(
-              "Password and Confirm Password didn't match. Please try again."
-            );
-        }}
-        block
-      >
+      <Button size="large" type="primary" onClick={validate} block>
         Register
       </Button>
     </Modal>
