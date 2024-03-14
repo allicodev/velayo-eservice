@@ -36,6 +36,7 @@ class API {
       return {
         success: true,
         code: request.status,
+        message: request.data.message,
         data: request.data.data,
       };
     else
@@ -72,6 +73,7 @@ class API {
       return {
         success: true,
         code: request.status,
+        message: request.data.message,
         data: request.data.data,
       };
     else

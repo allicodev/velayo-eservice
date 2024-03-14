@@ -77,10 +77,21 @@ export interface NewBillerProps {
   onSave: (str: string) => boolean | void;
 }
 
+export interface UpdateBillerProps {
+  open: boolean;
+  close: () => void;
+  onSave: (str: string) => boolean | void;
+  name: string;
+}
+
 export interface NewOptionProps {
   open: boolean;
   close: () => void;
   formfield?: BillingsFormField | null;
+  onSave: (obj: BillingsFormField) => void;
+  id: string | null;
+  index: number;
+  refresh?: () => void;
 }
 
 // backend stuffs

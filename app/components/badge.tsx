@@ -11,10 +11,9 @@ const UserBadge = ({ name, style, title }: UserBadgeProps) => {
 
   useEffect(() => {
     const currentSeconds = dayjs().second();
-
     setTimeout(
       () => setInterval(() => setCurrentTime(dayjs()), 1000 * 60),
-      currentSeconds * 1000
+      (60 - currentSeconds) * 1000
     );
   }, []);
 
