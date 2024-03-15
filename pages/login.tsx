@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Button, Card, Form, Input, Typography, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import Cookies from "js-cookie";
@@ -6,6 +6,7 @@ import Cookies from "js-cookie";
 import { UserLoginProps } from "@/types";
 import UserService from "@/provider/user.service";
 import { useUserStore, useAuthStore } from "@/provider/context";
+import axios from "axios";
 
 const Login = () => {
   const [form] = Form.useForm();
@@ -26,6 +27,13 @@ const Login = () => {
       message.error(response.message);
     }
   };
+
+  // check if there is an admin, if none, create one
+  useEffect(() => {
+    (async (_) => {
+      await axios.get("/api/user/init-credentials");
+    })(axios);
+  }, []);
 
   return (
     <div className="login-container">
