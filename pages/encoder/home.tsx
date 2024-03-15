@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { UserBadge } from "@/app/components";
 import { Badge, Button, Select, Space, Typography } from "antd";
 import { TransactionHistory, EncoderForm } from "@/app/components/teller";
-import { BillsStateDataType } from "@/types";
+import { TransactionOptProps } from "@/types";
 import { useUserStore } from "@/provider/context";
 
 // TODO: add filter
@@ -13,10 +13,12 @@ const Encoder = () => {
     open: false,
     branch: "",
   });
-  const [billsOption, setBillsOption] = useState<BillsStateDataType>({
+  const [billsOption, setBillsOption] = useState<TransactionOptProps>({
     open: false,
     transaction: null,
   });
+
+  const [trigger, setTrigger] = useState(0);
 
   const { currentUser } = useUserStore();
 
@@ -66,7 +68,7 @@ const Encoder = () => {
             >
               Branch 1: 001 <Badge count={1} />
             </Button>
-            <Button
+            {/* <Button
               style={{
                 fontSize: 25,
                 height: 50,
@@ -91,7 +93,7 @@ const Encoder = () => {
               onClick={() => setBranchOpt({ open: true, branch: "branch 3" })}
             >
               Branch 3: 002 <Badge count={1} />
-            </Button>
+            </Button> */}
           </Space>
         </div>
       </div>
@@ -101,8 +103,9 @@ const Encoder = () => {
         title={branchOpt.branch}
         close={() => setBranchOpt({ open: false, branch: "" })}
         style={{
-          width: "80vw",
+          width: "100%",
         }}
+        refresh={trigger}
         extra={
           <Select
             defaultValue={null}
@@ -121,6 +124,7 @@ const Encoder = () => {
       />
       <EncoderForm
         close={() => setBillsOption({ open: false, transaction: null })}
+        refresh={() => setTrigger(trigger + 1)}
         {...billsOption}
       />
     </>

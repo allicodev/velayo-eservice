@@ -1,6 +1,5 @@
 import { CSSProperties, ReactNode } from "react";
 import {
-  TransactionHistoryDataType,
   UserBadgeTitle,
   NewUser,
   BillingsFormField,
@@ -23,6 +22,7 @@ export interface DrawerBasicProps {
   style?: CSSProperties;
   extra?: ReactNode;
   onCellClick?: (str: any) => void;
+  refresh?: number;
 }
 
 export interface GcashCollapseItemButtonProps {
@@ -40,7 +40,8 @@ export interface UserBadgeProps {
 export interface BillsPaymentProps {
   open: boolean;
   close: () => void;
-  transaction: TransactionHistoryDataType | null;
+  transaction: Transaction | null;
+  refresh?: () => void;
 }
 
 export interface FloatLabelProps {

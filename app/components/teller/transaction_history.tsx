@@ -27,6 +27,7 @@ const TransactionHistory = ({
   style,
   extra,
   onCellClick,
+  refresh,
 }: DrawerBasicProps) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [trigger, setTrigger] = useState(0);
@@ -121,7 +122,6 @@ const TransactionHistory = ({
       let res = await _.getAllTransaction(page, pageSize);
 
       if (res.success) {
-        console.log(res);
         setTransactions(res?.data ?? []);
       }
     })(bill);
@@ -129,7 +129,7 @@ const TransactionHistory = ({
 
   useEffect(() => {
     if (open) getTransaction(1);
-  }, [open, trigger]);
+  }, [open, trigger, refresh]);
 
   return (
     <Drawer

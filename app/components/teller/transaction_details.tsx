@@ -73,13 +73,6 @@ const TransactionDetails = ({
     />
   );
 
-  const transformText = (str: string) => {
-    let _str = str
-      .replace("_", " ")
-      .split(" ")
-      .map((e) => e[0].toLocaleUpperCase() + e.slice(1));
-  };
-
   useEffect(() => {
     if (open) {
       if (transaction?.type == "bills") {

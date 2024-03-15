@@ -4,7 +4,7 @@ import {
   BillingSettingsType,
   BillingsFormField,
   Transaction,
-  TransactionHistory,
+  Response,
 } from "@/types";
 
 class BillService extends Loader {
@@ -138,6 +138,16 @@ class BillService extends Loader {
         page,
         pageSize,
       },
+    });
+    this.loaderPop("get-transaction");
+    return response;
+  }
+
+  public async updateTransaction(transaction: Transaction) {
+    this.loaderPush("get-transaction");
+    const response = await this.instance.post<Response>({
+      endpoint: "/transaction/update-transaction",
+      payload: transaction,
     });
     this.loaderPop("get-transaction");
     return response;
