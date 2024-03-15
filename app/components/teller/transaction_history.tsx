@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Drawer,
   Typography,
@@ -10,13 +10,15 @@ import {
   message,
 } from "antd";
 import { DownOutlined, PrinterOutlined, CopyOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
+
+import BillService from "@/provider/bill.service";
 
 import {
   DrawerBasicProps,
-  TransactionHistoryDataType,
-  TransactionHistoryDataType_type,
+  Transaction,
+  TransactionHistoryStatus,
 } from "@/types";
-import dayjs from "dayjs";
 
 const TransactionHistory = ({
   open,
@@ -26,165 +28,11 @@ const TransactionHistory = ({
   extra,
   onCellClick,
 }: DrawerBasicProps) => {
-  const mock: TransactionHistoryDataType[] = [
-    {
-      id: 1,
-      key: 1,
-      name: "gcash",
-      type: "cash-in",
-      dateCreated: new Date(2024, 1, 21),
-      reference: null,
-      amount: 1000,
-      mobileNumber: "09123456789",
-      accountName: "John Doe",
-      history: [
-        {
-          date: new Date(2024, 1, 21, 6, 8),
-          description: "First Transaction Requested",
-          status: "pending",
-        },
-        {
-          date: new Date(2024, 1, 21, 6, 10),
-          description: "Transaction Complete",
-          status: "completed",
-        },
-      ],
-    },
-    {
-      id: 2,
-      key: 2,
-      name: "bills",
-      type: "VECO",
-      dateCreated: new Date(2024, 1, 20),
-      reference: "090909",
-      amount: 1,
-      mobileNumber: "09123456789",
-      accountName: "John Doe",
-      accountNumber: "123-456-789",
-      history: [
-        {
-          date: new Date(2024, 1, 21, 6, 8),
-          description: "First Transaction Requested",
-          status: "pending",
-        },
-        {
-          date: new Date(2024, 1, 21, 6, 10),
-          description: "Account Number is invalid",
-          status: "failed",
-        },
-      ],
-    },
-    {
-      id: 3,
-      key: 3,
-      name: "eload",
-      type: null,
-      dateCreated: new Date(2024, 1, 20),
-      reference: "123456",
-      amount: 1000,
-      mobileNumber: "09123456789",
-      history: [
-        {
-          date: new Date(2024, 1, 21, 6, 8),
-          description: "First Transaction Requested",
-          status: "pending",
-        },
-        {
-          date: new Date(2024, 1, 21, 6, 10),
-          description: "Transaction Completed",
-          status: "completed",
-        },
-      ],
-    },
-    {
-      id: 4,
-      key: 4,
-      name: "gcash",
-      type: "cash-out",
-      dateCreated: new Date(2024, 1, 22),
-      reference: null,
-      amount: 1000,
-      mobileNumber: "09123456789",
-      accountName: "John Doe",
-      history: [
-        {
-          date: new Date(2024, 1, 21, 6, 8),
-          description: "First Transaction Requested",
-          status: "pending",
-        },
-        {
-          date: new Date(2024, 1, 21, 6, 10),
-          description: "Invalid GCASH Number",
-          status: "failed",
-        },
-      ],
-    },
-    {
-      id: 5,
-      key: 5,
-      name: "gcash",
-      type: "cash-out",
-      dateCreated: new Date(2024, 1, 21),
-      reference: null,
-      amount: 1000,
-      mobileNumber: "09123456789",
-      accountName: "John Doe",
-      history: [
-        {
-          date: new Date(2024, 1, 21, 6, 8),
-          description: "First Transaction Requested",
-          status: "pending",
-        },
-      ],
-    },
-    {
-      id: 6,
-      key: 6,
-      name: "gcash",
-      type: "cash-in",
-      dateCreated: new Date(2024, 1, 20),
-      reference: "090909",
-      amount: 1000,
-      mobileNumber: "09123456789",
-      accountName: "John Doe",
-      history: [
-        {
-          date: new Date(2024, 1, 21, 6, 8),
-          description: "First Transaction Requested",
-          status: "pending",
-        },
-        {
-          date: new Date(2024, 1, 21, 6, 10),
-          description: "Transaction Complete",
-          status: "completed",
-        },
-      ],
-    },
-    {
-      id: 7,
-      key: 7,
-      name: "eload",
-      type: null,
-      dateCreated: new Date(2024, 1, 20),
-      reference: "123456",
-      amount: 1000,
-      mobileNumber: "09123456789",
-      history: [
-        {
-          date: new Date(2024, 1, 21, 6, 8),
-          description: "First Transaction Requested",
-          status: "pending",
-        },
-        {
-          date: new Date(2024, 1, 21, 6, 10),
-          description: "E-Load Complete",
-          status: "completed",
-        },
-      ],
-    },
-  ];
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [trigger, setTrigger] = useState(0);
+  const bill = new BillService();
 
-  const getStatusBadge = (str: TransactionHistoryDataType_type | null) => {
+  const getStatusBadge = (str: TransactionHistoryStatus | null) => {
     switch (str) {
       case "pending": {
         return <Tag color="#EFB40D">PENDING</Tag>;
@@ -199,17 +47,17 @@ const TransactionHistory = ({
         return <Tag>No Status</Tag>;
     }
   };
-  const columns: TableProps<TransactionHistoryDataType>["columns"] = [
-    {
-      title: "ID",
-      key: "id",
-      dataIndex: "id",
-    },
+  const columns: TableProps<Transaction>["columns"] = [
+    // {
+    //   title: "ID",
+    //   key: "id",
+    //   dataIndex: "_id",
+    // },
     {
       title: "Transaction Type",
       dataIndex: "name",
       key: "name",
-      render: (type) => (
+      render: (_, { type }) => (
         <Tag
           color={
             type == "gcash"
@@ -252,8 +100,8 @@ const TransactionHistory = ({
     {
       title: "Status",
       key: "status",
-      render: (_, e: TransactionHistoryDataType) =>
-        getStatusBadge(e.history?.at(-1)?.status ?? null),
+      render: (_, { history }) =>
+        getStatusBadge(history?.at(-1)?.status ?? null),
     },
     {
       title: "Actions",
@@ -266,6 +114,22 @@ const TransactionHistory = ({
       ),
     },
   ];
+
+  const getTransaction = (page: number, pageSize?: number) => {
+    if (!pageSize) pageSize = 10;
+    (async (_) => {
+      let res = await _.getAllTransaction(page, pageSize);
+
+      if (res.success) {
+        console.log(res);
+        setTransactions(res?.data ?? []);
+      }
+    })(bill);
+  };
+
+  useEffect(() => {
+    if (open) getTransaction(1);
+  }, [open, trigger]);
 
   return (
     <Drawer
@@ -292,10 +156,10 @@ const TransactionHistory = ({
       }}
     >
       <Table
-        dataSource={mock}
+        dataSource={transactions}
         columns={columns}
         style={style}
-        rowKey={(e) => e.id}
+        rowKey={(e) => e._id ?? e.type}
         onRow={(data) => {
           return {
             onClick: () => {

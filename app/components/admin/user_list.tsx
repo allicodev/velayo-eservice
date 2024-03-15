@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Drawer,
   Typography,
@@ -7,6 +7,7 @@ import {
   Button,
   Table,
   Popconfirm,
+  message,
 } from "antd";
 import {
   DownOutlined,
@@ -16,8 +17,9 @@ import {
 
 import dayjs from "dayjs";
 
-import { DrawerBasicProps, UserProps } from "@/types";
+import { DrawerBasicProps, ProtectedUser } from "@/types";
 import NewUser from "./new_user";
+import UserService from "@/provider/user.service";
 
 const User = ({
   open,
@@ -28,25 +30,12 @@ const User = ({
   onCellClick,
 }: DrawerBasicProps) => {
   const [openedNewUser, setOpenedNewUser] = useState(false);
+  const [users, setUsers] = useState<ProtectedUser[]>([]);
+  const [trigger, setTrigger] = useState(0);
 
-  const mock: UserProps[] = [
-    {
-      name: "Jhon Doe",
-      username: "john_doe123",
-      email: "mrjohn_doe@gmail.com",
-      role: "Encoder",
-      dateCreated: new Date(2024, 1, 22),
-    },
-    {
-      name: "Angelina Jolie",
-      username: "angeline143",
-      email: "angelina_jolie@gmail.com",
-      role: "Teller",
-      dateCreated: new Date(2024, 1, 21),
-    },
-  ];
+  const user = new UserService();
 
-  const columns: TableProps<UserProps>["columns"] = [
+  const columns: TableProps<ProtectedUser>["columns"] = [
     {
       title: "Name",
       key: "name",
@@ -70,19 +59,20 @@ const User = ({
     {
       title: "Date Created",
       key: "date_created",
-      dataIndex: "dateCreated",
+      dataIndex: "createdAt",
       render: (date) => dayjs(date).format("MMMM DD, YYYY"),
     },
     {
       title: "Actions",
       align: "center",
-      dataIndex: "functions",
+      dataIndex: "_id",
       render: (_) => (
         <Space>
           <Popconfirm
             title="Delete Confirmation"
             description="Are you sure to archive this user?"
             okText="Confirm"
+            onConfirm={() => handeRemoveUser(_)}
           >
             <Button icon={<DeleteOutlined />} danger />
           </Popconfirm>
@@ -90,6 +80,38 @@ const User = ({
       ),
     },
   ];
+
+  const handleNewUser = (obj: any) => {
+    (async (_) => {
+      let res = await _.newUser(obj);
+      if (res.success) {
+        message.success("Successfully Created");
+        setTrigger(trigger + 1);
+        setOpenedNewUser(false);
+      } else message.warning(res.message);
+    })(user);
+  };
+
+  const handeRemoveUser = (id: string) => {
+    (async (_) => {
+      let res = await _.deleteUser({ id });
+
+      if (res.success) {
+        message.success(res.message ?? "Deleted Successfully");
+        setTrigger(trigger + 1);
+      } else message.warning(res.message);
+    })(user);
+  };
+
+  useEffect(() => {
+    (async (_) => {
+      let res = await _.getUsers({ page: 1, pageSize: 10 });
+
+      if (res.success) {
+        setUsers(res.data ?? []);
+      }
+    })(user);
+  }, [trigger, open]);
 
   return (
     <>
@@ -127,7 +149,7 @@ const User = ({
           New User
         </Button>
         <Table
-          dataSource={mock}
+          dataSource={users}
           columns={columns}
           style={style}
           rowKey={(e) => e.username}
@@ -138,14 +160,12 @@ const User = ({
           }}
         />
       </Drawer>
-      {/* context */}
 
+      {/* context */}
       <NewUser
         open={openedNewUser}
         close={() => setOpenedNewUser(false)}
-        onAdd={(obj) => {
-          console.log(obj);
-        }}
+        onAdd={handleNewUser}
       />
     </>
   );

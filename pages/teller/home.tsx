@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Col, Row } from "antd";
-import { UserOutlined, WalletOutlined } from "@ant-design/icons";
+import { WalletOutlined } from "@ant-design/icons";
 import { MdOutlineSendToMobile } from "react-icons/md";
 import { FaMoneyBills } from "react-icons/fa6";
 import { AiOutlineFileDone } from "react-icons/ai";
@@ -10,22 +10,28 @@ import {
   GcashForm,
   TransactionHistory,
   TransactionDetails,
+  BillsPayment,
 } from "@/app/components/teller";
 
-// TODO: add icons
+import { TransactionOptProps } from "@/types";
+
+import { useUserStore } from "@/provider/context";
 
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
-  const [transactionDetailsOpt, setTransactionOpt] = useState({
-    open: false,
-    transaction: null,
-  });
+  const [transactionDetailsOpt, setTransactionOpt] =
+    useState<TransactionOptProps>({
+      open: false,
+      transaction: null,
+    });
+
+  const { currentUser } = useUserStore();
 
   const menu = [
     {
       title: "Bills \nPayment",
       icon: <FaMoneyBills style={{ fontSize: 80 }} />,
-      onPress: () => {},
+      onPress: () => setOpenedMenu("bills"),
     },
     {
       title: "Wallet Cash \nIn/out",
@@ -39,7 +45,6 @@ const Teller = () => {
     },
     {
       title: "Shopee Self \nCollect",
-
       onPress: () => {},
     },
     {
@@ -62,8 +67,14 @@ const Teller = () => {
           }}
         >
           <UserBadge
-            name="John Doe"
-            title="Teller"
+            name={currentUser?.name ?? ""}
+            title={
+              currentUser
+                ? `${currentUser.role[0].toLocaleUpperCase()}${currentUser.role.slice(
+                    1
+                  )}`
+                : null
+            }
             style={{
               margin: 25,
             }}
@@ -71,7 +82,7 @@ const Teller = () => {
           <Row gutter={[32, 32]} style={{ padding: 20 }}>
             {menu.map((e, i) => (
               <Col span={8} key={`btn-${i}`}>
-                <DashboardBtn {...e} />
+                <DashboardBtn key={`btn-child-${i}`} {...e} />
               </Col>
             ))}
           </Row>
@@ -80,6 +91,10 @@ const Teller = () => {
 
       {/* context */}
       <GcashForm open={openedMenu == "gcash"} close={() => setOpenedMenu("")} />
+      <BillsPayment
+        open={openedMenu == "bills"}
+        close={() => setOpenedMenu("")}
+      />
       <TransactionHistory
         open={openedMenu == "th"}
         close={() => setOpenedMenu("")}

@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
-import { Button, Popconfirm, Tooltip, Typography } from "antd";
-import { LogoutOutlined } from "@ant-design/icons";
+import { Button, Dropdown, Popconfirm, Tooltip, Typography } from "antd";
+import { LogoutOutlined, SettingOutlined } from "@ant-design/icons";
 
 import { UserBadgeProps } from "@/types";
+import Cookies from "js-cookie";
 
 const UserBadge = ({ name, style, title }: UserBadgeProps) => {
   const [currentTime, setCurrentTime] = useState(dayjs());
 
   useEffect(() => {
     const currentSeconds = dayjs().second();
-
     setTimeout(
       () => setInterval(() => setCurrentTime(dayjs()), 1000 * 60),
-      currentSeconds * 1000
+      (60 - currentSeconds) * 1000
     );
   }, []);
 
@@ -30,15 +30,38 @@ const UserBadge = ({ name, style, title }: UserBadgeProps) => {
         >
           Welcome {title} {name}
         </Typography.Text>
-        <Tooltip title="Logout">
-          <Popconfirm
-            title="Are you sure you want to logout?"
-            okText="LOGOUT"
-            okType="danger"
-          >
-            <Button icon={<LogoutOutlined />} size="large" danger />
-          </Popconfirm>
-        </Tooltip>
+        <Dropdown
+          menu={{
+            items: [
+              {
+                key: "1",
+                label: (
+                  <Tooltip title="Logout">
+                    <Popconfirm
+                      title="Are you sure you want to logout?"
+                      okText="LOGOUT"
+                      okType="danger"
+                      onConfirm={() => {
+                        Cookies.remove("token");
+                        window.location.reload();
+                      }}
+                    >
+                      <LogoutOutlined style={{ color: "#f00" }} />{" "}
+                      <span style={{ color: "#f00" }}>Logout</span>
+                    </Popconfirm>
+                  </Tooltip>
+                ),
+              },
+            ],
+          }}
+        >
+          <Button
+            icon={<SettingOutlined />}
+            size="large"
+            ghost
+            type="primary"
+          />
+        </Dropdown>
       </div>
 
       <Typography.Text style={{ fontSize: 26 }}>

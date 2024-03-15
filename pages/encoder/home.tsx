@@ -4,6 +4,7 @@ import { UserBadge } from "@/app/components";
 import { Badge, Button, Select, Space, Typography } from "antd";
 import { TransactionHistory, EncoderForm } from "@/app/components/teller";
 import { BillsStateDataType } from "@/types";
+import { useUserStore } from "@/provider/context";
 
 // TODO: add filter
 
@@ -17,6 +18,8 @@ const Encoder = () => {
     transaction: null,
   });
 
+  const { currentUser } = useUserStore();
+
   return (
     <>
       <div className="teller main-content">
@@ -28,8 +31,14 @@ const Encoder = () => {
           }}
         >
           <UserBadge
-            name="John Doe"
-            title="Encoder"
+            name={currentUser?.name ?? ""}
+            title={
+              currentUser
+                ? `${currentUser.role[0].toLocaleUpperCase()}${currentUser.role.slice(
+                    1
+                  )}`
+                : null
+            }
             style={{
               margin: 25,
             }}

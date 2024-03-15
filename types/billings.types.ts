@@ -1,7 +1,6 @@
-// TODO: create efficient and good design for "select" options dudeeeee
-
-interface FieldName {
+export interface SelectItem {
   name: string;
+  value: string;
 }
 
 export type BillingOptionsType =
@@ -11,44 +10,44 @@ export type BillingOptionsType =
   | "checkbox"
   | "select";
 
-export interface InputOptions extends FieldName {
+export interface InputOptions {
   minLength?: number | null;
   maxLength?: number | null;
 }
 
-export interface NumberOptions extends FieldName {
-  min: number;
-  max: number;
+export interface NumberOptions {
+  min?: number | null;
+  max?: number | null;
 }
 
-export interface TextAreaOptions extends FieldName {
-  minRow: number;
-  maxRow: number;
+export interface TextAreaOptions {
+  minRow?: number | null;
+  maxRow?: number | null;
 }
 
-export interface SelectOptions extends FieldName {
-  items: string[];
-}
-
-export interface CheckboxOptions extends FieldName {
-  checked: boolean;
+export interface SelectOptions {
+  items?: SelectItem[] | null;
 }
 
 export interface BillingsFormField {
   type: BillingOptionsType;
+  name: string;
+  slug_name?: string;
   inputOption?: InputOptions;
   inputNumberOption?: NumberOptions;
   textareaOption?: TextAreaOptions;
   selectOption?: SelectOptions;
-  checkboxOption?: CheckboxOptions;
 }
 
 export interface BillingSettingsType {
+  _id?: string;
   name: string;
-  formfield?: BillingsFormField[];
+  formField?: BillingsFormField[];
 }
 
 export interface OptionTypeWithFlag {
   open: boolean;
   options?: BillingsFormField | undefined | null;
+  id: string | null;
+  index: number;
 }

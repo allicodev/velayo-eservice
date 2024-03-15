@@ -14,33 +14,36 @@ import {
   InputNumber,
 } from "antd";
 import type { CollapseProps } from "antd";
-
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 
-import { DrawerBasicProps, GcashCollapseItemButtonProps } from "@/types";
+import {
+  DrawerBasicProps,
+  GcashCollapseItemButtonProps,
+  Wallet,
+} from "@/types";
+
+import WalletService from "@/provider/wallet.service";
 
 const GcashForm = ({ open, close }: DrawerBasicProps) => {
-  const [selectedWallet, setSelectedWallet] = useState("");
+  const [selectedWallet, setSelectedWallet] = useState<Wallet | null>();
   const [selectWalletOption, setSelectedWalletOption] = useState("");
+  const [wallets, setWallets] = useState<Wallet[]>([]);
   const [_window, setWindow] = useState({ innerHeight: 0 });
+  const [amount, setAmount] = useState(0);
+  const [number, setNumber] = useState("");
+  const [name, setName] = useState("");
   const [form] = Form.useForm();
 
-  const [amount, setAmount] = useState(0);
-
-  const onClickCashIn = () => setSelectedWalletOption("cashin");
-  const onClickCashOut = () => setSelectedWalletOption("cashout");
+  const wallet = new WalletService();
 
   const toCollapsibleItemButton = ({
-    key,
-    label,
+    wallet,
     onClickTitle,
     onClickCashIn,
     onClickCashOut,
   }: GcashCollapseItemButtonProps) => {
-    if (!key) key = label;
-
     return {
-      key,
+      key: wallet._id,
       label: (
         <Button
           style={{
@@ -49,7 +52,7 @@ const GcashForm = ({ open, close }: DrawerBasicProps) => {
             paddingTop: 10,
             paddingBottom: 10,
             height: 70,
-            ...(selectedWallet == key
+            ...(selectedWallet?._id == wallet._id
               ? {
                   background: "#294B0F",
                   color: "#fff",
@@ -60,15 +63,15 @@ const GcashForm = ({ open, close }: DrawerBasicProps) => {
                 }),
           }}
           onClick={() => {
-            if (key == selectedWallet) {
-              setSelectedWallet("");
+            if (wallet._id == selectedWallet?._id) {
+              setSelectedWallet(null);
             } else {
-              setSelectedWallet(key!);
-              if (onClickTitle) onClickTitle(label);
+              setSelectedWallet(wallet);
+              if (onClickTitle) onClickTitle(wallet?._id);
             }
           }}
         >
-          {label.toLocaleUpperCase()}
+          {wallet.name.toLocaleUpperCase()}
         </Button>
       ),
       children: (
@@ -123,32 +126,59 @@ const GcashForm = ({ open, close }: DrawerBasicProps) => {
     };
   };
 
-  const items: CollapseProps["items"] = [
-    "gcash",
-    "maya",
-    "palawan pay",
-    "unionbank",
-  ].map((e) =>
-    toCollapsibleItemButton({ label: e, onClickCashIn, onClickCashOut })
+  const onClickCashIn = () => {
+    setSelectedWalletOption("cashin");
+    form.resetFields();
+    setAmount(0);
+  };
+  const onClickCashOut = () => {
+    setSelectedWalletOption("cashout");
+    form.resetFields();
+    setAmount(0);
+  };
+  const items: CollapseProps["items"] = wallets.map((e) =>
+    toCollapsibleItemButton({ wallet: e, onClickCashIn, onClickCashOut })
   );
-
   const getTitle = () =>
-    `${selectedWallet.toLocaleUpperCase()} ${
+    `${selectedWallet?.name} ${
       selectWalletOption == "cashin" ? "Cash-in" : "Cash-out"
     }`;
-
-  const getFee = () => (amount * 0.02).toFixed(2);
+  const getFee = () => {
+    if (selectedWallet?.feeType == "percent")
+      return ((amount * selectedWallet.feeValue!) / 100).toFixed(2);
+    else return (amount + selectedWallet?.feeValue!).toFixed(2);
+  };
   const getTotal = () => (amount + +getFee()).toFixed(2);
+
+  const getWallets = () => {
+    (async (_) => {
+      let res = await _.getWallet();
+
+      if (res.success) {
+        setWallets(res?.data ?? []);
+      }
+    })(wallet);
+  };
+
+  const request = () => {};
+
+  const handleFinish = (val: any) => {
+    console.log(val);
+  };
 
   useEffect(() => {
     setWindow(window);
+  }, []);
+
+  useEffect(() => {
+    getWallets();
   }, []);
 
   return (
     <Drawer
       open={open}
       onClose={() => {
-        setSelectedWallet("");
+        setSelectedWallet(null);
         setSelectedWalletOption("");
         close();
       }}
@@ -179,7 +209,7 @@ const GcashForm = ({ open, close }: DrawerBasicProps) => {
             items={items}
             bordered={false}
             destroyInactivePanel
-            activeKey={selectedWallet}
+            activeKey={selectedWallet?._id}
             accordion
           />
         </Col>
@@ -226,6 +256,7 @@ const GcashForm = ({ open, close }: DrawerBasicProps) => {
                   flex: 1,
                 }}
                 colon={false}
+                onFinish={handleFinish}
               >
                 <Form.Item
                   label={
@@ -236,12 +267,18 @@ const GcashForm = ({ open, close }: DrawerBasicProps) => {
                     </Typography.Text>
                   }
                   name="amount"
+                  rules={[
+                    {
+                      required: true,
+                    },
+                  ]}
                 >
                   <div style={{ display: "flex", flexDirection: "column" }}>
                     <InputNumber
                       prefix="₱"
                       size="large"
                       style={{ width: 280 }}
+                      min={1}
                       onChange={(value: number | null) => setAmount(value ?? 0)}
                     />
                     <span style={{ textAlign: "end" }}>+₱{getFee()} (fee)</span>
@@ -256,8 +293,31 @@ const GcashForm = ({ open, close }: DrawerBasicProps) => {
                     </Typography.Text>
                   }
                   name="phone"
+                  rules={[
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        const reg = /^9\d{9}$/;
+                        const number = getFieldValue("phone");
+                        if (!/^9/.test(number)) {
+                          return Promise.reject("Number should start of 9");
+                        } else if (!reg.test(number)) {
+                          return Promise.reject("Number is invalid");
+                        } else if (number.length < 10) {
+                          return Promise.reject(
+                            "Number should have a length of 10"
+                          );
+                        } else return Promise.resolve();
+                      },
+                    }),
+                  ]}
                 >
-                  <Input prefix="+63" size="large" style={{ width: 280 }} />
+                  <Input
+                    prefix="+63"
+                    size="large"
+                    style={{ width: 280 }}
+                    maxLength={10}
+                    onChange={(e) => setNumber(e.target.value)}
+                  />
                 </Form.Item>
                 <Form.Item
                   label={
@@ -268,15 +328,24 @@ const GcashForm = ({ open, close }: DrawerBasicProps) => {
                     </Typography.Text>
                   }
                   name="name"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Name is blank. Please provide.",
+                    },
+                  ]}
                 >
-                  <Input size="large" style={{ width: 280 }} />
+                  <Input
+                    size="large"
+                    style={{ width: 280 }}
+                    onChange={(e) => setName(e.target.value)}
+                  />
                 </Form.Item>
               </Form>
               <Divider
                 style={{
-                  background: "#000",
-                  marginTop: 24,
-                  marginBottom: 10,
+                  background: "#eee",
+                  margin: 0,
                 }}
               />
               <span
@@ -292,6 +361,7 @@ const GcashForm = ({ open, close }: DrawerBasicProps) => {
                   background: "#1777FF",
                   height: 50,
                 }}
+                onClick={form.submit}
               >
                 Request
               </Button>

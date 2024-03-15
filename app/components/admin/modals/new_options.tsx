@@ -10,16 +10,163 @@ import {
   Space,
   Tooltip,
   Typography,
+  message,
 } from "antd";
 import { QuestionCircleOutlined, CloseOutlined } from "@ant-design/icons";
 
-import { NewOptionProps, BillingOptionsType } from "@/types";
+import BillServices from "@/provider/bill.service";
 
-const NewOption = ({ open, close, formfield }: NewOptionProps) => {
+import {
+  NewOptionProps,
+  BillingOptionsType,
+  BillingsFormField,
+  SelectItem,
+} from "@/types";
+
+const NewOption = ({
+  open,
+  close,
+  formfield,
+  onSave,
+  index,
+  id,
+  refresh,
+}: NewOptionProps) => {
   const [form] = Form.useForm();
   const [selectedType, setSelectedType] = useState<BillingOptionsType | null>(
     null
   );
+  const [extraOption, setExtraOption] = useState<BillingsFormField | null>();
+  const [input, setInput] = useState<string>("");
+  const [name, setName] = useState("");
+
+  const bill = new BillServices();
+
+  const handleOnFinish = () => {
+    (async () => {
+      await validate(extraOption)
+        .then(() => {
+          if (extraOption) onSave(extraOption);
+          clearAll();
+        })
+        .catch((e) => message.error(e));
+    })();
+  };
+
+  const validate = (
+    opt: BillingsFormField | null | undefined
+  ): Promise<String | void> => {
+    return new Promise((resolve, reject) => {
+      if (opt) {
+        switch (opt.type) {
+          case "input": {
+            let min = opt.inputOption?.minLength ?? 0;
+            let max = opt.inputOption?.maxLength ?? 0;
+
+            if (min > max)
+              reject("Minimum Length should be lower than Maximum");
+            resolve();
+          }
+
+          case "number": {
+            let min = opt.inputNumberOption?.min ?? 0;
+            let max = opt.inputNumberOption?.max ?? 0;
+
+            if (min > max)
+              reject("Minimum number should be lower than Maximum");
+            resolve();
+          }
+
+          case "textarea": {
+            let min = opt.textareaOption?.minRow ?? 0;
+            let max = opt.textareaOption?.maxRow ?? 0;
+
+            if (min > max) reject("Minimum row should be lower than Maximum");
+            resolve();
+          }
+
+          case "select": {
+            if (
+              !(opt.selectOption?.items && opt.selectOption?.items.length > 0)
+            )
+              reject("Select should have atleast 1 menu");
+            resolve();
+          }
+
+          case "checkbox":
+            resolve();
+        }
+      } else return false;
+    });
+  };
+
+  const clearAll = () => {
+    setInput("");
+    setExtraOption(null);
+    setName("");
+    setSelectedType(null);
+    form.resetFields();
+    close();
+  };
+
+  const handleDeleteOption = () => {
+    (async (_) => {
+      if (id) {
+        let res = await _.removeOptionIndexed(id, index);
+
+        if (res.success) {
+          message.success(res?.message ?? "Success");
+          clearAll();
+          if (refresh) refresh();
+        }
+      }
+    })(bill);
+  };
+
+  const updateName = (name: string) => {
+    switch (selectedType) {
+      case "input": {
+        setExtraOption({
+          type: selectedType,
+          name,
+          inputOption: extraOption?.inputOption,
+        });
+        break;
+      }
+      case "number": {
+        setExtraOption({
+          type: selectedType,
+          name,
+          inputNumberOption: extraOption?.inputNumberOption,
+        });
+        break;
+      }
+      case "textarea": {
+        setExtraOption({
+          type: selectedType,
+          name,
+          textareaOption: extraOption?.textareaOption,
+        });
+        break;
+      }
+      case "checkbox": {
+        setExtraOption({
+          type: selectedType,
+          name,
+        });
+        break;
+      }
+      case "select": {
+        setExtraOption({
+          type: selectedType,
+          name,
+          selectOption: extraOption?.selectOption,
+        });
+        break;
+      }
+    }
+  };
+
   const optionalHeader = ({ children }: { children: ReactNode }) => (
     <div style={{ marginTop: 10, display: "flex", flexDirection: "column" }}>
       <Typography.Text
@@ -60,6 +207,19 @@ const NewOption = ({ open, close, formfield }: NewOptionProps) => {
                     width: 50,
                     textAlign: "center",
                   }}
+                  value={extraOption?.inputOption?.minLength}
+                  onChange={(e) => {
+                    const minLength = e;
+                    const maxLength = extraOption?.inputOption?.maxLength;
+                    setExtraOption({
+                      type: selectedType!,
+                      name: formfield != null ? formfield.name : name,
+                      inputOption: {
+                        minLength,
+                        maxLength,
+                      },
+                    });
+                  }}
                   controls={false}
                 />
               </div>
@@ -81,6 +241,19 @@ const NewOption = ({ open, close, formfield }: NewOptionProps) => {
                     textAlign: "center",
                   }}
                   controls={false}
+                  value={extraOption?.inputOption?.maxLength}
+                  onChange={(e) => {
+                    const minLength = extraOption?.inputOption?.minLength;
+                    const maxLength = e;
+                    setExtraOption({
+                      type: selectedType!,
+                      name: formfield != null ? formfield.name : name,
+                      inputOption: {
+                        minLength,
+                        maxLength,
+                      },
+                    });
+                  }}
                 />
               </div>
             </Space>
@@ -109,6 +282,19 @@ const NewOption = ({ open, close, formfield }: NewOptionProps) => {
                     textAlign: "center",
                   }}
                   controls={false}
+                  value={extraOption?.inputNumberOption?.min}
+                  onChange={(e) => {
+                    const min = e;
+                    const max = extraOption?.inputNumberOption?.max;
+                    setExtraOption({
+                      type: selectedType!,
+                      name: formfield != null ? formfield.name : name,
+                      inputNumberOption: {
+                        min,
+                        max,
+                      },
+                    });
+                  }}
                 />
               </div>
               <div
@@ -129,6 +315,19 @@ const NewOption = ({ open, close, formfield }: NewOptionProps) => {
                     textAlign: "center",
                   }}
                   controls={false}
+                  value={extraOption?.inputNumberOption?.max}
+                  onChange={(e) => {
+                    const min = extraOption?.inputNumberOption?.min;
+                    const max = e;
+                    setExtraOption({
+                      type: selectedType!,
+                      name: formfield != null ? formfield.name : name,
+                      inputNumberOption: {
+                        min,
+                        max,
+                      },
+                    });
+                  }}
                 />
               </div>
             </Space>
@@ -157,6 +356,19 @@ const NewOption = ({ open, close, formfield }: NewOptionProps) => {
                     textAlign: "center",
                   }}
                   controls={false}
+                  value={extraOption?.textareaOption?.minRow}
+                  onChange={(e) => {
+                    const minRow = e;
+                    const maxRow = extraOption?.textareaOption?.maxRow;
+                    setExtraOption({
+                      type: selectedType!,
+                      name: formfield != null ? formfield.name : name,
+                      textareaOption: {
+                        minRow,
+                        maxRow,
+                      },
+                    });
+                  }}
                 />
               </div>
               <div
@@ -177,6 +389,19 @@ const NewOption = ({ open, close, formfield }: NewOptionProps) => {
                     textAlign: "center",
                   }}
                   controls={false}
+                  value={extraOption?.textareaOption?.maxRow}
+                  onChange={(e) => {
+                    const minRow = extraOption?.textareaOption?.minRow;
+                    const maxRow = e;
+                    setExtraOption({
+                      type: selectedType!,
+                      name: formfield != null ? formfield.name : name,
+                      textareaOption: {
+                        minRow,
+                        maxRow,
+                      },
+                    });
+                  }}
                 />
               </div>
             </Space>
@@ -196,8 +421,49 @@ const NewOption = ({ open, close, formfield }: NewOptionProps) => {
                 <Input
                   style={{ width: 150, marginRight: 10 }}
                   placeholder="Type your menu here..."
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
                 />
-                <Button type="primary">ADD</Button>
+                <Button
+                  type="primary"
+                  onClick={(e) => {
+                    if (input == "") {
+                      message.warning("Input is empty.");
+                      return;
+                    }
+
+                    if (
+                      extraOption?.selectOption?.items &&
+                      extraOption?.selectOption?.items.filter(
+                        (_) =>
+                          _.name.toLocaleLowerCase() ==
+                          input.toLocaleLowerCase()
+                      ).length > 0
+                    ) {
+                      message.warning("Already added.");
+                      return;
+                    }
+
+                    let arr: SelectItem[] = [
+                      ...(extraOption?.selectOption?.items ?? []),
+                      {
+                        name: input,
+                        value: input.replaceAll(" ", "_").toLocaleLowerCase(),
+                      },
+                    ];
+
+                    setExtraOption({
+                      type: selectedType!,
+                      name: formfield != null ? formfield.name : name,
+                      selectOption: {
+                        items: arr,
+                      },
+                    });
+                    setInput("");
+                  }}
+                >
+                  ADD
+                </Button>
               </div>
               <Space
                 direction="vertical"
@@ -205,63 +471,55 @@ const NewOption = ({ open, close, formfield }: NewOptionProps) => {
                   marginTop: 10,
                 }}
               >
-                <div
-                  style={{
-                    width: 150,
-                    border: "0.5px solid #b7b7b7",
-                    height: 35,
-                    borderRadius: 5,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "1.4em",
-                    position: "relative",
-                    color: "#000000e0",
-                  }}
-                >
-                  Menu 1
-                  <CloseOutlined
-                    style={{ position: "absolute", right: 8, fontSize: 12 }}
-                  />
-                </div>
-                <div
-                  style={{
-                    width: 150,
-                    border: "0.5px solid #b7b7b7",
-                    height: 35,
-                    borderRadius: 5,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "1.4em",
-                    position: "relative",
-                    color: "#000000e0",
-                  }}
-                >
-                  Menu 2
-                  <CloseOutlined
-                    style={{ position: "absolute", right: 8, fontSize: 12 }}
-                  />
-                </div>
-                <div
-                  style={{
-                    width: 150,
-                    border: "0.5px solid #b7b7b7",
-                    height: 35,
-                    borderRadius: 5,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "1.4em",
-                    position: "relative",
-                    color: "#000000e0",
-                  }}
-                >
-                  Menu 3
-                  <CloseOutlined
-                    style={{ position: "absolute", right: 8, fontSize: 12 }}
-                  />
-                </div>
+                {extraOption?.selectOption?.items &&
+                  extraOption?.selectOption?.items.map((e, i) => (
+                    <div
+                      key={`${e.value}-${i}`}
+                      style={{
+                        width: 150,
+                        border: "0.5px solid #b7b7b7",
+                        height: 35,
+                        borderRadius: 5,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "1.4em",
+                        position: "relative",
+                        color: "#000000e0",
+                      }}
+                    >
+                      <Typography.Paragraph
+                        style={{
+                          maxWidth: 110,
+                          marginTop: 17.5,
+                        }}
+                        ellipsis={{ rows: 1 }}
+                      >
+                        {e.name}
+                      </Typography.Paragraph>
+                      <CloseOutlined
+                        onClick={() => {
+                          if (extraOption?.selectOption?.items) {
+                            setExtraOption({
+                              type: "select",
+                              name: extraOption?.name ?? "",
+                              selectOption: {
+                                items: extraOption?.selectOption?.items.filter(
+                                  (_, __) => __ != i
+                                ),
+                              },
+                            });
+                          }
+                        }}
+                        style={{
+                          position: "absolute",
+                          right: 8,
+                          fontSize: 12,
+                          cursor: "pointer",
+                        }}
+                      />
+                    </div>
+                  ))}
               </Space>
             </div>
           ),
@@ -270,59 +528,37 @@ const NewOption = ({ open, close, formfield }: NewOptionProps) => {
   };
 
   const updateFieldValue = () => {
-    let opt = {
+    form.setFieldsValue({
       type: formfield?.type ?? null,
-      title: "",
-    };
-
-    switch (formfield?.type) {
-      case "checkbox": {
-        opt.title = formfield.checkboxOption?.name ?? "";
-        break;
-      }
-      case "input": {
-        opt.title = formfield.inputOption?.name ?? "";
-        break;
-      }
-      case "number": {
-        opt.title = formfield.inputNumberOption?.name ?? "";
-        break;
-      }
-      case "select": {
-        opt.title = formfield.selectOption?.name ?? "";
-        break;
-      }
-      case "textarea": {
-        opt.title = formfield.textareaOption?.name ?? "";
-        break;
-      }
-    }
-
-    form.setFieldsValue(opt);
+      title: formfield?.name,
+    });
   };
 
   useEffect(() => {
     setSelectedType(formfield?.type ?? null);
     updateFieldValue();
+    setExtraOption(formfield);
   }, [formfield]);
 
   return (
     <Modal
       open={open}
-      onCancel={close}
+      onCancel={clearAll}
       footer={[
         formfield != null ? (
           <Popconfirm
             key="remove-option-btn"
             title="Are you sure you want to delete this?"
+            onConfirm={handleDeleteOption}
           >
             <Button danger>Delete</Button>
           </Popconfirm>
         ) : null,
-        <Button key="add-option-btn" type="primary" onClick={close}>
-          Add Option
+        <Button key="add-option-btn" type="primary" onClick={form.submit}>
+          {formfield != null ? "Update Option" : "Add Option"}
         </Button>,
       ]}
+      destroyOnClose
     >
       <Form
         form={form}
@@ -334,20 +570,31 @@ const NewOption = ({ open, close, formfield }: NewOptionProps) => {
         wrapperCol={{
           flex: 1,
         }}
+        onFinish={handleOnFinish}
         labelWrap
       >
         <Form.Item
           label={
             <Typography.Text style={{ fontSize: "1.6em" }}>
-              Title
+              Name
             </Typography.Text>
           }
           name="title"
           style={{
             marginTop: 25,
           }}
+          rules={[
+            { required: true, message: "Title is empty. Please provide." },
+          ]}
         >
-          <Input style={{ display: "block" }} />
+          <Input
+            style={{ display: "block" }}
+            value={name}
+            onChange={(e) => {
+              updateName(e.target.value);
+              setName(e.target.value);
+            }}
+          />
         </Form.Item>
         <Form.Item
           label={
@@ -359,13 +606,26 @@ const NewOption = ({ open, close, formfield }: NewOptionProps) => {
           style={{
             marginTop: 25,
           }}
+          rules={[
+            {
+              required: true,
+              message: "Type is Required. Please provide.",
+            },
+          ]}
         >
           <Select
             placeholder="Choose a Type"
             style={{
               width: 150,
             }}
-            onChange={(e) => setSelectedType(e)}
+            value={selectedType}
+            onChange={(e) => {
+              setSelectedType(e);
+              setExtraOption({
+                type: e,
+                name: formfield?.name ?? name,
+              });
+            }}
             options={[
               {
                 label: "Input",

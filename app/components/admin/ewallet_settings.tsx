@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Col,
@@ -9,39 +9,32 @@ import {
   Row,
   Space,
   Typography,
+  Modal,
+  message,
+  Input,
 } from "antd";
-import { DownOutlined, SaveOutlined } from "@ant-design/icons";
-import { BillsSettings, EWalletDataType } from "@/types";
+import { DownOutlined, SaveOutlined, PlusOutlined } from "@ant-design/icons";
+
+import { BillsSettings, Wallet } from "@/types";
+import { NewWallet } from "./modals";
+import WalletService from "@/provider/wallet.service";
+import { FloatLabel } from "@/assets/ts";
 
 const EWalletSettings = ({ open, close }: BillsSettings) => {
-  const [selectedWallet, setSelectedWallet] = useState<EWalletDataType>();
-  const [selectedRate, setSelectedRate] = useState<"₱" | "%">("%");
-  const [rate, setRate] = useState<number | null>();
+  const [selectedWallet, setSelectedWallet] = useState<Wallet>();
+  const [wallets, setWallets] = useState<Wallet[]>([]);
+  const [openNewWallet, setOpenNewWallet] = useState(false);
+  const [trigger, setTrigger] = useState(0);
+  const [updated, setUpdated] = useState(false);
+  const [modal, contextHolder] = Modal.useModal();
 
-  const [mock, setMock] = useState<EWalletDataType[]>([
-    {
-      name: "GCASH",
-      type: "percent",
-      value: 2,
-    },
-    {
-      name: "MAYA",
-      type: "percent",
-      value: 2,
-    },
-    {
-      name: "PALAWAN PAY",
-      type: "fixed",
-      value: 15,
-    },
-    {
-      name: "Union Bank",
-      type: "fixed",
-      value: 15,
-    },
-  ]);
+  // for context
+  const [contextName, setContextName] = useState("");
+  const [openUpdateName, setOpenUpdateName] = useState(false);
 
-  const renderSettingsForm = (wallet: EWalletDataType) => {
+  const wallet = new WalletService();
+
+  const renderSettingsForm = (wallet: Wallet) => {
     return (
       <div>
         <Typography.Title>{wallet.name} Fee Settings</Typography.Title>
@@ -50,13 +43,18 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
             marginBottom: 15,
           }}
           onChange={(e) => {
-            setSelectedRate(e.target.value);
-            setRate(null);
+            setSelectedWallet({
+              _id: wallet?._id,
+              name: wallet.name,
+              feeType: e.target.value,
+              feeValue: wallet.feeValue,
+            });
+            setUpdated(true);
           }}
-          value={selectedRate}
+          value={wallet.feeType}
         >
-          <Radio.Button value="%">Percent</Radio.Button>
-          <Radio.Button value="₱">Fixed</Radio.Button>
+          <Radio.Button value="percent">Percent</Radio.Button>
+          <Radio.Button value="fixed">Fixed</Radio.Button>
         </Radio.Group>
         <div
           style={{
@@ -65,19 +63,100 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
         >
           <label style={{ fontSize: "1.5em", marginRight: 10 }}>Fee</label>
           <InputNumber
-            prefix={selectedRate}
-            value={rate}
+            prefix={wallet.feeType == "percent" ? "%" : "₱"}
+            value={wallet.feeValue}
             style={{
               width: 80,
               paddingRight: 10,
             }}
-            onChange={(e) => setRate(e)}
+            onChange={(e) => {
+              setSelectedWallet({
+                _id: wallet?._id,
+                name: wallet.name,
+                feeType: wallet.feeType,
+                feeValue: e,
+              });
+              setUpdated(true);
+            }}
             controls={false}
           />
         </div>
       </div>
     );
   };
+
+  const getWallets = () => {
+    (async (_) => {
+      let res = await _.getWallet();
+      if (res.success) {
+        setWallets(res?.data ?? []);
+
+        if (selectedWallet != null) {
+          if (res.data)
+            setSelectedWallet(res.data[wallets.indexOf(selectedWallet)]);
+        }
+      }
+    })(wallet);
+  };
+
+  const handleNewWallet = async (_wallet: Wallet): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (
+        wallets
+          .map((e) => e.name)
+          .filter(
+            (e) => e.toLocaleLowerCase() == _wallet.name.toLocaleLowerCase()
+          ).length > 0
+      ) {
+        reject("Wallet already added");
+        return;
+      }
+
+      (async (_) => {
+        let res = await _.newWallet(_wallet);
+
+        if (res.success) {
+          message.success(res?.message ?? "Success");
+          setTrigger(trigger + 1);
+          resolve("Successfully Added");
+        } else reject("Error in the server.");
+      })(wallet);
+    });
+  };
+
+  const handleUpdateName = () => {
+    (async (_) => {
+      if (selectedWallet?._id) {
+        let res = await _.updateName(selectedWallet?._id, contextName);
+        if (res.success) {
+          message.success(res?.message ?? "Success");
+          setOpenUpdateName(false);
+          setTrigger(trigger + 1);
+        }
+      }
+    })(wallet);
+  };
+
+  const handleSave = () => {
+    if (selectedWallet?.feeValue == 0) {
+      message.error("Fee should not be zero. Please provide.");
+      return;
+    }
+    (async (_) => {
+      if (selectedWallet) {
+        let res = await _.updateWallet(selectedWallet);
+
+        if (res.success) {
+          message.success(res?.message ?? "Success");
+          setTrigger(trigger + 1);
+        }
+      }
+    })(wallet);
+  };
+
+  useEffect(() => {
+    getWallets();
+  }, [open, trigger]);
 
   return (
     <>
@@ -90,7 +169,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
         placement="bottom"
         title={
           <Typography.Text style={{ fontSize: 25 }}>
-            Bills Settings
+            Wallet Settings
           </Typography.Text>
         }
         style={{
@@ -120,9 +199,9 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
             }}
           >
             <Space direction="vertical">
-              {mock.map((e, i) => (
+              {wallets.map((e, i) => (
                 <Button
-                  key={`billing-btn-${i}`}
+                  key={`wallet-btn-${i}`}
                   style={{
                     width: 280,
                     fontSize: 30,
@@ -145,6 +224,20 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                 </Button>
               ))}
             </Space>
+            <Button
+              size="large"
+              type="primary"
+              icon={<PlusOutlined />}
+              style={{
+                width: 150,
+                position: "absolute",
+                right: 0,
+                bottom: 0,
+              }}
+              onClick={() => setOpenNewWallet(true)}
+            >
+              New Wallet
+            </Button>
           </Col>
           <Col span={1}>
             <Divider type="vertical" style={{ height: "100%" }} />
@@ -152,24 +245,71 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
           <Col span={11} style={{ width: "100%" }}>
             {selectedWallet != null && renderSettingsForm(selectedWallet)}
             {selectedWallet != null && (
-              <Button
-                size="large"
-                type="primary"
-                icon={<SaveOutlined />}
+              <Space
                 style={{
-                  width: 150,
                   position: "absolute",
                   right: 0,
                   bottom: 0,
                 }}
-                //   onClick={(e) => setOpenNewBiller(true)}
               >
-                Save
-              </Button>
+                <Button
+                  size="large"
+                  type="primary"
+                  ghost
+                  style={{
+                    width: 150,
+                  }}
+                  onClick={() => setOpenUpdateName(true)}
+                >
+                  Update Name
+                </Button>
+                <Button
+                  size="large"
+                  type="primary"
+                  icon={<SaveOutlined />}
+                  disabled={!updated}
+                  style={{
+                    width: 150,
+                  }}
+                  onClick={handleSave}
+                >
+                  Save
+                </Button>
+              </Space>
             )}
           </Col>
         </Row>
       </Drawer>
+
+      {/* context */}
+      <Modal
+        open={openUpdateName}
+        closable={false}
+        title="Update Name"
+        footer={[
+          <Button
+            key="footer-key"
+            onClick={handleUpdateName}
+            type="primary"
+            size="large"
+          >
+            Update
+          </Button>,
+        ]}
+      >
+        <FloatLabel label="Name" value={contextName}>
+          <Input
+            className="customInput"
+            onChange={(e) => setContextName(e.target.value)}
+            size="large"
+          />
+        </FloatLabel>
+      </Modal>
+      <NewWallet
+        open={openNewWallet}
+        close={() => setOpenNewWallet(false)}
+        onSave={handleNewWallet}
+      />
     </>
   );
 };

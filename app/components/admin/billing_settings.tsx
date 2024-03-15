@@ -1,129 +1,90 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import {
   Button,
   Col,
   Divider,
   Drawer,
-  FloatButton,
   Row,
   Space,
   Typography,
+  message,
 } from "antd";
+import { DownOutlined, PlusOutlined, SettingOutlined } from "@ant-design/icons";
 import {
-  DownOutlined,
-  SettingOutlined,
-  PlusOutlined,
-  SaveOutlined,
-} from "@ant-design/icons";
+  DragDropContext,
+  Draggable,
+  Droppable,
+  DraggingStyle,
+  NotDraggingStyle,
+} from "react-beautiful-dnd";
 
 import {
   BillsSettings,
   BillingSettingsType,
   BillingsFormField,
-  InputOptions,
-  NumberOptions,
-  TextAreaOptions,
-  SelectOptions,
-  CheckboxOptions,
   OptionTypeWithFlag,
 } from "@/types";
 
-import { NewBiller, NewOption } from "./modals";
+import { NewBiller, NewOption, UpdateBiller } from "./modals";
+import BillService from "@/provider/bill.service";
 
 const BillingSettings = ({ open, close }: BillsSettings) => {
+  const [billers, setBillers] = useState<BillingSettingsType[]>([]);
+  const [trigger, setTrigger] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+
   const [selectedBiller, setSelectedBiller] =
     useState<BillingSettingsType | null>();
   const [openNewBiller, setOpenNewBiller] = useState(false);
+  const [openUpdatedBiller, setOpenUpdatedBiller] = useState(false);
   const [billsOptions, setBillsOptions] = useState<OptionTypeWithFlag>({
     open: false,
     options: null,
+    index: -1,
+    id: null,
   });
 
-  const [mock, setMock] = useState<BillingSettingsType[]>([
-    {
-      name: "VECO",
-      formfield: [
-        {
-          type: "input",
-          inputOption: {
-            name: "Name",
-          },
-        },
-        {
-          type: "select",
-          selectOption: {
-            name: "Gender",
-            items: ["Male", "Female"],
-          },
-        },
-      ],
-    },
-    {
-      name: "PLDT",
-    },
-    {
-      name: "MCWD",
-    },
-  ]);
+  const bill = new BillService();
+
+  const getItemStyle = (
+    draggableStyle: DraggingStyle | NotDraggingStyle | undefined,
+    isDragging: boolean
+  ) => ({
+    paddingTop: 5,
+    paddingBottom: 5,
+    paddingLeft: 10,
+    paddingRight: 10,
+    borderRadius: 5,
+    background: isDragging ? "#aaa" : "transparent",
+    ...draggableStyle,
+  });
+
+  const reorder = (
+    list: BillingsFormField[],
+    startIndex: number,
+    endIndex: number
+  ) => {
+    const result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+
+    return result;
+  };
 
   const getSideB = (billingFormField: BillingSettingsType) => {
-    let billerNode:
-      | InputOptions
-      | NumberOptions
-      | TextAreaOptions
-      | SelectOptions
-      | CheckboxOptions
-      | null = null;
-
     const billingButton = (formField: BillingsFormField): ReactNode => {
-      let index = billingFormField.formfield?.indexOf(formField);
-
-      switch (formField.type) {
-        case "checkbox":
-          billerNode = {
-            name: formField?.checkboxOption?.name ?? "",
-            checked: formField.checkboxOption?.checked,
-          };
-          break;
-        case "input": {
-          billerNode = {
-            name: formField?.inputOption?.name ?? "",
-            minLength: formField?.inputOption?.minLength ?? 0,
-            maxLength: formField?.inputOption?.maxLength ?? 0,
-          };
-          break;
-        }
-        case "number": {
-          billerNode = {
-            name: formField?.inputNumberOption?.name ?? "",
-            min: formField?.inputNumberOption?.min ?? 0,
-            max: formField?.inputNumberOption?.max ?? 0,
-          };
-          break;
-        }
-        case "select": {
-          billerNode = {
-            name: formField?.selectOption?.name ?? "",
-            items: formField?.selectOption?.items ?? [],
-          };
-          break;
-        }
-        case "textarea": {
-          billerNode = {
-            name: formField?.textareaOption?.name ?? "",
-            minRow: formField?.textareaOption?.minRow ?? 0,
-            maxRow: formField?.textareaOption?.maxRow ?? 0,
-          };
-        }
-      }
+      let index = billingFormField.formField?.indexOf(formField) ?? -1;
 
       return (
         <div
           onClick={() => {
             setBillsOptions({
               open: true,
-              options: billingFormField.formfield![index ?? -1],
+              options: billingFormField.formField![index ?? -1],
+              index,
+              id: selectedBiller?._id ?? null,
             });
+            setSelectedIndex(index ?? -1);
           }}
           style={{
             display: "flex",
@@ -145,7 +106,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
             }}
           >
             <span style={{ fontSize: 18, marginRight: 5 }}>
-              {billerNode!.name}
+              {formField.name}
             </span>
             <div
               style={{
@@ -159,7 +120,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                 alignItems: "center",
               }}
             >
-              {formField.type.toLocaleUpperCase()}
+              {formField?.type?.toLocaleUpperCase()}
             </div>
           </div>
         </div>
@@ -169,16 +130,146 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
     return (
       <>
         <Typography.Title style={{ textAlign: "center" }}>
-          {billingFormField.name.toLocaleUpperCase()} bills settings
+          {billingFormField.name.toLocaleUpperCase()} bills settings{" "}
         </Typography.Title>
-        {billingFormField?.formfield?.length != 0 && (
+        {billingFormField?.formField?.length != 0 && (
           <Space direction="vertical">
-            {billingFormField.formfield?.map((e) => billingButton(e))}
+            <DragDropContext
+              onDragEnd={(result) => {
+                if (!result.destination) {
+                  return;
+                }
+
+                if (billingFormField.formField) {
+                  const items = reorder(
+                    billingFormField.formField,
+                    result.source.index,
+                    result.destination.index
+                  );
+
+                  let _: BillingSettingsType = {
+                    _id: selectedBiller?._id ?? "",
+                    name: selectedBiller?.name ?? "",
+                    formField: items,
+                  };
+
+                  // call api and update the current option position
+                  (async (b) => {
+                    if (selectedBiller?._id != undefined) {
+                      let res = await b.updateBillOption(selectedBiller._id, _);
+
+                      if (res.success)
+                        message.success(res?.message ?? "Success");
+                    }
+                  })(bill);
+
+                  setSelectedBiller(_);
+                }
+              }}
+            >
+              <Droppable droppableId="droppable">
+                {(provided, snapshot) => (
+                  <div ref={provided.innerRef} {...provided.droppableProps}>
+                    {billingFormField.formField?.map((item, index) => (
+                      <Draggable
+                        key={`${item.type}-${index}`}
+                        draggableId={`${item.type}-${index}`}
+                        index={index}
+                      >
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.dragHandleProps}
+                            {...provided.draggableProps}
+                            style={getItemStyle(
+                              provided.draggableProps.style,
+                              snapshot.isDragging
+                            )}
+                          >
+                            <div>{billingButton(item)}</div>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           </Space>
         )}
       </>
     );
   };
+
+  const getBillers = () => {
+    (async (_) => {
+      let res = await _.getBill();
+      if (res.success) setBillers(res.data ?? []);
+      if (selectedBiller != null) {
+        if (res.data)
+          setSelectedBiller(res.data[billers.indexOf(selectedBiller)]);
+      }
+    })(bill);
+  };
+
+  const handleNewBiller = (name: string) => {
+    (async (_) => {
+      let res = await _.newBill({ name });
+
+      if (res.success) {
+        message.success(res.message ?? "Successfully Added");
+        setOpenNewBiller(false);
+        if (res.data) setBillers([...billers, res.data]);
+      }
+    })(bill);
+  };
+
+  const handleNewOption = (opt: BillingsFormField) => {
+    if (billsOptions.options != null) {
+      (async (_) => {
+        if (selectedBiller?._id != undefined) {
+          let res = await _.updateFormFields(
+            selectedBiller?._id,
+            opt,
+            selectedIndex
+          );
+
+          if (res.success) {
+            setBillsOptions({
+              open: false,
+              options: null,
+              index: -1,
+              id: null,
+            });
+            setTrigger(trigger + 1);
+            message.success(res?.message ?? "Success");
+          }
+        }
+      })(bill);
+    } else {
+      (async (_) => {
+        if (selectedBiller?._id != undefined) {
+          let res = await _.pushToFormFields(selectedBiller?._id, opt);
+
+          if (res.success) {
+            setBillsOptions({
+              open: false,
+              options: null,
+              index: -1,
+              id: null,
+            });
+            setTrigger(trigger + 1);
+            message.success(res?.message ?? "Success");
+          }
+        }
+      })(bill);
+    }
+  };
+
+  useEffect(() => {
+    if (open) getBillers();
+  }, [open, trigger]);
 
   return (
     <>
@@ -224,7 +315,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
             }}
           >
             <Space direction="vertical">
-              {mock.map((e, i) => (
+              {billers.map((e, i) => (
                 <Button
                   key={`billing-btn-${i}`}
                   style={{
@@ -259,7 +350,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                 right: 0,
                 bottom: 0,
               }}
-              onClick={(e) => setOpenNewBiller(true)}
+              onClick={() => setOpenNewBiller(true)}
             >
               New Biller
             </Button>
@@ -275,23 +366,28 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
               //   type="primary"
               //   icon={<SettingOutlined />}
               // >
-              <Space
-                direction="vertical"
-                style={{ position: "absolute", right: 0, bottom: 0 }}
-              >
+              <Space style={{ position: "absolute", right: 0, bottom: 0 }}>
                 <Button
                   icon={<PlusOutlined />}
+                  size="large"
                   onClick={() =>
                     setBillsOptions({
                       open: true,
                       options: null,
+                      index: -1,
+                      id: null,
                     })
                   }
                 >
                   Add New Option
                 </Button>
-                <Button icon={<SaveOutlined />} type="primary">
-                  SAVE SETTINGS
+                <Button
+                  icon={<SettingOutlined />}
+                  type="primary"
+                  onClick={() => setOpenUpdatedBiller(true)}
+                  size="large"
+                >
+                  Update Biller Name
                 </Button>
               </Space>
               // </FloatButton.Group>
@@ -306,24 +402,52 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
         close={() => setOpenNewBiller(false)}
         onSave={(e) => {
           if (
-            mock
+            billers
               .map((_) => _.name)
               .filter((__) => __.toLocaleUpperCase() == e.toLocaleUpperCase())
+              .length > 0
           )
             return true;
-          setMock([
-            ...mock,
-            {
-              name: e,
-            },
-          ]);
+
+          handleNewBiller(e);
         }}
       />
+      <UpdateBiller
+        open={openUpdatedBiller}
+        close={() => setOpenUpdatedBiller(false)}
+        onSave={(e) => {
+          if (
+            billers
+              .map((_) => _.name)
+              .filter((__) => __.toLocaleUpperCase() == e.toLocaleUpperCase())
+              .length > 0
+          )
+            return true;
 
+          (async (_) => {
+            if (selectedBiller?._id != undefined) {
+              let res = await _.updateBillName(selectedBiller?._id, e);
+
+              if (res.success) {
+                message.success(res?.message ?? "Success");
+                setOpenUpdatedBiller(false);
+                setTrigger(trigger + 1);
+              }
+            }
+          })(bill);
+        }}
+        name={selectedBiller?.name ?? ""}
+      />
       <NewOption
         open={billsOptions.open}
-        close={() => setBillsOptions({ open: false, options: null })}
+        close={() =>
+          setBillsOptions({ open: false, options: null, index: -1, id: null })
+        }
+        onSave={handleNewOption}
         formfield={billsOptions.options}
+        index={billsOptions.index}
+        id={billsOptions.id}
+        refresh={() => setTrigger(trigger + 1)}
       />
     </>
   );

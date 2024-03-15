@@ -1,9 +1,32 @@
 import React from "react";
-import { Button, Card, Form, Input, Typography } from "antd";
+import { Button, Card, Form, Input, Typography, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
+import Cookies from "js-cookie";
+
+import { UserLoginProps } from "@/types";
+import UserService from "@/provider/user.service";
+import { useUserStore, useAuthStore } from "@/provider/context";
 
 const Login = () => {
   const [form] = Form.useForm();
+  const user = new UserService();
+  const { setUser } = useUserStore();
+  const { setAccessToken } = useAuthStore();
+
+  const handleFinish = async (val: UserLoginProps) => {
+    const response = await user.login(val);
+
+    if (response.success) {
+      message.success("Logged in successfully");
+      setUser(response.data);
+      setAccessToken(response.data!.token);
+      Cookies.set("token", response.data!.token);
+      window.location.reload();
+    } else {
+      message.error(response.message);
+    }
+  };
+
   return (
     <div className="login-container">
       <Card
@@ -56,8 +79,16 @@ const Login = () => {
             </span>
           </div>
         </div>
-        <Form form={form}>
-          <Form.Item name="username" noStyle>
+        <Form form={form} onFinish={handleFinish}>
+          <Form.Item
+            name="username"
+            style={{
+              marginBottom: 0,
+            }}
+            rules={[
+              { required: true, message: "Username is empty. Please Provide." },
+            ]}
+          >
             <Input
               size="large"
               className="customInput"
@@ -68,7 +99,15 @@ const Login = () => {
               }}
             />
           </Form.Item>
-          <Form.Item name="password" noStyle>
+          <Form.Item
+            name="password"
+            style={{
+              marginBottom: 0,
+            }}
+            rules={[
+              { required: true, message: "Password is empty. Please Provide." },
+            ]}
+          >
             <Input.Password
               size="large"
               className="customInput"
@@ -79,7 +118,13 @@ const Login = () => {
               }}
             />
           </Form.Item>
-          <Button type="primary" size="large" block>
+          <Button
+            type="primary"
+            size="large"
+            loading={user.loaderHas("logging-in")}
+            htmlType="submit"
+            block
+          >
             Login
           </Button>
           <div style={{ textAlign: "center" }}>
