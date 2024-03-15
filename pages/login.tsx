@@ -8,15 +8,11 @@ import { UserLoginProps } from "@/types";
 import UserService from "@/provider/user.service";
 import { useUserStore, useAuthStore } from "@/provider/context";
 
-import { PusherFE } from "@/provider/utils/pusher";
-
 const Login = () => {
   const [form] = Form.useForm();
   const user = new UserService();
   const { setUser } = useUserStore();
   const { setAccessToken } = useAuthStore();
-
-  const pusherfe = new PusherFE();
 
   const handleFinish = async (val: UserLoginProps) => {
     const response = await user.login(val);
@@ -37,8 +33,6 @@ const Login = () => {
     (async (_) => {
       await axios.get("/api/user/init-credentials");
     })(axios);
-
-    pusherfe.subscribe("channel1").bind("event1");
   }, []);
 
   return (

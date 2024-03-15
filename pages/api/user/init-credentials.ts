@@ -1,12 +1,9 @@
 import dbConnect from "@/database/dbConnect";
 import User from "@/database/models/user.schema";
 import { ExtendedResponse, User as UserProps } from "@/types";
-import { PusherBE } from "@/provider/utils/pusher";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import bcrypt from "bcryptjs";
-
-const pusherfe = new PusherBE();
 
 async function handler(
   req: NextApiRequest,
@@ -22,8 +19,6 @@ async function handler(
       success: false,
       message: "Incorrect Request Method",
     });
-
-  pusherfe.emit("channel1", "event1", { message: "An emit from backend" });
 
   let exist = await User.find({ role: "admin" });
 
