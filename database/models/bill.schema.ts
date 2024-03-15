@@ -11,6 +11,10 @@ const FormFieldSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    slug_name: {
+      type: String,
+      required: true,
+    },
     inputOption: {
       minLength: {
         type: Number,
@@ -50,14 +54,6 @@ const FormFieldSchema = new mongoose.Schema(
         type: Number,
         required: function (this: any) {
           return this.type === "textarea";
-        },
-      },
-    },
-    checkboxOption: {
-      checked: {
-        type: Boolean,
-        required: function (this: any) {
-          return this.type === "checkbox";
         },
       },
     },

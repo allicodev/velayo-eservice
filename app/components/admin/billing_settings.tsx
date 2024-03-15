@@ -366,12 +366,10 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
               //   type="primary"
               //   icon={<SettingOutlined />}
               // >
-              <Space
-                direction="vertical"
-                style={{ position: "absolute", right: 0, bottom: 0 }}
-              >
+              <Space style={{ position: "absolute", right: 0, bottom: 0 }}>
                 <Button
                   icon={<PlusOutlined />}
+                  size="large"
                   onClick={() =>
                     setBillsOptions({
                       open: true,
@@ -387,6 +385,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                   icon={<SettingOutlined />}
                   type="primary"
                   onClick={() => setOpenUpdatedBiller(true)}
+                  size="large"
                 >
                   Update Biller Name
                 </Button>

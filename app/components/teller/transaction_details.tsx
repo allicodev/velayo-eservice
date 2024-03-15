@@ -20,7 +20,6 @@ const TransactionDetails = ({
     else if (status == "failed") return "#FF0000";
     else return "#EFB40D";
   };
-
   const getStatusBadge = (status: TransactionHistoryDataType_type) => (
     <div
       style={{
@@ -44,7 +43,7 @@ const TransactionDetails = ({
       mode="left"
       items={transaction?.history?.map((e) => {
         return {
-          label: dayjs(e.date).format("MMM DD, YYYY - hh:mma"),
+          label: dayjs(e.dateCreated).format("MMM DD, YYYY - hh:mma"),
           children: e.description,
           dot: (
             <div
@@ -74,56 +73,66 @@ const TransactionDetails = ({
     />
   );
 
+  const transformText = (str: string) => {
+    let _str = str
+      .replace("_", " ")
+      .split(" ")
+      .map((e) => e[0].toLocaleUpperCase() + e.slice(1));
+  };
+
   useEffect(() => {
     if (open) {
-      if (transaction!.name == "gcash") {
-        setTextData([
-          [
-            "Transaction ID",
-            "Biller Name",
-            "Type",
-            "Request Date",
-            "Name",
-            "Mobile Number",
-            "Amount",
-            "Current Status",
-          ],
-          [
-            transaction!.id.toString(),
-            transaction!.name!.toLocaleUpperCase(),
-            transaction!.type!.toLocaleUpperCase(),
-            dayjs(transaction!.dateCreated).format("MMMM DD, YYYY - hh:mma"),
-            transaction!.accountName!,
-            `+63${transaction!.mobileNumber?.slice(1)}`,
-            `₱${transaction!.amount?.toFixed(2)}`,
-            getStatusBadge(latestHistory()!.status),
-          ],
-        ]);
-      } else if (transaction!.name == "bills") {
-        setTextData([
-          [
-            "Transaction ID",
-            "Biller Name",
-            "Type",
-            "Request Date",
-            "Account No",
-            "Account Name",
-            "Mobile Number",
-            "Amount",
-            "Current Status",
-          ],
-          [
-            transaction!.id.toString(),
-            transaction!.type!,
-            transaction!.name! + " payment",
-            dayjs(transaction!.dateCreated).format("MMMM DD, YYYY - hh:mma"),
-            transaction!.accountNumber!,
-            transaction!.accountName!,
-            `+63${transaction!.mobileNumber?.slice(1)}`,
-            `₱${transaction!.amount?.toFixed(2)}`,
-            getStatusBadge(latestHistory()!.status),
-          ],
-        ]);
+      if (transaction?.type == "bills") {
+        if (transaction.bill) {
+          setTextData([
+            [
+              ...Object.keys(JSON.parse(transaction.bill)).map((e) =>
+                e
+                  .replaceAll("_", " ")
+                  .split(" ")
+                  .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
+                  .join(" ")
+              ),
+              "Request Date",
+              "Current Status",
+            ],
+            [
+              ...Object.values(JSON.parse(transaction.bill)).map((e: any) => {
+                if (typeof e == "number") return `₱${e}`;
+                if (typeof e == "string" && e.startsWith("09"))
+                  return `+${63}${e.slice(1)}`;
+                return e;
+              }),
+              dayjs(transaction?.dateCreated).format("MMMM DD, YYYY - hh:mma"),
+              getStatusBadge(latestHistory()!.status),
+            ],
+          ]);
+        }
+      } else if (transaction?.type == "name") {
+        // setTextData([
+        //   [
+        //     "Transaction ID",
+        //     "Biller Name",
+        //     "Type",
+        //     "Request Date",
+        //     "Account No",
+        //     "Account Name",
+        //     "Mobile Number",
+        //     "Amount",
+        //     "Current Status",
+        //   ],
+        //   [
+        //     transaction!.id.toString(),
+        //     transaction!.type!,
+        //     transaction!.name! + " payment",
+        //     dayjs(transaction!.dateCreated).format("MMMM DD, YYYY - hh:mma"),
+        //     transaction!.accountNumber!,
+        //     transaction!.accountName!,
+        //     `+63${transaction!.mobileNumber?.slice(1)}`,
+        //     `₱${transaction!.amount?.toFixed(2)}`,
+        //     getStatusBadge(latestHistory()!.status),
+        //   ],
+        // ]);
       } else {
       }
     }

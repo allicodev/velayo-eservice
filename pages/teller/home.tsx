@@ -10,16 +10,20 @@ import {
   GcashForm,
   TransactionHistory,
   TransactionDetails,
+  BillsPayment,
 } from "@/app/components/teller";
+
+import { TransactionOptProps } from "@/types";
 
 import { useUserStore } from "@/provider/context";
 
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
-  const [transactionDetailsOpt, setTransactionOpt] = useState({
-    open: false,
-    transaction: null,
-  });
+  const [transactionDetailsOpt, setTransactionOpt] =
+    useState<TransactionOptProps>({
+      open: false,
+      transaction: null,
+    });
 
   const { currentUser } = useUserStore();
 
@@ -27,7 +31,7 @@ const Teller = () => {
     {
       title: "Bills \nPayment",
       icon: <FaMoneyBills style={{ fontSize: 80 }} />,
-      onPress: () => {},
+      onPress: () => setOpenedMenu("bills"),
     },
     {
       title: "Wallet Cash \nIn/out",
@@ -87,6 +91,10 @@ const Teller = () => {
 
       {/* context */}
       <GcashForm open={openedMenu == "gcash"} close={() => setOpenedMenu("")} />
+      <BillsPayment
+        open={openedMenu == "bills"}
+        close={() => setOpenedMenu("")}
+      />
       <TransactionHistory
         open={openedMenu == "th"}
         close={() => setOpenedMenu("")}

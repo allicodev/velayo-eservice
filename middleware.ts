@@ -8,14 +8,12 @@ export async function middleware(req: NextRequest) {
   const pathname = url.pathname;
   const token = req.cookies.get("token");
   let currentUser;
-
   if (token) {
     try {
       currentUser = await verify(token, JWT_SECRET);
     } catch (e) {
-      const res = NextResponse.next();
-      res.cookies.clear();
-      return res;
+      url.pathname = "/login";
+      return NextResponse.rewrite(url);
     }
   }
   const authRoute = ["/login"];

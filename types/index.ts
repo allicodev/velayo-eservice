@@ -1,4 +1,5 @@
 import { UserProps } from "./props.types";
+import { Transaction } from "./schema.types";
 
 type TransactionHistoryDataType_type = "pending" | "completed" | "failed";
 type TransactionNameType = "gcash" | "eload" | "bills";
@@ -85,3 +86,10 @@ export * from "./billings.types";
 export * from "./schema.types";
 export * from "./props.types";
 export * from "./service.types";
+
+// utils
+
+export interface TransactionOptProps {
+  open: boolean;
+  transaction: Transaction | null;
+}

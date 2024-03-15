@@ -92,6 +92,9 @@ const NewOption = ({
               reject("Select should have atleast 1 menu");
             resolve();
           }
+
+          case "checkbox":
+            resolve();
         }
       } else return false;
     });
@@ -150,7 +153,6 @@ const NewOption = ({
         setExtraOption({
           type: selectedType,
           name,
-          checkboxOption: extraOption?.checkboxOption,
         });
         break;
       }

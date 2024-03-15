@@ -1,6 +1,11 @@
 import Loader from "./utils/loader";
 import Api from "./api.service";
-import { BillingSettingsType, BillingsFormField } from "@/types";
+import {
+  BillingSettingsType,
+  BillingsFormField,
+  Transaction,
+  TransactionHistory,
+} from "@/types";
 
 class BillService extends Loader {
   private readonly instance = new Api();
@@ -26,7 +31,9 @@ class BillService extends Loader {
 
   public async pushToFormFields(billId: string, formfield: BillingsFormField) {
     this.loaderPush("new-option-bill");
-
+    formfield.slug_name = formfield.name
+      .replaceAll(" ", "_")
+      .toLocaleLowerCase();
     const response = await this.instance.post<BillingSettingsType>({
       endpoint: "/bill/new-option",
       payload: {
@@ -44,6 +51,9 @@ class BillService extends Loader {
     index: number
   ) {
     this.loaderPush("update-option-bill");
+    formfield.slug_name = formfield.name
+      .replaceAll(" ", "_")
+      .toLocaleLowerCase();
     const response = await this.instance.post<BillingSettingsType>({
       endpoint: "/bill/update-option",
       payload: {
@@ -95,6 +105,41 @@ class BillService extends Loader {
       },
     });
     this.loaderPop("removing-option");
+    return response;
+  }
+
+  public async requestBill(biller_name: string, bill: string) {
+    let transaction: Transaction = {
+      type: "bills",
+      sub_type: biller_name,
+      bill,
+      history: [
+        {
+          description: "First  Transaction requested",
+          status: "pending",
+        },
+      ],
+    };
+
+    this.loaderPush("request-bill");
+    const response = await this.instance.post<Response>({
+      endpoint: "/bill/request-transaction",
+      payload: transaction,
+    });
+    this.loaderPop("request-bill");
+    return response;
+  }
+
+  public async getAllTransaction(page: number, pageSize: number) {
+    this.loaderPush("get-transaction");
+    const response = await this.instance.get<Transaction[]>({
+      endpoint: "/transaction/get-transactions",
+      query: {
+        page,
+        pageSize,
+      },
+    });
+    this.loaderPop("get-transaction");
     return response;
   }
 }

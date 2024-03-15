@@ -29,18 +29,14 @@ export interface SelectOptions {
   items?: SelectItem[] | null;
 }
 
-export interface CheckboxOptions {
-  checked?: boolean | null;
-}
-
 export interface BillingsFormField {
   type: BillingOptionsType;
   name: string;
+  slug_name?: string;
   inputOption?: InputOptions;
   inputNumberOption?: NumberOptions;
   textareaOption?: TextAreaOptions;
   selectOption?: SelectOptions;
-  checkboxOption?: CheckboxOptions;
 }
 
 export interface BillingSettingsType {

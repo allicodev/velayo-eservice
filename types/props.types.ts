@@ -4,6 +4,9 @@ import {
   UserBadgeTitle,
   NewUser,
   BillingsFormField,
+  Wallet,
+  BillingSettingsType,
+  Transaction,
 } from ".";
 
 export interface DashboardBtnProps {
@@ -19,13 +22,12 @@ export interface DrawerBasicProps {
   title?: string;
   style?: CSSProperties;
   extra?: ReactNode;
-  onCellClick?: (str: any) => void;
+  onCellClick?: (str: Transaction) => void;
 }
 
 export interface GcashCollapseItemButtonProps {
-  key?: string;
-  label: string;
-  onClickTitle?: (str: string) => void;
+  wallet: Wallet;
+  onClickTitle?: (str?: string) => void;
   onClickCashIn?: () => void;
   onClickCashOut?: () => void;
 }
@@ -62,7 +64,7 @@ export interface UserProps {
 export interface TransactionDetailsProps {
   open: boolean;
   close: () => void;
-  transaction: TransactionHistoryDataType | null;
+  transaction: Transaction | null;
 }
 
 export interface NewUserProps {
@@ -75,6 +77,12 @@ export interface NewBillerProps {
   open: boolean;
   close: () => void;
   onSave: (str: string) => boolean | void;
+}
+
+export interface NewWalletProps {
+  open: boolean;
+  close: () => void;
+  onSave: (obj: Wallet) => Promise<string>;
 }
 
 export interface UpdateBillerProps {
@@ -92,6 +100,12 @@ export interface NewOptionProps {
   id: string | null;
   index: number;
   refresh?: () => void;
+}
+
+export interface BillButtonProps {
+  bill: BillingSettingsType;
+  isSelected: boolean;
+  onSelected: (bill: BillingSettingsType) => void;
 }
 
 // backend stuffs
