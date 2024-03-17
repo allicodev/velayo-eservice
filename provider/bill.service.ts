@@ -5,6 +5,7 @@ import {
   BillingsFormField,
   Transaction,
   Response,
+  UpdateFeeProps,
 } from "@/types";
 
 class BillService extends Loader {
@@ -19,11 +20,13 @@ class BillService extends Loader {
     return response;
   }
 
-  public async newBill(bill: BillingSettingsType) {
+  public async newBill(name: string) {
     this.loaderPush("new-bill");
     const response = await this.instance.post<BillingSettingsType>({
       endpoint: "/bill/new-bill",
-      payload: bill,
+      payload: {
+        name,
+      },
     });
     this.loaderPop("new-bill");
     return response;
@@ -150,6 +153,29 @@ class BillService extends Loader {
       payload: transaction,
     });
     this.loaderPop("get-transaction");
+    return response;
+  }
+
+  public async markMainAmount(billId: string, index: number) {
+    this.loaderPush("mark-main");
+    const response = await this.instance.post<BillingSettingsType>({
+      endpoint: "/bill/mark-as-main",
+      payload: {
+        id: billId,
+        index,
+      },
+    });
+    this.loaderPop("mark-main");
+    return response;
+  }
+
+  public async updateFee(fee: UpdateFeeProps) {
+    this.loaderPush("update-fee");
+    const response = await this.instance.get<BillingSettingsType>({
+      endpoint: "/bill/update-fee",
+      query: fee,
+    });
+    this.loaderPop("update-fee");
     return response;
   }
 }

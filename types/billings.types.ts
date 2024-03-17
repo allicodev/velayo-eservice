@@ -16,6 +16,7 @@ export interface InputOptions {
 }
 
 export interface NumberOptions {
+  mainAmount?: Boolean;
   min?: number | null;
   max?: number | null;
 }
@@ -42,6 +43,9 @@ export interface BillingsFormField {
 export interface BillingSettingsType {
   _id?: string;
   name: string;
+  fee: number;
+  threshold: number;
+  additionalFee: number;
   formField?: BillingsFormField[];
 }
 

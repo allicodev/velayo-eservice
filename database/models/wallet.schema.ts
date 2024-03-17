@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { FormFieldSchema } from "./bill.schema";
 
 const WalletSchema = new mongoose.Schema(
   {
@@ -15,6 +16,8 @@ const WalletSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    cashInFormField: [FormFieldSchema],
+    cashOutFormField: [FormFieldSchema],
   },
   {
     timestamps: true,

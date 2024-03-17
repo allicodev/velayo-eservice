@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const FormFieldSchema = new mongoose.Schema(
+export const FormFieldSchema = new mongoose.Schema(
   {
     type: {
       type: String,
@@ -30,6 +30,10 @@ const FormFieldSchema = new mongoose.Schema(
       },
     },
     inputNumberOption: {
+      mainAmount: {
+        type: Boolean,
+        default: false,
+      },
       min: {
         type: Number,
         required: function (this: any) {
@@ -74,6 +78,21 @@ const BillSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+    },
+    fee: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    threshold: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    additionalFee: {
+      type: Number,
+      required: true,
+      default: 0,
     },
     formField: [FormFieldSchema],
   },

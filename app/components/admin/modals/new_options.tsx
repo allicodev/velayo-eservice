@@ -12,7 +12,11 @@ import {
   Typography,
   message,
 } from "antd";
-import { QuestionCircleOutlined, CloseOutlined } from "@ant-design/icons";
+import {
+  QuestionCircleOutlined,
+  CloseOutlined,
+  CheckOutlined,
+} from "@ant-design/icons";
 
 import BillServices from "@/provider/bill.service";
 
@@ -292,6 +296,7 @@ const NewOption = ({
                       inputNumberOption: {
                         min,
                         max,
+                        mainAmount: formfield?.inputNumberOption?.mainAmount,
                       },
                     });
                   }}
@@ -325,6 +330,7 @@ const NewOption = ({
                       inputNumberOption: {
                         min,
                         max,
+                        mainAmount: formfield?.inputNumberOption?.mainAmount,
                       },
                     });
                   }}
@@ -534,6 +540,20 @@ const NewOption = ({
     });
   };
 
+  const markMain = () => {
+    (async (_) => {
+      if (formfield && id) {
+        let res = await _.markMainAmount(id, index);
+
+        if (res.success) {
+          message.success(res?.message ?? "Success");
+          clearAll();
+          if (refresh) refresh();
+        }
+      }
+    })(bill);
+  };
+
   useEffect(() => {
     setSelectedType(formfield?.type ?? null);
     updateFieldValue();
@@ -545,6 +565,21 @@ const NewOption = ({
       open={open}
       onCancel={clearAll}
       footer={[
+        formfield &&
+        formfield.type == "number" &&
+        formfield.inputNumberOption?.mainAmount == true ? (
+          <Tooltip title="Marked as Main Amount">
+            <Button key="main-mark-option-btn-disabled" type="primary" disabled>
+              Marked as Main Amount <CheckOutlined />
+            </Button>
+          </Tooltip>
+        ) : formfield &&
+          formfield.type == "number" &&
+          formfield.inputNumberOption?.mainAmount == false ? (
+          <Button key="main-mark-option-btn" type="primary" onClick={markMain}>
+            Mark as Main Amount
+          </Button>
+        ) : null,
         formfield != null ? (
           <Popconfirm
             key="remove-option-btn"
