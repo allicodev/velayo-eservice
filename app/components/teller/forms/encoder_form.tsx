@@ -77,24 +77,26 @@ const EncoderForm = ({
   useEffect(() => {
     if (open) {
       if (transaction?.type == "bills") {
-        if (transaction.bill) {
+        if (transaction.transactionDetails) {
           setTextData([
             [
-              ...Object.keys(JSON.parse(transaction.bill)).map((e) =>
-                e
-                  .replaceAll("_", " ")
-                  .split(" ")
-                  .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
-                  .join(" ")
+              ...Object.keys(JSON.parse(transaction.transactionDetails)).map(
+                (e) =>
+                  e
+                    .replaceAll("_", " ")
+                    .split(" ")
+                    .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
+                    .join(" ")
               ),
             ],
             [
-              ...Object.values(JSON.parse(transaction.bill)).map((e: any) => {
-                if (typeof e == "number") return `₱${e}`;
-                if (typeof e == "string" && e.startsWith("09"))
-                  return `+${63}${e.slice(1)}`;
-                return e;
-              }),
+              ...Object.values(JSON.parse(transaction.transactionDetails)).map(
+                (e: any) => {
+                  if (typeof e == "string" && e.startsWith("09"))
+                    return `+${63}${e.slice(1)}`;
+                  return e;
+                }
+              ),
             ],
           ]);
         }

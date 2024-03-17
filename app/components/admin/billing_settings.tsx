@@ -191,186 +191,174 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
             },
           }}
         >
-          <Space direction="vertical" style={{ display: "block" }}>
-            <Tabs
-              type="card"
-              onChange={setSelectedTab}
-              items={[
-                {
-                  label: "Form Settings",
-                  key: "form-settings-tab",
-                  children: billingFormField?.formField?.length != 0 && (
-                    <Space
-                      direction="vertical"
-                      style={{
-                        display: "block",
+          <Tabs
+            type="card"
+            onChange={setSelectedTab}
+            items={[
+              {
+                label: "Form Settings",
+                key: "form-settings-tab",
+                children: billingFormField?.formField?.length != 0 && (
+                  <Space
+                    direction="vertical"
+                    style={{
+                      display: "block",
+                    }}
+                  >
+                    <DragDropContext
+                      onDragEnd={(result) => {
+                        if (!result.destination) {
+                          return;
+                        }
+
+                        if (billingFormField.formField) {
+                          const items = reorder(
+                            billingFormField.formField,
+                            result.source.index,
+                            result.destination.index
+                          );
+
+                          let _: BillingSettingsType = {
+                            _id: selectedBiller?._id ?? "",
+                            name: selectedBiller?.name ?? "",
+                            fee: selectedBiller?.fee ?? 0,
+                            threshold: selectedBiller?.threshold ?? 0,
+                            additionalFee: selectedBiller?.additionalFee ?? 0,
+                            formField: items,
+                          };
+
+                          // call api and update the current option position
+                          (async (b) => {
+                            if (selectedBiller?._id != undefined) {
+                              let res = await b.updateBillOption(
+                                selectedBiller._id,
+                                _
+                              );
+
+                              if (res.success)
+                                message.success(res?.message ?? "Success");
+                            }
+                          })(bill);
+
+                          setSelectedBiller(_);
+                        }
                       }}
                     >
-                      <DragDropContext
-                        onDragEnd={(result) => {
-                          if (!result.destination) {
-                            return;
-                          }
-
-                          if (billingFormField.formField) {
-                            const items = reorder(
-                              billingFormField.formField,
-                              result.source.index,
-                              result.destination.index
-                            );
-
-                            let _: BillingSettingsType = {
-                              _id: selectedBiller?._id ?? "",
-                              name: selectedBiller?.name ?? "",
-                              fee: selectedBiller?.fee ?? 0,
-                              threshold: selectedBiller?.threshold ?? 0,
-                              additionalFee: selectedBiller?.additionalFee ?? 0,
-                              formField: items,
-                            };
-
-                            // call api and update the current option position
-                            (async (b) => {
-                              if (selectedBiller?._id != undefined) {
-                                let res = await b.updateBillOption(
-                                  selectedBiller._id,
-                                  _
-                                );
-
-                                if (res.success)
-                                  message.success(res?.message ?? "Success");
-                              }
-                            })(bill);
-
-                            setSelectedBiller(_);
-                          }
-                        }}
-                      >
-                        <Droppable droppableId="droppable">
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.droppableProps}
-                            >
-                              {billingFormField.formField?.map(
-                                (item, index) => (
-                                  <Draggable
-                                    key={`${item.type}-${index}`}
-                                    draggableId={`${item.type}-${index}`}
-                                    index={index}
-                                  >
-                                    {(provided, snapshot) => (
-                                      <div
-                                        ref={provided.innerRef}
-                                        {...provided.dragHandleProps}
-                                        {...provided.draggableProps}
-                                        style={getItemStyle(
-                                          provided.draggableProps.style,
-                                          snapshot.isDragging
-                                        )}
-                                      >
-                                        <div>{billingButton(item)}</div>
-                                      </div>
+                      <Droppable droppableId="droppable">
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                          >
+                            {billingFormField.formField?.map((item, index) => (
+                              <Draggable
+                                key={`${item.type}-${index}`}
+                                draggableId={`${item.type}-${index}`}
+                                index={index}
+                              >
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.dragHandleProps}
+                                    {...provided.draggableProps}
+                                    style={getItemStyle(
+                                      provided.draggableProps.style,
+                                      snapshot.isDragging
                                     )}
-                                  </Draggable>
-                                )
-                              )}
-                              {provided.placeholder}
-                            </div>
-                          )}
-                        </Droppable>
-                      </DragDropContext>
-                    </Space>
-                  ),
-                },
-                {
-                  label: "Fee Settings",
-                  key: "fee-settings-tab",
-                  children: (
-                    <Space
-                      direction="vertical"
-                      size={1}
-                      style={{ marginLeft: 10 }}
-                    >
-                      <FloatLabel label="Fee" value={feeOpt.fee?.toString()}>
-                        <InputNumber<number>
-                          controls={false}
-                          className="customInput"
-                          size="large"
-                          prefix="₱"
-                          value={feeOpt.fee}
-                          formatter={(value: any) =>
-                            value
-                              .toString()
-                              .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                          }
-                          parser={(value: any) =>
-                            value.replace(/\$\s?|(,*)/g, "")
-                          }
-                          style={{
-                            width: 150,
-                          }}
-                          onChange={(e) => setFeeOpt({ ...feeOpt, fee: e })}
-                        />
-                      </FloatLabel>
+                                  >
+                                    <div>{billingButton(item)}</div>
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </DragDropContext>
+                  </Space>
+                ),
+              },
+              {
+                label: "Fee Settings",
+                key: "fee-settings-tab",
+                children: (
+                  <Space
+                    direction="vertical"
+                    size={1}
+                    style={{ marginLeft: 10 }}
+                  >
+                    <FloatLabel label="Fee" value={feeOpt.fee?.toString()}>
+                      <InputNumber<number>
+                        controls={false}
+                        className="customInput"
+                        size="large"
+                        prefix="₱"
+                        value={feeOpt.fee}
+                        formatter={(value: any) =>
+                          value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        parser={(value: any) =>
+                          value.replace(/\$\s?|(,*)/g, "")
+                        }
+                        style={{
+                          width: 150,
+                        }}
+                        onChange={(e) => setFeeOpt({ ...feeOpt, fee: e })}
+                      />
+                    </FloatLabel>
 
-                      <FloatLabel
-                        label="Threshold"
-                        value={feeOpt.threshold?.toString()}
-                      >
-                        <InputNumber<number>
-                          controls={false}
-                          className="customInput"
-                          size="large"
-                          prefix="₱"
-                          value={feeOpt.threshold}
-                          formatter={(value: any) =>
-                            value
-                              .toString()
-                              .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                          }
-                          parser={(value: any) =>
-                            value.replace(/\$\s?|(,*)/g, "")
-                          }
-                          style={{
-                            width: 150,
-                          }}
-                          onChange={(e) =>
-                            setFeeOpt({ ...feeOpt, threshold: e })
-                          }
-                        />
-                      </FloatLabel>
-                      <FloatLabel
-                        label="Addional Fee per Threshold"
-                        value={feeOpt.additionalFee?.toString()}
-                      >
-                        <InputNumber<number>
-                          controls={false}
-                          className="customInput"
-                          size="large"
-                          prefix="₱"
-                          value={feeOpt.additionalFee}
-                          formatter={(value: any) =>
-                            value
-                              .toString()
-                              .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                          }
-                          parser={(value: any) =>
-                            value.replace(/\$\s?|(,*)/g, "")
-                          }
-                          style={{
-                            width: 250,
-                          }}
-                          onChange={(e) =>
-                            setFeeOpt({ ...feeOpt, additionalFee: e })
-                          }
-                        />
-                      </FloatLabel>
-                    </Space>
-                  ),
-                },
-              ]}
-            />
-          </Space>
+                    <FloatLabel
+                      label="Threshold"
+                      value={feeOpt.threshold?.toString()}
+                    >
+                      <InputNumber<number>
+                        controls={false}
+                        className="customInput"
+                        size="large"
+                        prefix="₱"
+                        value={feeOpt.threshold}
+                        formatter={(value: any) =>
+                          value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        parser={(value: any) =>
+                          value.replace(/\$\s?|(,*)/g, "")
+                        }
+                        style={{
+                          width: 150,
+                        }}
+                        onChange={(e) => setFeeOpt({ ...feeOpt, threshold: e })}
+                      />
+                    </FloatLabel>
+                    <FloatLabel
+                      label="Addional Fee per Threshold"
+                      value={feeOpt.additionalFee?.toString()}
+                    >
+                      <InputNumber<number>
+                        controls={false}
+                        className="customInput"
+                        size="large"
+                        prefix="₱"
+                        value={feeOpt.additionalFee}
+                        formatter={(value: any) =>
+                          value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        parser={(value: any) =>
+                          value.replace(/\$\s?|(,*)/g, "")
+                        }
+                        style={{
+                          width: 250,
+                        }}
+                        onChange={(e) =>
+                          setFeeOpt({ ...feeOpt, additionalFee: e })
+                        }
+                      />
+                    </FloatLabel>
+                  </Space>
+                ),
+              },
+            ]}
+          />
         </Card>
       </>
     );
@@ -440,6 +428,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
       })(bill);
     }
   };
+
   const handleSaveFee = () => {
     let _fee: UpdateFeeProps = {
       id: selectedBiller?._id ?? "",
@@ -455,6 +444,32 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
         setSelectedBiller(res.data);
         message.success(res?.message ?? "Success");
         setTrigger(trigger + 1);
+      }
+    })(bill);
+  };
+
+  const handleMarkAsMain = (id: string, index: number) => {
+    return (async (_) => {
+      if (id) {
+        let res = await _.markMainAmount(id, index);
+
+        if (res.success) {
+          message.success(res?.message ?? "Success");
+          return true;
+        }
+      }
+    })(bill);
+  };
+
+  const handleDeleteOption = (id: string, index: number) => {
+    return (async (_) => {
+      if (id) {
+        let res = await _.removeOptionIndexed(id, index);
+
+        if (res.success) {
+          message.success(res?.message ?? "Success");
+          return true;
+        }
       }
     })(bill);
   };
@@ -663,6 +678,8 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
         index={billsOptions.index}
         id={billsOptions.id}
         refresh={() => setTrigger(trigger + 1)}
+        markAsMain={handleMarkAsMain}
+        deleteOption={handleDeleteOption}
       />
     </>
   );

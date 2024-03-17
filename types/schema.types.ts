@@ -1,3 +1,5 @@
+import { BillingsFormField } from "./billings.types";
+
 export type RoleType = "teller" | "encoder";
 
 export interface User {
@@ -23,17 +25,8 @@ export interface UserWithToken extends ProtectedUser {
   token: string;
 }
 
-export type WalletFeeType = "percent" | "fixed";
-export interface Wallet {
-  _id?: string;
-  name: string;
-  feeType?: WalletFeeType;
-  feeValue?: number | null;
-}
-
 //* transaction types
-
-export type TransactionType = "gcash" | "eload" | string;
+export type TransactionType = "bills" | "wallet";
 export type TransactionHistoryStatus = "completed" | "failed" | "pending";
 
 export interface TransactionHistory {
@@ -44,20 +37,28 @@ export interface TransactionHistory {
 export interface Transaction {
   _id?: string;
   type: TransactionType;
-  sub_type?: string;
-  // for gcash (pre-defined already)
-  gcash?: Gcash;
-  bill?: string; // json entry for all bill inputs
-  history: TransactionHistory[];
+  sub_type: string;
+  transactionDetails: string;
   reference?: string;
-  dateCreated?: Date;
+  history: TransactionHistory[];
+  createdAt?: Date;
 }
 
-export interface Gcash {
-  type: "cash-in" | "cash-out";
+export type WalletType = "cash-in" | "cash-out";
+export type FeeType = "percent" | "fixed";
+
+export interface Wallet {
+  _id?: string;
   name: string;
-  number: string;
-  amount: number;
-  fee: number;
-  dateCreated?: Date;
+  cashinType: FeeType;
+  cashinFeeValue: number | null;
+  cashoutType: FeeType;
+  cashoutFeeValue: number | null;
+  cashInFormField: BillingsFormField[];
+  cashOutFormField: BillingsFormField[];
+}
+
+export interface Fee {
+  type: FeeType;
+  fee: number | null;
 }

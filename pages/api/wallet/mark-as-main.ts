@@ -18,26 +18,46 @@ async function handler(
       success: false,
       message: "Incorrect Request Method",
     });
+  let { id, index, type } = req.body;
 
-  let { id, formField, index, type } = req.body;
   return await Wallet.findOneAndUpdate(
     { _id: id },
     {
       $set: {
         [`${
           type == "cash-in" ? "cashInFormField" : "cashOutFormField"
-        }.${index}`]: formField,
+        }.$[].inputNumberOption.mainAmount`]: false,
       },
-    },
-    { new: true }
+    }
   )
-    .then((e) => {
-      return res.json({
-        code: 200,
-        success: true,
-        message: "Successfully updated",
-        data: e,
-      });
+    .then(async () => {
+      return await Wallet.findOneAndUpdate(
+        { _id: id },
+        {
+          $set: {
+            [`${
+              type == "cash-in" ? "cashInFormField" : "cashOutFormField"
+            }.${index}.inputNumberOption.mainAmount`]: true,
+          },
+        },
+        { arrayFilters: [{ elemIndex: index }], new: true }
+      )
+        .then((e) => {
+          return res.json({
+            code: 200,
+            success: true,
+            message: "Successfully updated",
+            data: e,
+          });
+        })
+        .catch((e) => {
+          console.log(e);
+          return res.json({
+            code: 500,
+            success: false,
+            message: "There is an error in the Server.",
+          });
+        });
     })
     .catch((e) => {
       console.log(e);

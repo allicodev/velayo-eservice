@@ -19,18 +19,9 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  let { id, formField, index, type } = req.body;
-  return await Wallet.findOneAndUpdate(
-    { _id: id },
-    {
-      $set: {
-        [`${
-          type == "cash-in" ? "cashInFormField" : "cashOutFormField"
-        }.${index}`]: formField,
-      },
-    },
-    { new: true }
-  )
+  let { id, walletOption } = req.body;
+
+  return await Wallet.findOneAndUpdate({ _id: id }, walletOption, { new: true })
     .then((e) => {
       return res.json({
         code: 200,

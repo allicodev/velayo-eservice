@@ -6,6 +6,7 @@ import {
   Transaction,
   Response,
   UpdateFeeProps,
+  TransactionHistoryStatus,
 } from "@/types";
 
 class BillService extends Loader {
@@ -115,7 +116,7 @@ class BillService extends Loader {
     let transaction: Transaction = {
       type: "bills",
       sub_type: biller_name,
-      bill,
+      transactionDetails: bill,
       history: [
         {
           description: "First  Transaction requested",
@@ -133,13 +134,18 @@ class BillService extends Loader {
     return response;
   }
 
-  public async getAllTransaction(page: number, pageSize: number) {
+  public async getAllTransaction(
+    page: number,
+    pageSize: number,
+    status?: TransactionHistoryStatus | null
+  ) {
     this.loaderPush("get-transaction");
     const response = await this.instance.get<Transaction[]>({
       endpoint: "/transaction/get-transactions",
       query: {
         page,
         pageSize,
+        status,
       },
     });
     this.loaderPop("get-transaction");

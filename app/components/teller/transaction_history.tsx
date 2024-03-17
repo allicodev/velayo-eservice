@@ -48,12 +48,13 @@ const TransactionHistory = ({
         return <Tag>No Status</Tag>;
     }
   };
+
   const columns: TableProps<Transaction>["columns"] = [
-    // {
-    //   title: "ID",
-    //   key: "id",
-    //   dataIndex: "_id",
-    // },
+    {
+      title: "ID",
+      key: "id",
+      render: (text, record, index) => index + 1,
+    },
     {
       title: "Transaction Type",
       dataIndex: "name",
@@ -61,7 +62,7 @@ const TransactionHistory = ({
       render: (_, { type }) => (
         <Tag
           color={
-            type == "gcash"
+            type == "wallet"
               ? "#297BFA"
               : type == "bills"
               ? "#28a745"

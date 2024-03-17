@@ -1,33 +1,5 @@
 import mongoose from "mongoose";
 
-const GcashSchema = new mongoose.Schema(
-  {
-    type: {
-      type: String,
-      enum: ["cash-in", "cash-out"],
-      required: true,
-    },
-    name: {
-      type: String,
-      required: true,
-    },
-    number: {
-      type: String,
-      required: true,
-    },
-
-    amount: {
-      type: Number,
-      required: true,
-    },
-    fee: {
-      type: Number,
-      required: true,
-    },
-  },
-  { timestamps: true }
-);
-
 const TransactionHistorySchema = new mongoose.Schema(
   {
     description: {
@@ -47,13 +19,13 @@ const TransactionSchema = new mongoose.Schema(
   {
     type: {
       type: String,
+      enum: ["bills", "wallet"],
       required: true,
     },
     sub_type: String,
-    gcash: GcashSchema,
-    bill: String,
-    history: [TransactionHistorySchema],
+    transactionDetails: String,
     reference: String,
+    history: [TransactionHistorySchema],
   },
   {
     timestamps: true,

@@ -101,6 +101,8 @@ export interface NewOptionProps {
   id: string | null;
   index: number;
   refresh?: () => void;
+  markAsMain: (id: string, index: number) => Promise<boolean | void>;
+  deleteOption: (id: string, index: number) => Promise<boolean | void>;
 }
 
 export interface BillButtonProps {

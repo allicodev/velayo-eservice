@@ -7,12 +7,21 @@ const WalletSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    feeType: {
+    cashinType: {
       type: String,
       enum: ["percent", "fixed"],
       required: true,
     },
-    feeValue: {
+    cashinFeeValue: {
+      type: Number,
+      required: true,
+    },
+    cashoutType: {
+      type: String,
+      enum: ["percent", "fixed"],
+      required: true,
+    },
+    cashoutFeeValue: {
       type: Number,
       required: true,
     },

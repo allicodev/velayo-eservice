@@ -18,6 +18,7 @@ import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 
 import {
   DrawerBasicProps,
+  FeeType,
   GcashCollapseItemButtonProps,
   Wallet,
 } from "@/types";
@@ -144,9 +145,19 @@ const GcashForm = ({ open, close }: DrawerBasicProps) => {
       selectWalletOption == "cashin" ? "Cash-in" : "Cash-out"
     }`;
   const getFee = () => {
-    if (selectedWallet?.feeType == "percent")
-      return ((amount * selectedWallet.feeValue!) / 100).toFixed(2);
-    else return (amount + selectedWallet?.feeValue!).toFixed(2);
+    let feeType: FeeType;
+    let fee: number | null;
+
+    if (selectWalletOption == "cashin") {
+      feeType = selectedWallet!.cashinType;
+      fee = selectedWallet!.cashinFeeValue;
+    } else {
+      feeType = selectedWallet!.cashoutType;
+      fee = selectedWallet!.cashoutFeeValue;
+    }
+
+    if (feeType == "percent") return ((amount * fee!) / 100).toFixed(2);
+    else return (amount + fee!).toFixed(2);
   };
   const getTotal = () => (amount + +getFee()).toFixed(2);
 

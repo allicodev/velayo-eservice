@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import {
   Button,
   Col,
@@ -12,75 +12,467 @@ import {
   Modal,
   message,
   Input,
+  Tabs,
+  Card,
+  Tooltip,
 } from "antd";
 import { DownOutlined, SaveOutlined, PlusOutlined } from "@ant-design/icons";
 
-import { BillsSettings, Wallet } from "@/types";
-import { NewWallet } from "./modals";
+import {
+  BillingsFormField,
+  BillsSettings,
+  OptionTypeWithFlag,
+  Wallet,
+  WalletType,
+} from "@/types";
+import { NewWallet, NewOption } from "./modals";
 import WalletService from "@/provider/wallet.service";
 import { FloatLabel } from "@/assets/ts";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DraggingStyle,
+  NotDraggingStyle,
+} from "react-beautiful-dnd";
 
 const EWalletSettings = ({ open, close }: BillsSettings) => {
-  const [selectedWallet, setSelectedWallet] = useState<Wallet>();
+  const [selectedWallet, setSelectedWallet] = useState<Wallet | null>();
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [openNewWallet, setOpenNewWallet] = useState(false);
   const [trigger, setTrigger] = useState(0);
   const [updated, setUpdated] = useState(false);
-  const [modal, contextHolder] = Modal.useModal();
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [walletOptions, setWalletOptions] = useState<OptionTypeWithFlag>({
+    open: false,
+    options: null,
+    index: -1,
+    id: null,
+  });
 
   // for context
   const [contextName, setContextName] = useState("");
   const [openUpdateName, setOpenUpdateName] = useState(false);
+  const [selectedTabs, setSelectedTabs] = useState("fee-settings-tabs");
 
   const wallet = new WalletService();
 
-  const renderSettingsForm = (wallet: Wallet) => {
+  const reorder = (
+    list: BillingsFormField[],
+    startIndex: number,
+    endIndex: number
+  ) => {
+    const result = Array.from(list);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+
+    return result;
+  };
+
+  const getItemStyle = (
+    draggableStyle: DraggingStyle | NotDraggingStyle | undefined,
+    isDragging: boolean
+  ) => ({
+    paddingTop: 5,
+    paddingBottom: 5,
+    paddingLeft: 10,
+    paddingRight: 10,
+    borderRadius: 5,
+    background: isDragging ? "#aaa" : "transparent",
+    ...draggableStyle,
+  });
+
+  const clearAll = () => {
+    setSelectedWallet(null);
+    close();
+  };
+
+  const getTabsAsWalletType = (): WalletType =>
+    selectedTabs == "cashin-settings-tabs" ? "cash-in" : "cash-out";
+
+  const renderSettingsForm = (_wallet: Wallet, type: WalletType) => {
+    const selectedFormField: BillingsFormField[] =
+      type == "cash-in" ? _wallet.cashInFormField : _wallet.cashOutFormField;
+
+    const billingButton = (formField: BillingsFormField): ReactNode => {
+      let index = selectedFormField?.indexOf(formField) ?? -1;
+
+      return (
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <Tooltip
+            title={
+              formField &&
+              formField.type == "number" &&
+              formField.inputNumberOption?.mainAmount
+                ? "This is the field where the main amount is calculated along with fee"
+                : ""
+            }
+          >
+            <div
+              onClick={() => {
+                setWalletOptions({
+                  open: true,
+                  options: selectedFormField![index ?? -1],
+                  index,
+                  id: selectedWallet?._id ?? null,
+                });
+                setSelectedIndex(index ?? -1);
+              }}
+              style={{
+                display: "flex",
+                cursor: "pointer",
+              }}
+            >
+              <span style={{ marginRight: 10, fontSize: 25 }}>
+                {index! + 1}.
+              </span>
+              <div
+                className="billing-button"
+                style={{
+                  background: "#fff",
+                  paddingLeft: 10,
+                  paddingRight: 10,
+                  paddingTop: 5,
+                  paddingBottom: 5,
+                  border: "0.5px solid #D9D9D9",
+                  borderRadius: 3,
+                  display: "flex",
+                  ...(formField &&
+                  formField.type == "number" &&
+                  formField.inputNumberOption?.mainAmount
+                    ? {
+                        border: "1px solid #294B0F",
+                      }
+                    : {}),
+                }}
+              >
+                <span style={{ fontSize: 18, marginRight: 5 }}>
+                  {formField.name}
+                </span>
+                <div
+                  style={{
+                    background: "#F0F5FF",
+                    color: "#2F54EB",
+                    padding: 3,
+                    paddingLeft: 5,
+                    paddingRight: 5,
+                    fontSize: 10,
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  {formField?.type?.toLocaleUpperCase()}
+                </div>
+              </div>
+            </div>
+          </Tooltip>
+          {formField &&
+            formField.type == "number" &&
+            formField.inputNumberOption?.mainAmount && (
+              <span style={{ marginLeft: 10 }}>- MAIN</span>
+            )}
+        </div>
+      );
+    };
     return (
       <div>
-        <Typography.Title>{wallet.name} Fee Settings</Typography.Title>
-        <Radio.Group
-          style={{
-            marginBottom: 15,
-          }}
-          onChange={(e) => {
-            setSelectedWallet({
-              _id: wallet?._id,
-              name: wallet.name,
-              feeType: e.target.value,
-              feeValue: wallet.feeValue,
-            });
-            setUpdated(true);
-          }}
-          value={wallet.feeType}
-        >
-          <Radio.Button value="percent">Percent</Radio.Button>
-          <Radio.Button value="fixed">Fixed</Radio.Button>
-        </Radio.Group>
-        <div
-          style={{
-            display: "flex",
+        <Typography.Title>{_wallet.name} Fee Settings</Typography.Title>
+        <Card
+          styles={{
+            body: {
+              padding: 5,
+              background: "#fefefe",
+              borderRadius: 10,
+            },
           }}
         >
-          <label style={{ fontSize: "1.5em", marginRight: 10 }}>Fee</label>
-          <InputNumber
-            prefix={wallet.feeType == "percent" ? "%" : "₱"}
-            value={wallet.feeValue}
-            style={{
-              width: 80,
-              paddingRight: 10,
-            }}
-            onChange={(e) => {
-              setSelectedWallet({
-                _id: wallet?._id,
-                name: wallet.name,
-                feeType: wallet.feeType,
-                feeValue: e,
-              });
-              setUpdated(true);
-            }}
-            controls={false}
+          <Tabs
+            type="card"
+            onChange={setSelectedTabs}
+            items={[
+              {
+                label: "Fee Settings",
+                key: "fee-settings-tabs",
+                children: (
+                  <div
+                    style={{
+                      display: "flex",
+                    }}
+                  >
+                    <div>
+                      <strong
+                        style={{
+                          marginLeft: 15,
+                        }}
+                      >
+                        Cash-In Fee Settings
+                      </strong>
+                      <FloatLabel
+                        label="Fee"
+                        value={selectedWallet?.cashinFeeValue?.toString()}
+                        style={{
+                          marginLeft: 15,
+                          marginTop: 5,
+                        }}
+                      >
+                        <InputNumber
+                          prefix={_wallet.cashinType == "percent" ? "%" : "₱"}
+                          value={_wallet.cashinFeeValue}
+                          className="customInput"
+                          size="large"
+                          style={{
+                            width: 120,
+                          }}
+                          onChange={(e) => {
+                            setSelectedWallet({
+                              ..._wallet,
+                              cashinFeeValue: e,
+                            });
+                            setUpdated(true);
+                          }}
+                          controls={false}
+                        />
+                      </FloatLabel>
+                      <Radio.Group
+                        style={{
+                          marginLeft: 15,
+                        }}
+                        onChange={(e) => {
+                          setSelectedWallet({
+                            ..._wallet,
+                            cashinType: e.target.value,
+                          });
+                          setUpdated(true);
+                        }}
+                        value={_wallet.cashinType}
+                      >
+                        <Radio value="percent">Percent</Radio>
+                        <Radio value="fixed">Fixed</Radio>
+                      </Radio.Group>
+                    </div>
+                    <Divider
+                      type="vertical"
+                      style={{
+                        height: 120,
+                      }}
+                    />
+                    <div>
+                      <strong
+                        style={{
+                          marginLeft: 15,
+                        }}
+                      >
+                        Cash-Out Fee Settings
+                      </strong>
+                      <FloatLabel
+                        label="Fee"
+                        value={selectedWallet?.cashoutFeeValue?.toString()}
+                        style={{
+                          marginLeft: 15,
+                          marginTop: 5,
+                        }}
+                      >
+                        <InputNumber
+                          prefix={_wallet.cashoutType == "percent" ? "%" : "₱"}
+                          value={_wallet.cashoutFeeValue}
+                          className="customInput"
+                          size="large"
+                          style={{
+                            width: 120,
+                          }}
+                          onChange={(e) => {
+                            setSelectedWallet({
+                              ..._wallet,
+                              cashoutFeeValue: e,
+                            });
+                            setUpdated(true);
+                          }}
+                          controls={false}
+                        />
+                      </FloatLabel>
+                      <Radio.Group
+                        style={{
+                          marginLeft: 15,
+                        }}
+                        onChange={(e) => {
+                          setSelectedWallet({
+                            ..._wallet,
+                            cashoutType: e.target.value,
+                          });
+                          setUpdated(true);
+                        }}
+                        value={_wallet.cashoutType}
+                      >
+                        <Radio value="percent">Percent</Radio>
+                        <Radio value="fixed">Fixed</Radio>
+                      </Radio.Group>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                label: "Cash-in Settings",
+                key: "cashin-settings-tabs",
+                children: selectedFormField?.length != 0 && (
+                  <Space
+                    direction="vertical"
+                    style={{
+                      display: "block",
+                    }}
+                  >
+                    <DragDropContext
+                      onDragEnd={(result) => {
+                        if (!result.destination) {
+                          return;
+                        }
+
+                        if (selectedFormField && selectedWallet) {
+                          const items = reorder(
+                            selectedFormField,
+                            result.source.index,
+                            result.destination.index
+                          );
+
+                          let _: Wallet = {
+                            ...selectedWallet,
+                            cashInFormField: items,
+                          };
+
+                          // call api and update the current option position
+                          (async (b) => {
+                            if (selectedWallet?._id != undefined) {
+                              let res = await b.updateWalletOption(
+                                selectedWallet._id,
+                                _
+                              );
+
+                              if (res.success)
+                                message.success(res?.message ?? "Success");
+                            }
+                          })(wallet);
+
+                          setSelectedWallet(_);
+                        }
+                      }}
+                    >
+                      <Droppable droppableId="droppable">
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                          >
+                            {selectedFormField?.map((item, index) => (
+                              <Draggable
+                                key={`${item.type}-${index}`}
+                                draggableId={`${item.type}-${index}`}
+                                index={index}
+                              >
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.dragHandleProps}
+                                    {...provided.draggableProps}
+                                    style={getItemStyle(
+                                      provided.draggableProps.style,
+                                      snapshot.isDragging
+                                    )}
+                                  >
+                                    <div>{billingButton(item)}</div>
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </DragDropContext>
+                  </Space>
+                ),
+              },
+              {
+                label: "Cash-out Settings",
+                key: "cashout-settings-tabs",
+                children: selectedFormField?.length != 0 && (
+                  <Space
+                    direction="vertical"
+                    style={{
+                      display: "block",
+                    }}
+                  >
+                    <DragDropContext
+                      onDragEnd={(result) => {
+                        if (!result.destination) {
+                          return;
+                        }
+
+                        if (selectedFormField && selectedWallet) {
+                          const items = reorder(
+                            selectedFormField,
+                            result.source.index,
+                            result.destination.index
+                          );
+
+                          let _: Wallet = {
+                            ...selectedWallet,
+                            cashOutFormField: items,
+                          };
+
+                          // call api and update the current option position
+                          (async (b) => {
+                            if (selectedWallet?._id != undefined) {
+                              let res = await b.updateWalletOption(
+                                selectedWallet._id,
+                                _
+                              );
+
+                              if (res.success)
+                                message.success(res?.message ?? "Success");
+                            }
+                          })(wallet);
+
+                          setSelectedWallet(_);
+                        }
+                      }}
+                    >
+                      <Droppable droppableId="droppable">
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                          >
+                            {selectedFormField?.map((item, index) => (
+                              <Draggable
+                                key={`${item.type}-${index}`}
+                                draggableId={`${item.type}-${index}`}
+                                index={index}
+                              >
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.dragHandleProps}
+                                    {...provided.draggableProps}
+                                    style={getItemStyle(
+                                      provided.draggableProps.style,
+                                      snapshot.isDragging
+                                    )}
+                                  >
+                                    <div>{billingButton(item)}</div>
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </DragDropContext>
+                  </Space>
+                ),
+              },
+            ]}
           />
-        </div>
+        </Card>
       </div>
     );
   };
@@ -105,7 +497,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
         wallets
           .map((e) => e.name)
           .filter(
-            (e) => e.toLocaleLowerCase() == _wallet.name.toLocaleLowerCase()
+            (e) => e.toLocaleLowerCase() == _wallet?.name.toLocaleLowerCase()
           ).length > 0
       ) {
         reject("Wallet already added");
@@ -138,17 +530,93 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
   };
 
   const handleSave = () => {
-    if (selectedWallet?.feeValue == 0) {
-      message.error("Fee should not be zero. Please provide.");
-      return;
-    }
     (async (_) => {
       if (selectedWallet) {
-        let res = await _.updateWallet(selectedWallet);
-
+        let res = await _.updateWalletFee(selectedWallet);
         if (res.success) {
           message.success(res?.message ?? "Success");
           setTrigger(trigger + 1);
+        }
+      }
+    })(wallet);
+  };
+
+  const handleNewOption = (opt: BillingsFormField) => {
+    if (walletOptions.options != null) {
+      (async (_) => {
+        if (selectedWallet?._id != undefined) {
+          let res = await _.updateWalletFormFields(
+            selectedWallet?._id,
+            opt,
+            selectedIndex,
+            getTabsAsWalletType()
+          );
+
+          if (res.success) {
+            setWalletOptions({
+              open: false,
+              options: null,
+              index: -1,
+              id: null,
+            });
+            setTrigger(trigger + 1);
+            message.success(res?.message ?? "Success");
+          }
+        }
+      })(wallet);
+    } else {
+      (async (_) => {
+        if (selectedWallet?._id != undefined) {
+          let res = await _.pushToFormFields(
+            selectedWallet?._id,
+            opt,
+            getTabsAsWalletType()
+          );
+
+          if (res.success) {
+            setWalletOptions({
+              open: false,
+              options: null,
+              index: -1,
+              id: null,
+            });
+            setTrigger(trigger + 1);
+            message.success(res?.message ?? "Success");
+          }
+        }
+      })(wallet);
+    }
+  };
+
+  const handleMarkAsMain = (id: string, index: number) => {
+    return (async (_) => {
+      if (id) {
+        let res = await _.markWalletMainAmount(
+          id,
+          index,
+          getTabsAsWalletType()
+        );
+
+        if (res.success) {
+          message.success(res?.message ?? "Success");
+          return true;
+        }
+      }
+    })(wallet);
+  };
+
+  const handleDeleteOption = (id: string, index: number) => {
+    return (async (_) => {
+      if (id) {
+        let res = await _.removeWalletOptionIndexed(
+          id,
+          index,
+          getTabsAsWalletType()
+        );
+
+        if (res.success) {
+          message.success(res?.message ?? "Success");
+          return true;
         }
       }
     })(wallet);
@@ -162,7 +630,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
     <>
       <Drawer
         open={open}
-        onClose={close}
+        onClose={clearAll}
         width="100%"
         height="100%"
         closeIcon={<DownOutlined />}
@@ -243,8 +711,9 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
             <Divider type="vertical" style={{ height: "100%" }} />
           </Col>
           <Col span={11} style={{ width: "100%" }}>
-            {selectedWallet != null && renderSettingsForm(selectedWallet)}
-            {selectedWallet != null && (
+            {selectedWallet != null &&
+              renderSettingsForm(selectedWallet, getTabsAsWalletType())}
+            {selectedWallet != null && selectedTabs == "fee-settings-tabs" ? (
               <Space
                 style={{
                   position: "absolute",
@@ -276,7 +745,26 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                   Save
                 </Button>
               </Space>
-            )}
+            ) : ["cashin-settings-tabs", "cashout-settings-tabs"].includes(
+                selectedTabs
+              ) ? (
+              <Space style={{ position: "absolute", right: 0, bottom: 0 }}>
+                <Button
+                  icon={<PlusOutlined />}
+                  size="large"
+                  onClick={() => {
+                    setWalletOptions({
+                      open: true,
+                      options: null,
+                      index: -1,
+                      id: null,
+                    });
+                  }}
+                >
+                  Add New Option
+                </Button>
+              </Space>
+            ) : null}
           </Col>
         </Row>
       </Drawer>
@@ -284,6 +772,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
       {/* context */}
       <Modal
         open={openUpdateName}
+        onCancel={() => setOpenUpdateName(false)}
         closable={false}
         title="Update Name"
         footer={[
@@ -309,6 +798,19 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
         open={openNewWallet}
         close={() => setOpenNewWallet(false)}
         onSave={handleNewWallet}
+      />
+      <NewOption
+        open={walletOptions.open}
+        close={() =>
+          setWalletOptions({ open: false, options: null, index: -1, id: null })
+        }
+        onSave={handleNewOption}
+        formfield={walletOptions.options}
+        index={walletOptions.index}
+        id={walletOptions.id}
+        refresh={() => setTrigger(trigger + 1)}
+        markAsMain={handleMarkAsMain}
+        deleteOption={handleDeleteOption}
       />
     </>
   );

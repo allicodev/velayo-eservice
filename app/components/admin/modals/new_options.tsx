@@ -35,6 +35,8 @@ const NewOption = ({
   index,
   id,
   refresh,
+  markAsMain,
+  deleteOption,
 }: NewOptionProps) => {
   const [form] = Form.useForm();
   const [selectedType, setSelectedType] = useState<BillingOptionsType | null>(
@@ -113,18 +115,15 @@ const NewOption = ({
     close();
   };
 
-  const handleDeleteOption = () => {
-    (async (_) => {
-      if (id) {
-        let res = await _.removeOptionIndexed(id, index);
+  const handleDeleteOption = async () => {
+    if (id) {
+      let flag = await deleteOption(id, index);
 
-        if (res.success) {
-          message.success(res?.message ?? "Success");
-          clearAll();
-          if (refresh) refresh();
-        }
+      if (flag) {
+        clearAll();
+        if (refresh) refresh();
       }
-    })(bill);
+    }
   };
 
   const updateName = (name: string) => {
@@ -540,18 +539,15 @@ const NewOption = ({
     });
   };
 
-  const markMain = () => {
-    (async (_) => {
-      if (formfield && id) {
-        let res = await _.markMainAmount(id, index);
+  const markMain = async () => {
+    if (id) {
+      let flag = await markAsMain(id, index);
 
-        if (res.success) {
-          message.success(res?.message ?? "Success");
-          clearAll();
-          if (refresh) refresh();
-        }
+      if (flag) {
+        clearAll();
+        if (refresh) refresh();
       }
-    })(bill);
+    }
   };
 
   useEffect(() => {
@@ -568,9 +564,9 @@ const NewOption = ({
         formfield &&
         formfield.type == "number" &&
         formfield.inputNumberOption?.mainAmount == true ? (
-          <Tooltip title="Marked as Main Amount">
+          <Tooltip title="Already Marked as Main Amount">
             <Button key="main-mark-option-btn-disabled" type="primary" disabled>
-              Marked as Main Amount <CheckOutlined />
+              Mark as Main Amount <CheckOutlined />
             </Button>
           </Tooltip>
         ) : formfield &&

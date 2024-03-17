@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NewWalletProps, WalletFeeType } from "@/types";
+import { NewWalletProps, Fee } from "@/types";
 import {
   Button,
   Input,
@@ -8,42 +8,55 @@ import {
   Typography,
   InputNumber,
   message,
+  Divider,
 } from "antd";
 import { FloatLabel } from "@/assets/ts";
 
 const NewWallet = ({ open, close, onSave }: NewWalletProps) => {
-  const [input, setInput] = useState("");
-  const [type, setType] = useState<WalletFeeType>("percent");
-  const [fee, setFee] = useState<number | null>();
+  const [name, setName] = useState("");
+  const [cashinOpt, setCashinOpt] = useState<Fee>({
+    fee: null,
+    type: "percent",
+  });
+  const [cashoutOpt, setCashoutOpt] = useState<Fee>({
+    fee: null,
+    type: "percent",
+  });
 
   const handleFinish = async () => {
     // validate
-
-    if (input == "") {
+    if (name == "") {
       message.error("Wallet Name is empty. Please provide.");
       return;
     }
 
-    if (fee == null) {
-      message.error("Fee is empty. Please provide.");
+    if (cashinOpt.fee == null) {
+      message.error("Cash-In Fee is empty. Please provide.");
       return;
     }
 
-    if (fee) {
-      await onSave({
-        name: input,
-        feeType: type,
-        feeValue: fee,
-      })
-        .then((e) => {
-          message.success(e);
-          close();
-          return;
-        })
-        .catch((e) => {
-          message.error(e);
-        });
+    if (cashoutOpt.fee == null) {
+      message.error("Cash-Out Fee is empty. Please provide.");
+      return;
     }
+
+    await onSave({
+      name,
+      cashinType: cashinOpt.type,
+      cashinFeeValue: cashinOpt.fee!,
+      cashoutType: cashoutOpt.type,
+      cashoutFeeValue: cashoutOpt.fee!,
+      cashInFormField: [],
+      cashOutFormField: [],
+    })
+      .then((e) => {
+        message.success(e);
+        close();
+        return;
+      })
+      .catch((e) => {
+        message.error(e);
+      });
   };
 
   return (
@@ -51,7 +64,15 @@ const NewWallet = ({ open, close, onSave }: NewWalletProps) => {
       title={<Typography.Title level={2}>New Wallet</Typography.Title>}
       open={open}
       onCancel={() => {
-        setInput("");
+        setName("");
+        setCashinOpt({
+          fee: null,
+          type: "percent",
+        });
+        setCashoutOpt({
+          fee: null,
+          type: "percent",
+        });
         close();
       }}
       footer={[
@@ -67,40 +88,92 @@ const NewWallet = ({ open, close, onSave }: NewWalletProps) => {
       closable={false}
       destroyOnClose
     >
-      <FloatLabel label="Wallet Name" value={input}>
+      <FloatLabel label="Wallet Name" value={name}>
         <Input
           className="customInput"
           style={{
             display: "block",
             height: 40,
           }}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => setName(e.target.value)}
         />
       </FloatLabel>
-      <label>Fee Options: </label>
-      <br />
-      <Radio.Group
-        defaultValue={type}
-        value={type}
-        onChange={(e) => setType(e.target.value)}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-evenly",
+        }}
       >
-        <Radio.Button value="percent">Percent (%)</Radio.Button>
-        <Radio.Button value="fixed">Fixed (₱)</Radio.Button>
-      </Radio.Group>
-      <FloatLabel label="Fee" value={fee?.toString()} style={{ marginTop: 10 }}>
-        <InputNumber
-          prefix={type == "percent" ? "%" : "₱"}
-          value={fee}
-          className="customInput"
-          size="large"
+        <div>
+          <strong>Cash-in Fee Options: </strong>
+          <br />
+          <FloatLabel
+            label="Fee"
+            bool={cashinOpt.fee != null}
+            style={{ marginTop: 10 }}
+          >
+            <InputNumber
+              prefix={cashinOpt.type == "percent" ? "%" : "₱"}
+              value={cashinOpt.fee}
+              className="customInput"
+              size="large"
+              style={{
+                width: 120,
+                paddingRight: 10,
+              }}
+              onChange={(e) => setCashinOpt({ ...cashinOpt, fee: e })}
+              controls={false}
+            />
+          </FloatLabel>
+          <Radio.Group
+            defaultValue={cashinOpt.type}
+            value={cashinOpt.type}
+            onChange={(e) =>
+              setCashinOpt({ ...cashinOpt, type: e.target.value })
+            }
+          >
+            <Radio value="percent">Percent (%)</Radio>
+            <Radio value="fixed">Fixed (₱)</Radio>
+          </Radio.Group>
+        </div>
+        <Divider type="vertical" style={{ height: 120 }} />
+        <div
           style={{
-            width: 120,
-            paddingRight: 10,
+            marginLeft: 15,
           }}
-          onChange={(e) => setFee(e)}
-          controls={false}
-        />
-      </FloatLabel>
+        >
+          <strong>Cash-out Fee Options: </strong>
+          <br />
+          <FloatLabel
+            label="Fee"
+            bool={cashoutOpt.fee != null}
+            style={{ marginTop: 10 }}
+          >
+            <InputNumber
+              prefix={cashoutOpt.type == "percent" ? "%" : "₱"}
+              value={cashoutOpt.fee}
+              className="customInput"
+              size="large"
+              style={{
+                width: 120,
+                paddingRight: 10,
+              }}
+              onChange={(e) => setCashoutOpt({ ...cashoutOpt, fee: e })}
+              controls={false}
+            />
+          </FloatLabel>
+          <Radio.Group
+            defaultValue={cashoutOpt.type}
+            value={cashoutOpt.type}
+            onChange={(e) =>
+              setCashoutOpt({ ...cashoutOpt, type: e.target.value })
+            }
+          >
+            <Radio value="percent">Percent (%)</Radio>
+            <Radio value="fixed">Fixed (₱)</Radio>
+          </Radio.Group>
+        </div>
+      </div>
     </Modal>
   );
 };

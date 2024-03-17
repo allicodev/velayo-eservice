@@ -1,46 +1,40 @@
 import dbConnect from "@/database/dbConnect";
-import Transaction from "@/database/models/transaction.schema";
-import { ExtendedResponse, Transaction as TransactionType } from "@/types";
+import Wallet from "@/database/models/wallet.schema";
+import { ExtendedResponse, BillingSettingsType } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ExtendedResponse<TransactionType[]>>
+  res: NextApiResponse<ExtendedResponse<BillingSettingsType>>
 ) {
   await dbConnect();
 
   const { method } = req;
 
-  if (method != "GET")
+  if (method != "POST")
     res.json({
       code: 405,
       success: false,
       message: "Incorrect Request Method",
     });
 
-  let { page, pageSize, status } = req.query;
+  let { id, formField, type } = req.body;
 
-  const _page = Number.parseInt(page!.toString()) - 1;
-
-  let query = {};
-
-  if (status ?? false) {
-    query = {
-      $expr: {
-        $eq: [{ $last: "$history.status" }, status],
+  return await Wallet.findOneAndUpdate(
+    { _id: id },
+    {
+      $push: {
+        [type == "cash-in" ? "cashInFormField" : "cashOutFormField"]: formField,
       },
-    };
-  }
-
-  return await Transaction.find(query)
-    .skip(_page * Number.parseInt(pageSize!.toString()))
-    .limit(Number.parseInt(pageSize!.toString()))
+    },
+    { new: true }
+  )
     .then((e) => {
       return res.json({
         code: 200,
         success: true,
-        message: "Successfully fetched",
+        message: "Successfully add as new Option",
         data: e,
       });
     })
