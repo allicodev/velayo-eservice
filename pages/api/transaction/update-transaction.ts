@@ -4,7 +4,8 @@ import { ExtendedResponse, Response } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
-// TODO: sent emit to teller
+import { PusherBE } from "@/provider/utils/pusher";
+const pusher = new PusherBE();
 
 async function handler(
   req: NextApiRequest,
@@ -20,9 +21,12 @@ async function handler(
       success: false,
       message: "Incorrect Request Method",
     });
-
   return await Transaction.findOneAndUpdate({ _id: req.body._id }, req.body)
     .then((e) => {
+      pusher.emit("teller", "notify", {
+        queue: e.queue,
+        id: e._id.toString(),
+      });
       return res.json({
         code: 200,
         success: true,

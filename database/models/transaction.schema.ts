@@ -8,7 +8,7 @@ const TransactionHistorySchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["success", "failed", "pending"],
+      enum: ["completed", "failed", "pending"],
       default: "pending",
     },
   },
@@ -26,11 +26,44 @@ const TransactionSchema = new mongoose.Schema(
     transactionDetails: String,
     reference: String,
     history: [TransactionHistorySchema],
+    queue: {
+      type: Number,
+      default: 1,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-export default mongoose.models.Transaction ||
+TransactionSchema.pre("save", async function (next) {
+  if (this.isNew) {
+    try {
+      const lastDocument = await TransactionModel.findOne(
+        {},
+        { queue: 1 },
+        { sort: { createdAt: -1 } }
+      );
+
+      const lastQueueNumber = lastDocument ? lastDocument.queue || 0 : 0;
+
+      const today = new Date();
+      const createdAtDate = new Date(this.createdAt);
+      if (today.toDateString() !== createdAtDate.toDateString()) {
+        this.queue = 1;
+      } else {
+        this.queue = lastQueueNumber + 1;
+      }
+    } catch (error) {
+      console.error("Error retrieving last document:", error);
+      this.queue = 1;
+    }
+  }
+  next();
+});
+
+let TransactionModel =
+  mongoose.models.Transaction ||
   mongoose.model("Transaction", TransactionSchema);
+
+export default TransactionModel;

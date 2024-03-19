@@ -9,6 +9,7 @@ import {
   Tag,
   Typography,
   message,
+  notification,
 } from "antd";
 import { CopyOutlined, PrinterOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -23,9 +24,10 @@ import { UserBadge } from "@/app/components";
 import { EncoderForm } from "@/app/components/teller";
 import { useUserStore } from "@/provider/context";
 import BillService from "@/provider/bill.service";
+import { PusherFE } from "@/provider/utils/pusher";
 
-// TODO: add filter
-// TODO: refetch after transaction updated
+const pusher = new PusherFE();
+let pusherProvider: PusherFE;
 
 const Encoder = () => {
   const [billsOption, setBillsOption] = useState<TransactionOptProps>({
@@ -36,7 +38,9 @@ const Encoder = () => {
   const [trigger, setTrigger] = useState(0);
   const [transactions, setTransaction] = useState<Transaction[]>([]);
   const [selectedStatus, setSelectedStatus] =
-    useState<TransactionHistoryStatus | null>(null);
+    useState<TransactionHistoryStatus | null>("pending");
+
+  const [api, contextHolder] = notification.useNotification();
 
   const { currentUser } = useUserStore();
 
@@ -62,7 +66,7 @@ const Encoder = () => {
     {
       title: "ID",
       key: "id",
-      render: (text, record, index) => index + 1,
+      dataIndex: "queue",
     },
     {
       title: "Transaction Type",
@@ -145,9 +149,25 @@ const Encoder = () => {
     })(bill);
   };
 
+  const initPusherProvider = () => {
+    pusherProvider.bind("notify", handleNotify);
+  };
+
+  const handleNotify = () => {
+    api.info({
+      message: "There is a new request transaction",
+      duration: 0,
+    });
+    getTransactions({ page: 1, status: selectedStatus });
+  };
+
   useEffect(() => {
-    getTransactions({ page: 1, status: "pending" });
-  }, []);
+    getTransactions({ page: 1, status: selectedStatus });
+    if (!pusher.hasSubscribe) {
+      pusherProvider = pusher.subscribe("encoder");
+      initPusherProvider();
+    }
+  }, [trigger]);
 
   return (
     <>
@@ -188,6 +208,7 @@ const Encoder = () => {
               onChange={(e: any) => {
                 if (e) getTransactions({ page: 1, status: e });
                 else getTransactions({ page: 1 });
+                setSelectedStatus(e);
               }}
               style={{
                 width: 100,
@@ -231,6 +252,7 @@ const Encoder = () => {
         </div>
       </div>
       {/* context */}
+      {contextHolder}
       <EncoderForm
         close={() => setBillsOption({ open: false, transaction: null })}
         refresh={() => setTrigger(trigger + 1)}

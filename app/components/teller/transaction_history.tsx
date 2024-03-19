@@ -33,6 +33,16 @@ const TransactionHistory = ({
   const [trigger, setTrigger] = useState(0);
   const bill = new BillService();
 
+  (TransactionHistory as any).openTransaction = async (id: any) => {
+    await getTransaction({ page: 1 }).then((__: any) => {
+      if (onCellClick) {
+        console.log(id);
+        console.log(__);
+        onCellClick(__.filter((e: any) => e._id == id)[0]);
+      } else null;
+    });
+  };
+
   const getStatusBadge = (str: TransactionHistoryStatus | null) => {
     switch (str) {
       case "pending": {
@@ -52,8 +62,7 @@ const TransactionHistory = ({
   const columns: TableProps<Transaction>["columns"] = [
     {
       title: "ID",
-      key: "id",
-      render: (text, record, index) => index + 1,
+      dataIndex: "queue",
     },
     {
       title: "Transaction Type",
@@ -130,15 +139,18 @@ const TransactionHistory = ({
     page: number;
     pageSize?: number;
     status?: TransactionHistoryStatus | null;
-  }) => {
-    if (!pageSize) pageSize = 10;
-    (async (_) => {
-      let res = await _.getAllTransaction(page, pageSize, status);
+  }): Promise<Transaction[] | void> => {
+    return new Promise((resolve, reject) => {
+      if (!pageSize) pageSize = 10;
+      (async (_) => {
+        let res = await _.getAllTransaction(page, pageSize, status);
 
-      if (res.success) {
-        setTransactions(res?.data ?? []);
-      }
-    })(bill);
+        if (res.success) {
+          setTransactions(res?.data ?? []);
+          resolve(res.data);
+        } else reject();
+      })(bill);
+    });
   };
 
   useEffect(() => {

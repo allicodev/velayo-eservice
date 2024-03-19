@@ -20,6 +20,7 @@ export interface DrawerBasicProps {
   close: () => void;
   title?: string;
   style?: CSSProperties;
+  extra?: ReactNode;
   onCellClick?: (str: any) => void;
   refresh?: number;
 }

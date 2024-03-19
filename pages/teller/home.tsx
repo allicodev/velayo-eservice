@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Col, Row } from "antd";
+import React, { useEffect, useState } from "react";
+import { Button, Col, Row, notification } from "antd";
 import { WalletOutlined } from "@ant-design/icons";
 import { MdOutlineSendToMobile } from "react-icons/md";
 import { FaMoneyBills } from "react-icons/fa6";
@@ -14,11 +14,15 @@ import {
 } from "@/app/components/teller";
 
 import { TransactionOptProps } from "@/types";
-
 import { useUserStore } from "@/provider/context";
+import { PusherFE } from "@/provider/utils/pusher";
+
+const pusher = new PusherFE();
+let pusherProvider: PusherFE;
 
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
+  const [api, contextHolder] = notification.useNotification();
   const [transactionDetailsOpt, setTransactionOpt] =
     useState<TransactionOptProps>({
       open: false,
@@ -55,6 +59,45 @@ const Teller = () => {
     { title: "miscellaneous", onPress: () => {} },
   ];
 
+  const initPusherProvider = () => {
+    pusherProvider.bind("notify", handleNotify);
+  };
+
+  const handleNotify = (data: string) => {
+    let { queue, id } = JSON.parse(data);
+
+    api.info({
+      message: `Transaction ID #${queue} has been updated`,
+      duration: 0,
+      btn: (
+        <Button
+          type="primary"
+          style={{ border: "none" }}
+          ghost
+          onClick={() => openTransaction(id)}
+        >
+          Open
+        </Button>
+      ),
+    });
+  };
+
+  const openTransaction = (id: string) => {
+    api.destroy();
+    new Promise<void>((resolve, reject) => {
+      setOpenedMenu("th");
+      resolve();
+    }).then(async () => {
+      await (TransactionHistory as any).openTransaction(id);
+    });
+  };
+
+  useEffect(() => {
+    if (!pusher.hasSubscribe) pusherProvider = pusher.subscribe("teller");
+
+    initPusherProvider();
+  }, []);
+
   return (
     <>
       <div className="teller main-content">
@@ -90,6 +133,7 @@ const Teller = () => {
       </div>
 
       {/* context */}
+      {contextHolder}
       <WalletForm
         open={openedMenu == "gcash"}
         close={() => setOpenedMenu("")}

@@ -22,7 +22,7 @@ export class PusherBE {
 export class PusherFE {
   private pusher;
   private channel: any;
-  private hasSubscribe = false;
+  public hasSubscribe = false;
 
   constructor() {
     this.pusher = new Pusher2(process.env.PUSHER_APP_KEY!, {
@@ -36,10 +36,10 @@ export class PusherFE {
     return this;
   }
 
-  public bind(event: string) {
+  public bind(event: string, callback: Function) {
     if (this.hasSubscribe) {
       this.channel.bind(event, function (data: any) {
-        console.log(JSON.stringify(data));
+        return callback(JSON.stringify(data));
       });
     } else return Promise.reject("not subscribe yet");
   }

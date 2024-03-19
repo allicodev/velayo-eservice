@@ -383,11 +383,12 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
       <Row>
         <Col span={6}>
           <Space direction="vertical">
-            {bills.map((e) => (
+            {bills.map((e, i) => (
               <BillButton
                 bill={e}
                 isSelected={e._id == selectedBill?._id}
                 onSelected={(e) => setSelectedBill(e)}
+                key={`bills-btn-${i}`}
               />
             ))}
           </Space>
