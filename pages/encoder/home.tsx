@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import {
   Button,
+  Select,
   Space,
   Table,
   TableProps,
@@ -24,6 +25,7 @@ import { useUserStore } from "@/provider/context";
 import BillService from "@/provider/bill.service";
 
 // TODO: add filter
+// TODO: refetch after transaction updated
 
 const Encoder = () => {
   const [billsOption, setBillsOption] = useState<TransactionOptProps>({
@@ -124,20 +126,27 @@ const Encoder = () => {
     },
   ];
 
-  const getTransactions = (page?: number) => {
-    if (!page) page = 1;
-
+  const getTransactions = ({
+    page,
+    pageSize,
+    status,
+  }: {
+    page: number;
+    pageSize?: number;
+    status?: TransactionHistoryStatus | null;
+  }) => {
+    if (!pageSize) pageSize = 10;
     (async (_) => {
-      let res = await _.getAllTransaction(page, 10, null);
+      let res = await _.getAllTransaction(page, pageSize, status);
 
-      if (res?.success) {
+      if (res.success) {
         setTransaction(res?.data ?? []);
       }
     })(bill);
   };
 
   useEffect(() => {
-    getTransactions();
+    getTransactions({ page: 1, status: "pending" });
   }, []);
 
   return (
@@ -164,9 +173,46 @@ const Encoder = () => {
             }}
           />
 
-          <Typography.Text style={{ fontSize: 25, marginLeft: 25 }}>
-            Transactions
-          </Typography.Text>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography.Text style={{ fontSize: 25, marginLeft: 10 }}>
+              Transactions
+            </Typography.Text>
+            <Select
+              key="status-filter"
+              defaultValue="pending"
+              onChange={(e: any) => {
+                if (e) getTransactions({ page: 1, status: e });
+                else getTransactions({ page: 1 });
+              }}
+              style={{
+                width: 100,
+                marginRight: 10,
+              }}
+              options={[
+                {
+                  label: "All",
+                  value: null,
+                },
+                {
+                  label: "Pending",
+                  value: "pending",
+                },
+                {
+                  label: "Completed",
+                  value: "completed",
+                },
+                {
+                  label: "Failed",
+                  value: "failed",
+                },
+              ]}
+            />
+          </div>
           <Table
             dataSource={transactions}
             columns={columns}

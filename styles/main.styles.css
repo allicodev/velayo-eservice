@@ -150,9 +150,37 @@ textarea.customInput {
   z-index: 999;
 }
 
+.ant-input-number-outlined.customInput.no-prefix + label {
+  top: 5px;
+  left: 15px;
+  z-index: 999;
+}
+
 .ant-input-number-outlined.customInput + label.label-float {
   top: -10px;
   left: 20px;
+}
+
+.ant-input-number-outlined.customInput.no-prefix + label.label-float {
+  top: -10px;
+  left: 15px;
+}
+
+textarea.customInput + label {
+  top: 5px;
+}
+
+textarea.customInput + label.label-float {
+  top: -10px;
+}
+
+/* special */
+textarea.customInput.special + label {
+  top: 25px;
+}
+
+textarea.customInput.special + label.label-float {
+  top: 10px;
 }
 
 .billing-button:hover {

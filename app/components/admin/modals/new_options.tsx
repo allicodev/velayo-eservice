@@ -1,6 +1,7 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import {
   Button,
+  Checkbox,
   Form,
   Input,
   InputNumber,
@@ -270,18 +271,45 @@ const NewOption = ({
               <div
                 style={{
                   display: "flex",
+                  width: 130,
+                }}
+              >
+                <label style={{ fontSize: "1.25em", marginRight: 17 }}>
+                  Is Money
+                </label>
+                <Checkbox
+                  checked={extraOption?.inputNumberOption?.isMoney ?? false}
+                  onChange={(e) => {
+                    const min = extraOption?.inputNumberOption?.min;
+                    const max = extraOption?.inputNumberOption?.max;
+                    setExtraOption({
+                      type: selectedType!,
+                      name: formfield != null ? formfield.name : name,
+                      inputNumberOption: {
+                        min,
+                        max,
+                        mainAmount: formfield?.inputNumberOption?.mainAmount,
+                        isMoney: e.target.checked,
+                      },
+                    });
+                  }}
+                />
+              </div>
+              <div
+                style={{
+                  display: "flex",
                   justifyContent: "space-between",
                   width: 130,
                 }}
               >
-                <label style={{ fontSize: "1.25em", marginRight: 10 }}>
+                <label style={{ fontSize: "1.25em", marginRight: 15 }}>
                   Minimum
                 </label>
                 <InputNumber
                   min={0}
                   className="custom-inputnumber"
                   style={{
-                    maxWidth: 50,
+                    maxWidth: 70,
                     textAlign: "center",
                   }}
                   controls={false}
@@ -296,6 +324,7 @@ const NewOption = ({
                         min,
                         max,
                         mainAmount: formfield?.inputNumberOption?.mainAmount,
+                        isMoney: formfield?.inputNumberOption?.isMoney ?? false,
                       },
                     });
                   }}
@@ -315,7 +344,7 @@ const NewOption = ({
                   min={0}
                   className="custom-inputnumber"
                   style={{
-                    maxWidth: 50,
+                    maxWidth: 70,
                     textAlign: "center",
                   }}
                   controls={false}
@@ -330,6 +359,7 @@ const NewOption = ({
                         min,
                         max,
                         mainAmount: formfield?.inputNumberOption?.mainAmount,
+                        isMoney: formfield?.inputNumberOption?.isMoney ?? false,
                       },
                     });
                   }}

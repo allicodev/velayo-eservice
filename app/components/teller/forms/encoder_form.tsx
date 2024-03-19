@@ -75,31 +75,33 @@ const EncoderForm = ({
   };
 
   useEffect(() => {
-    if (open) {
-      if (transaction?.type == "bills") {
-        if (transaction.transactionDetails) {
-          setTextData([
-            [
-              ...Object.keys(JSON.parse(transaction.transactionDetails)).map(
-                (e) =>
-                  e
-                    .replaceAll("_", " ")
-                    .split(" ")
-                    .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
-                    .join(" ")
-              ),
-            ],
-            [
-              ...Object.values(JSON.parse(transaction.transactionDetails)).map(
-                (e: any) => {
-                  if (typeof e == "string" && e.startsWith("09"))
-                    return `+${63}${e.slice(1)}`;
-                  return e;
-                }
-              ),
-            ],
-          ]);
-        }
+    if (open && transaction) {
+      if (transaction.transactionDetails) {
+        setTextData([
+          [
+            "Type",
+            "Biller",
+            ...Object.keys(JSON.parse(transaction.transactionDetails)).map(
+              (e) =>
+                e
+                  .replaceAll("_", " ")
+                  .split(" ")
+                  .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
+                  .join(" ")
+            ),
+          ],
+          [
+            transaction.type.toLocaleUpperCase(),
+            transaction.sub_type.toLocaleUpperCase(),
+            ...Object.values(JSON.parse(transaction.transactionDetails)).map(
+              (e: any) => {
+                if (typeof e == "string" && e.includes("_money"))
+                  return `₱${parseInt(e.split("_")[0]).toLocaleString()}`;
+                return e;
+              }
+            ),
+          ],
+        ]);
       }
     }
   }, [transaction, open]);
@@ -115,7 +117,10 @@ const EncoderForm = ({
         <div style={{ display: "flex" }} key={i}>
           <div style={{ width: 200, fontSize: 20 }}>{_}:</div>
           <div style={{ width: 150, fontSize: 20 }}>{textData[1][i]}</div>
-          {i != 0 ? (
+          {i != 0 &&
+          i != 1 &&
+          transaction &&
+          transaction.history.at(-1)?.status == "pending" ? (
             <Button
               icon={
                 copiedIndex == i ? (
@@ -141,20 +146,15 @@ const EncoderForm = ({
               onClick={() => {
                 setCopiedIndex(i);
                 setTimeout(() => setCopiedIndex(-1), 2500);
-                let textToBeCopied: any = "";
+                let textToBeCopied: any = textData[1][i];
 
-                switch (_) {
-                  case "Mobile Number": {
-                    textToBeCopied = "0" + textData[1][i].slice(3);
-                    break;
-                  }
-                  case "Amount": {
-                    textToBeCopied = parseInt(textData[1][i].slice(1));
-                    break;
-                  }
-                  default:
-                    textToBeCopied = textData[1][i];
+                if (textData[1][i].includes("₱")) {
+                  textToBeCopied = `${textData[1][i]
+                    .split(",")
+                    .join("")
+                    .slice(1)}`;
                 }
+
                 navigator.clipboard
                   .writeText(textToBeCopied)
                   .then((e) => message.success("Copied Successfully"));
@@ -188,7 +188,7 @@ const EncoderForm = ({
                   marginTop: 20,
                 }}
                 onChange={(e) => setReason(e.target.value)}
-                className="customInput"
+                className="customInput special"
               />
             </FloatLabel>
           ) : (

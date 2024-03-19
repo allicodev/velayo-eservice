@@ -8,6 +8,7 @@ import {
   Button,
   Table,
   message,
+  Select,
 } from "antd";
 import { DownOutlined, PrinterOutlined, CopyOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -25,7 +26,6 @@ const TransactionHistory = ({
   close,
   title,
   style,
-  extra,
   onCellClick,
   refresh,
 }: DrawerBasicProps) => {
@@ -74,6 +74,11 @@ const TransactionHistory = ({
       ),
     },
     {
+      title: "Biller",
+      dataIndex: "sub_type",
+      render: (_) => _.toLocaleUpperCase(),
+    },
+    {
       title: "Date Requested",
       dataIndex: "dateCreated",
       key: "date-request",
@@ -117,10 +122,18 @@ const TransactionHistory = ({
     },
   ];
 
-  const getTransaction = (page: number, pageSize?: number) => {
+  const getTransaction = ({
+    page,
+    pageSize,
+    status,
+  }: {
+    page: number;
+    pageSize?: number;
+    status?: TransactionHistoryStatus | null;
+  }) => {
     if (!pageSize) pageSize = 10;
     (async (_) => {
-      let res = await _.getAllTransaction(page, pageSize);
+      let res = await _.getAllTransaction(page, pageSize, status);
 
       if (res.success) {
         setTransactions(res?.data ?? []);
@@ -129,7 +142,7 @@ const TransactionHistory = ({
   };
 
   useEffect(() => {
-    if (open) getTransaction(1);
+    if (open) getTransaction({ page: 1 });
   }, [open, trigger, refresh]);
 
   return (
@@ -139,7 +152,37 @@ const TransactionHistory = ({
       width="100%"
       height="100%"
       closeIcon={<DownOutlined />}
-      extra={extra}
+      extra={[
+        <Select
+          key="status-filter"
+          defaultValue={null}
+          onChange={(e: any) => {
+            if (e) getTransaction({ page: 1, status: e });
+            else getTransaction({ page: 1 });
+          }}
+          style={{
+            width: 100,
+          }}
+          options={[
+            {
+              label: "All",
+              value: null,
+            },
+            {
+              label: "Pending",
+              value: "pending",
+            },
+            {
+              label: "Completed",
+              value: "completed",
+            },
+            {
+              label: "Failed",
+              value: "failed",
+            },
+          ]}
+        />,
+      ]}
       placement="bottom"
       title={
         <Typography.Text style={{ fontSize: 25 }}>

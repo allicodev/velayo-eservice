@@ -20,7 +20,6 @@ export interface DrawerBasicProps {
   close: () => void;
   title?: string;
   style?: CSSProperties;
-  extra?: ReactNode;
   onCellClick?: (str: any) => void;
   refresh?: number;
 }
@@ -51,6 +50,7 @@ export interface FloatLabelProps {
   style?: CSSProperties;
   bool?: boolean;
   labelClassName?: string;
+  extra?: ReactNode;
 }
 
 export interface UserProps {

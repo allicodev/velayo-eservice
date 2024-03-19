@@ -34,6 +34,10 @@ export const FormFieldSchema = new mongoose.Schema(
         type: Boolean,
         default: false,
       },
+      isMoney: {
+        type: Boolean,
+        default: false,
+      },
       min: {
         type: Number,
         required: function (this: any) {

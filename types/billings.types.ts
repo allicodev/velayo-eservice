@@ -17,6 +17,7 @@ export interface InputOptions {
 
 export interface NumberOptions {
   mainAmount?: Boolean;
+  isMoney?: boolean;
   min?: number | null;
   max?: number | null;
 }

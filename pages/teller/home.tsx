@@ -7,7 +7,7 @@ import { AiOutlineFileDone } from "react-icons/ai";
 
 import { UserBadge, DashboardBtn } from "@/app/components";
 import {
-  GcashForm,
+  WalletForm,
   TransactionHistory,
   TransactionDetails,
   BillsPayment,
@@ -90,7 +90,10 @@ const Teller = () => {
       </div>
 
       {/* context */}
-      <GcashForm open={openedMenu == "gcash"} close={() => setOpenedMenu("")} />
+      <WalletForm
+        open={openedMenu == "gcash"}
+        close={() => setOpenedMenu("")}
+      />
       <BillsPayment
         open={openedMenu == "bills"}
         close={() => setOpenedMenu("")}

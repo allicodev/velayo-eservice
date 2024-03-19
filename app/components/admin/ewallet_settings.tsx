@@ -15,6 +15,7 @@ import {
   Tabs,
   Card,
   Tooltip,
+  Alert,
 } from "antd";
 import { DownOutlined, SaveOutlined, PlusOutlined } from "@ant-design/icons";
 
@@ -86,6 +87,17 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
     setSelectedWallet(null);
     close();
   };
+
+  const cashinHasNoMainAMount = () =>
+    selectedWallet?.cashInFormField
+      .filter((e) => e.type == "number")
+      .map((e) => e.inputNumberOption?.mainAmount)
+      .filter((e) => e == true).length == 0;
+  const cashoutHasNoMainAMount = () =>
+    selectedWallet?.cashOutFormField
+      .filter((e) => e.type == "number")
+      .map((e) => e.inputNumberOption?.mainAmount)
+      .filter((e) => e == true).length == 0;
 
   const getTabsAsWalletType = (): WalletType =>
     selectedTabs == "cashin-settings-tabs" ? "cash-in" : "cash-out";
@@ -177,6 +189,26 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
     return (
       <div>
         <Typography.Title>{_wallet.name} Fee Settings</Typography.Title>
+        {cashinHasNoMainAMount() && (
+          <Alert
+            type="error"
+            message="There are no main amount selected on Cash-In."
+            style={{
+              marginBottom: 5,
+              width: 280,
+            }}
+          />
+        )}
+        {cashoutHasNoMainAMount() && (
+          <Alert
+            type="error"
+            message="There are no main amount selected on Cash-out."
+            style={{
+              marginBottom: 5,
+              width: 290,
+            }}
+          />
+        )}
         <Card
           styles={{
             body: {

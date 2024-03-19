@@ -3,6 +3,7 @@ import Api from "./api.service";
 import {
   BillingsFormField,
   ExtendedResponse,
+  Transaction,
   Wallet,
   WalletType,
 } from "@/types";
@@ -153,6 +154,28 @@ class WalletService extends Loader {
       },
     });
     this.loaderPop("removing-option");
+    return response;
+  }
+
+  public async requestWalletTransaction(biller_name: string, bill: string) {
+    let transaction: Transaction = {
+      type: "wallet",
+      sub_type: biller_name,
+      transactionDetails: bill,
+      history: [
+        {
+          description: "First  Transaction requested",
+          status: "pending",
+        },
+      ],
+    };
+
+    this.loaderPush("request-bill");
+    const response = await this.instance.post<Response>({
+      endpoint: "/bill/request-transaction",
+      payload: transaction,
+    });
+    this.loaderPop("request-bill");
     return response;
   }
 }

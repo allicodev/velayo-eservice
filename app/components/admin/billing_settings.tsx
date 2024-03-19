@@ -1,5 +1,6 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import {
+  Alert,
   Button,
   Card,
   Col,
@@ -95,6 +96,12 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
     return result;
   };
 
+  const hasNoMainAmount = () =>
+    selectedBiller?.formField
+      ?.filter((e) => e.type == "number")
+      .map((e) => e.inputNumberOption?.mainAmount)
+      .filter((e) => e == true).length == 0;
+
   const getSideB = (billingFormField: BillingSettingsType) => {
     const billingButton = (formField: BillingsFormField): ReactNode => {
       let index = billingFormField.formField?.indexOf(formField) ?? -1;
@@ -182,6 +189,17 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
         <Typography.Title style={{ textAlign: "center" }}>
           {billingFormField.name.toLocaleUpperCase()} bills settings{" "}
         </Typography.Title>
+        {hasNoMainAmount() && (
+          <Alert
+            type="error"
+            message="There are no main amount selected"
+            style={{
+              marginBottom: 5,
+              width: 220,
+            }}
+          />
+        )}
+
         <Card
           styles={{
             body: {
