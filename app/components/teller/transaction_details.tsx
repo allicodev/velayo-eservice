@@ -76,33 +76,35 @@ const TransactionDetails = ({
   useEffect(() => {
     if (open && transaction) {
       if (transaction.transactionDetails) {
+        let _ = JSON.parse(transaction.transactionDetails);
         setTextData([
           [
             "Type",
             "Biller",
-            ...Object.keys(JSON.parse(transaction.transactionDetails)).map(
-              (e) =>
+            ...Object.keys(_)
+              .filter((e: any) => !["billerId", "transactionType"].includes(e))
+              .map((e) =>
                 e
                   .replaceAll("_", " ")
                   .split(" ")
                   .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
                   .join(" ")
-            ),
+              ),
             "Request Date",
             "Current Status",
           ],
           [
             transaction.type.toLocaleUpperCase(),
             transaction.sub_type.toLocaleUpperCase(),
-            ...Object.values(JSON.parse(transaction.transactionDetails)).map(
-              (e: any) => {
-                if (typeof e == "string" && e.includes("_money"))
-                  return `₱${parseInt(e.split("_")[0]).toLocaleString()}`;
+            ...Object.keys(_)
+              .filter((e: any) => !["billerId", "transactionType"].includes(e))
+              .map((e: any) => {
+                if (typeof _[e] == "string" && _[e].includes("_money"))
+                  return `₱${parseInt(_[e].split("_")[0]).toLocaleString()}`;
                 // if (typeof e == "string" && e.startsWith("09"))
                 //   return `+${63}${e.slice(1)}`;
                 return e;
-              }
-            ),
+              }),
             dayjs(transaction?.createdAt).format("MMMM DD, YYYY - hh:mma"),
             getStatusBadge(latestHistory()!.status),
           ],

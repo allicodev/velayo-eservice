@@ -19,7 +19,7 @@ const TransactionSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["bills", "wallet"],
+      enum: ["bills", "wallet", "eload"],
       required: true,
     },
     sub_type: String,
@@ -36,6 +36,7 @@ const TransactionSchema = new mongoose.Schema(
   }
 );
 
+// TODO: fix queue not working
 TransactionSchema.pre("save", async function (next) {
   if (this.isNew) {
     try {

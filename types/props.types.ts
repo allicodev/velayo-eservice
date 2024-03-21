@@ -6,6 +6,7 @@ import {
   Wallet,
   BillingSettingsType,
   Transaction,
+  RoleType,
 } from ".";
 
 export interface DashboardBtnProps {
@@ -36,6 +37,7 @@ export interface UserBadgeProps {
   name: string;
   title: UserBadgeTitle | null | string;
   style?: CSSProperties;
+  role?: RoleType;
 }
 export interface BillsPaymentProps {
   open: boolean;
@@ -110,6 +112,22 @@ export interface BillButtonProps {
   bill: BillingSettingsType;
   isSelected: boolean;
   onSelected: (bill: BillingSettingsType) => void;
+  disabled: boolean;
+}
+
+export interface EloadProps {
+  open: boolean;
+  close: () => void;
+  onSubmit: (eload: Eload) => Promise<boolean | void>;
+}
+
+export type EloadProvider = "TM" | "GLOBE" | "SMART" | "TNT" | "DITO";
+
+export interface Eload {
+  provider: EloadProvider | null;
+  phone: string | null;
+  fee: number | null;
+  amount: number | null;
 }
 
 // backend stuffs

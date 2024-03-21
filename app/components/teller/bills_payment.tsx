@@ -14,6 +14,7 @@ import {
   Checkbox,
   Select,
   message,
+  Tooltip,
 } from "antd";
 import { LeftOutlined } from "@ant-design/icons";
 
@@ -27,31 +28,39 @@ import BillService from "@/provider/bill.service";
 import { FloatLabel } from "@/assets/ts";
 
 //* component helper
-const BillButton = ({ bill, isSelected, onSelected }: BillButtonProps) => {
+const BillButton = ({
+  bill,
+  isSelected,
+  onSelected,
+  disabled,
+}: BillButtonProps) => {
   return (
-    <Button
-      size="large"
-      style={{
-        width: 300,
-        fontSize: 35,
-        paddingTop: 10,
-        paddingBottom: 10,
-        height: 70,
-        ...(isSelected
-          ? {
-              background: "#294B0F",
-              color: "#fff",
-            }
-          : {
-              background: "#fff",
-              color: "#000",
-            }),
-      }}
-      onClick={() => onSelected(bill)}
-      block
-    >
-      {bill.name}
-    </Button>
+    <Tooltip title={disabled ? "This Biller has been disabled by encoder" : ""}>
+      <Button
+        size="large"
+        style={{
+          width: 300,
+          fontSize: 35,
+          paddingTop: 10,
+          paddingBottom: 10,
+          height: 70,
+          ...(isSelected
+            ? {
+                background: "#294B0F",
+                color: "#fff",
+              }
+            : {
+                background: "#fff",
+                color: "#000",
+              }),
+        }}
+        onClick={() => onSelected(bill)}
+        disabled={disabled}
+        block
+      >
+        {bill.name}
+      </Button>
+    </Tooltip>
   );
 };
 
@@ -85,7 +94,14 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
 
     (async (_) => {
       if (selectedBill) {
-        let res = await _.requestBill(selectedBill?.name, JSON.stringify(val));
+        let res = await _.requestBill(
+          selectedBill?.name,
+          JSON.stringify({
+            ...val,
+            billerId: selectedBill._id,
+            transactionType: "biller",
+          })
+        );
 
         if (res.success) {
           setSelectedBill(null);
@@ -294,48 +310,52 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
         <Typography.Title level={2}>
           {bill?.name} Bills Payment
         </Typography.Title>
-        <Form
-          form={form}
-          labelCol={{
-            flex: 100,
-          }}
-          labelAlign="left"
-          labelWrap
-          wrapperCol={{
-            flex: 1,
-          }}
-          colon={false}
-          requiredMark={"optional"}
-          onFinish={handleFinish}
-        >
-          {bill?.formField?.map((e) => renderFormFieldSpecific(e))}
-          {/* <Button htmlType="submit" type="primary" size="large" block>
+        {bill?.formField && bill?.formField?.length > 0 && (
+          <React.Fragment>
+            <Form
+              form={form}
+              labelCol={{
+                flex: 100,
+              }}
+              labelAlign="left"
+              labelWrap
+              wrapperCol={{
+                flex: 1,
+              }}
+              colon={false}
+              requiredMark={"optional"}
+              onFinish={handleFinish}
+            >
+              {bill?.formField?.map((e) => renderFormFieldSpecific(e))}
+              {/* <Button htmlType="submit" type="primary" size="large" block>
             Make Request
           </Button> */}
-        </Form>
-        <Divider
-          style={{
-            background: "#eee",
-            margin: 0,
-            marginTop: 50,
-          }}
-        />
-        <span style={{ display: "block", textAlign: "end", fontSize: 20 }}>
-          TOTAL • ₱{getTotal().toLocaleString()}
-        </span>
-        <Button
-          style={{
-            display: "block",
-            fontSize: 25,
-            color: "#fff",
-            background: "#1777FF",
-            height: 50,
-            marginTop: 25,
-          }}
-          onClick={form.submit}
-        >
-          Request
-        </Button>
+            </Form>
+            <Divider
+              style={{
+                background: "#eee",
+                margin: 0,
+                marginTop: 50,
+              }}
+            />
+            <span style={{ display: "block", textAlign: "end", fontSize: 20 }}>
+              TOTAL • ₱{getTotal().toLocaleString()}
+            </span>
+            <Button
+              style={{
+                display: "block",
+                fontSize: 25,
+                color: "#fff",
+                background: "#1777FF",
+                height: 50,
+                marginTop: 25,
+              }}
+              onClick={form.submit}
+            >
+              Request
+            </Button>
+          </React.Fragment>
+        )}
       </Card>
     );
   };
@@ -389,6 +409,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                 isSelected={e._id == selectedBill?._id}
                 onSelected={(e) => setSelectedBill(e)}
                 key={`bills-btn-${i}`}
+                disabled={e.isDisabled ?? false}
               />
             ))}
           </Space>

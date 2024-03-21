@@ -26,7 +26,7 @@ export interface UserWithToken extends ProtectedUser {
 }
 
 //* transaction types
-export type TransactionType = "bills" | "wallet";
+export type TransactionType = "bills" | "wallet" | "eload";
 export type TransactionHistoryStatus = "completed" | "failed" | "pending";
 
 export interface TransactionHistory {
@@ -56,6 +56,7 @@ export interface Wallet {
   cashoutFeeValue: number | null;
   cashInFormField: BillingsFormField[];
   cashOutFormField: BillingsFormField[];
+  isDisabled?: boolean;
 }
 
 export interface Fee {

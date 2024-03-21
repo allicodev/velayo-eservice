@@ -184,6 +184,34 @@ class BillService extends Loader {
     this.loaderPop("update-fee");
     return response;
   }
+
+  public async requestEload(eload: any) {
+    eload.amount = `${eload.amount}_money`;
+    eload.fee = `${eload.fee}_money`;
+    const provider = eload.provider;
+
+    delete eload.provider;
+
+    let transaction: Transaction = {
+      type: "eload",
+      sub_type: `${provider} LOAD` ?? "",
+      transactionDetails: JSON.stringify(eload),
+      history: [
+        {
+          description: "First  Transaction requested",
+          status: "pending",
+        },
+      ],
+    };
+
+    this.loaderPush("request-bill");
+    const response = await this.instance.post<Response>({
+      endpoint: "/bill/request-transaction",
+      payload: transaction,
+    });
+    this.loaderPop("request-bill");
+    return response;
+  }
 }
 
 export default BillService;

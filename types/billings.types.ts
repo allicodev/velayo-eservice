@@ -48,6 +48,7 @@ export interface BillingSettingsType {
   threshold: number;
   additionalFee: number;
   formField?: BillingsFormField[];
+  isDisabled?: boolean;
 }
 
 export interface OptionTypeWithFlag {

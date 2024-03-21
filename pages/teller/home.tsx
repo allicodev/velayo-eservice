@@ -13,9 +13,11 @@ import {
   BillsPayment,
 } from "@/app/components/teller";
 
-import { TransactionOptProps } from "@/types";
+import { Eload as EloadProp, TransactionOptProps } from "@/types";
 import { useUserStore } from "@/provider/context";
 import { PusherFE } from "@/provider/utils/pusher";
+import Eload from "@/app/components/teller/forms/eload_form";
+import BillService from "@/provider/bill.service";
 
 const pusher = new PusherFE();
 let pusherProvider: PusherFE;
@@ -31,6 +33,8 @@ const Teller = () => {
 
   const { currentUser } = useUserStore();
 
+  const bill = new BillService();
+
   const menu = [
     {
       title: "Bills \nPayment",
@@ -45,7 +49,7 @@ const Teller = () => {
     {
       title: "E-Load",
       icon: <MdOutlineSendToMobile style={{ fontSize: 80 }} />,
-      onPress: () => {},
+      onPress: () => setOpenedMenu("eload"),
     },
     {
       title: "Shopee Self \nCollect",
@@ -90,6 +94,13 @@ const Teller = () => {
     }).then(async () => {
       await (TransactionHistory as any).openTransaction(id);
     });
+  };
+
+  const handleEloadRequest = (eload: EloadProp) => {
+    return (async (_) => {
+      let res = await bill.requestEload(eload);
+      if (res.success) return true;
+    })(bill);
   };
 
   useEffect(() => {
@@ -152,6 +163,11 @@ const Teller = () => {
       <TransactionDetails
         {...transactionDetailsOpt}
         close={() => setTransactionOpt({ open: false, transaction: null })}
+      />
+      <Eload
+        open={openedMenu == "eload"}
+        close={() => setOpenedMenu("")}
+        onSubmit={handleEloadRequest}
       />
     </>
   );

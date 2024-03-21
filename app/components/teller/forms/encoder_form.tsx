@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Button, Checkbox, Input, Modal, Tag, Typography, message } from "antd";
+import {
+  Alert,
+  Button,
+  Checkbox,
+  Input,
+  Modal,
+  Tag,
+  Typography,
+  message,
+} from "antd";
 import {
   CopyOutlined,
   CheckCircleOutlined,
@@ -9,6 +18,7 @@ import {
 import { BillsPaymentProps } from "@/types";
 import { FloatLabel } from "@/assets/ts";
 import BillService from "@/provider/bill.service";
+import EtcService from "@/provider/etc.service";
 
 // TODO: failed transaction should not be updateable
 
@@ -23,8 +33,22 @@ const EncoderForm = ({
   const [isFailed, setIsFailed] = useState(false);
   const [reason, setReason] = useState("");
   const [refNumber, setRefNumber] = useState("");
+  const [isDisabled, setIsDisabled] = useState(false);
 
   const bill = new BillService();
+  const etc = new EtcService();
+
+  const getTransactionType = () => {
+    if (transaction) {
+      return JSON.parse(transaction.transactionDetails).transactionType;
+    } else null;
+  };
+
+  const getTransactionBillerId = () => {
+    if (transaction) {
+      return JSON.parse(transaction.transactionDetails).billerId;
+    } else null;
+  };
 
   const handleUpdate = () => {
     if (!isFailed) {
@@ -77,34 +101,51 @@ const EncoderForm = ({
   useEffect(() => {
     if (open && transaction) {
       if (transaction.transactionDetails) {
+        let _ = JSON.parse(transaction.transactionDetails);
         setTextData([
           [
             "Type",
             "Biller",
-            ...Object.keys(JSON.parse(transaction.transactionDetails)).map(
-              (e) =>
+            ...Object.keys(_)
+              .filter((e: any) => !["billerId", "transactionType"].includes(e))
+              .map((e) =>
                 e
                   .replaceAll("_", " ")
                   .split(" ")
                   .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
                   .join(" ")
-            ),
+              ),
           ],
           [
             transaction.type.toLocaleUpperCase(),
             transaction.sub_type.toLocaleUpperCase(),
-            ...Object.values(JSON.parse(transaction.transactionDetails)).map(
-              (e: any) => {
-                if (typeof e == "string" && e.includes("_money"))
-                  return `₱${parseInt(e.split("_")[0]).toLocaleString()}`;
-                return e;
-              }
-            ),
+            ...Object.keys(_)
+              .filter((e: any) => !["billerId", "transactionType"].includes(e))
+              .map((e: any) => {
+                if (typeof _[e] == "string" && _[e].includes("_money"))
+                  return `₱${Number.parseFloat(
+                    _[e].split("_")[0]
+                  ).toLocaleString()}`;
+                return _[e];
+              }),
           ],
         ]);
       }
     }
   }, [transaction, open]);
+
+  useEffect(() => {
+    if (open && transaction?.type != "eload") {
+      const type = getTransactionType();
+      const id = getTransactionBillerId();
+
+      (async (_) => {
+        let res = await _.checkIfDisabled(type, id);
+        if (res.success ?? false) setIsDisabled(true);
+        else setIsDisabled(false);
+      })(etc);
+    }
+  }, [open]);
 
   return (
     <Modal
@@ -113,6 +154,15 @@ const EncoderForm = ({
       footer={null}
       title={<Typography.Title level={2}>Transaction Details</Typography.Title>}
     >
+      {isDisabled && (
+        <Alert
+          message="This Biller/EWallet has been disabled"
+          type="warning"
+          style={{
+            marginBottom: 10,
+          }}
+        />
+      )}
       {textData[0].map((_, i) => (
         <div style={{ display: "flex" }} key={i}>
           <div style={{ width: 200, fontSize: 20 }}>{_}:</div>
@@ -213,7 +263,13 @@ const EncoderForm = ({
               </FloatLabel>
             </div>
           )}
-          <Button type="primary" size="large" block onClick={handleUpdate}>
+          <Button
+            type="primary"
+            size="large"
+            block
+            onClick={handleUpdate}
+            disabled={isDisabled}
+          >
             Update Transaction
           </Button>
           <span

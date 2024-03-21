@@ -99,6 +99,10 @@ const BillSchema = new mongoose.Schema(
       default: 0,
     },
     formField: [FormFieldSchema],
+    isDisabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

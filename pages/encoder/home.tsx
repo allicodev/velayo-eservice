@@ -88,9 +88,9 @@ const Encoder = () => {
     },
     {
       title: "Date Requested",
-      dataIndex: "dateCreated",
+      dataIndex: "createdAt",
       key: "date-request",
-      render: (date) => dayjs(date).format("MMMM DD, YYYY"),
+      render: (date) => dayjs(date).format("MMMM DD, YYYY hh:mma"),
     },
     {
       title: "Reference No.",
@@ -188,6 +188,7 @@ const Encoder = () => {
                   )}`
                 : null
             }
+            role="encoder"
             style={{
               margin: 25,
             }}
@@ -241,6 +242,9 @@ const Encoder = () => {
             style={{
               marginLeft: 10,
               marginRight: 10,
+            }}
+            scroll={{
+              y: 450,
             }}
             onRow={(data) => {
               return {

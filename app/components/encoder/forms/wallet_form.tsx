@@ -15,6 +15,7 @@ import {
   Checkbox,
   Select,
   message,
+  Tooltip,
 } from "antd";
 import type { CollapseProps } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
@@ -39,6 +40,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
   const [_window, setWindow] = useState({ innerHeight: 0 });
   const [form] = Form.useForm();
   const [amount, setAmount] = useState(0);
+  const [includeFee, setIncludeFee] = useState(false);
 
   // for dynamic formfields
   const selectedFormFields = () =>
@@ -58,15 +60,23 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
     }
   };
 
-  const getTotal = () => amount + getFee();
+  const getTotal = () => {
+    if (includeFee) return amount;
+    else return amount + getFee();
+  };
 
   const handleFinish = (val: any) => {
     val = { ...val, fee: `${getFee()}_money` };
+    if (includeFee) val.amount = `${amount - getFee()}_money`;
 
     (async (_) => {
       let res = await _.requestWalletTransaction(
         `${selectedWallet!.name!} ${walletType}`,
-        JSON.stringify(val)
+        JSON.stringify({
+          ...val,
+          billerId: selectedWallet?._id,
+          transactionType: "wallet",
+        })
       );
 
       if (res?.success ?? false) {
@@ -86,34 +96,41 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
     return {
       key: wallet._id,
       label: (
-        <Button
-          style={{
-            width: 300,
-            fontSize: 35,
-            paddingTop: 10,
-            paddingBottom: 10,
-            height: 70,
-            ...(selectedWallet?._id == wallet._id
-              ? {
-                  background: "#294B0F",
-                  color: "#fff",
-                }
-              : {
-                  background: "#fff",
-                  color: "#000",
-                }),
-          }}
-          onClick={() => {
-            if (wallet._id == selectedWallet?._id) {
-              setSelectedWallet(null);
-            } else {
-              setSelectedWallet(wallet);
-              if (onClickTitle) onClickTitle(wallet?._id);
-            }
-          }}
+        <Tooltip
+          title={
+            wallet.isDisabled ? "This Wallet has been disabled by encoder" : ""
+          }
         >
-          {wallet.name.toLocaleUpperCase()}
-        </Button>
+          <Button
+            style={{
+              width: 300,
+              fontSize: 35,
+              paddingTop: 10,
+              paddingBottom: 10,
+              height: 70,
+              ...(selectedWallet?._id == wallet._id
+                ? {
+                    background: "#294B0F",
+                    color: "#fff",
+                  }
+                : {
+                    background: "#fff",
+                    color: "#000",
+                  }),
+            }}
+            onClick={() => {
+              if (wallet._id == selectedWallet?._id) {
+                setSelectedWallet(null);
+              } else {
+                setSelectedWallet(wallet);
+                if (onClickTitle) onClickTitle(wallet?._id);
+              }
+            }}
+            disabled={wallet.isDisabled}
+          >
+            {wallet.name.toLocaleUpperCase()}
+          </Button>
+        </Tooltip>
       ),
       children: (
         <Space direction="vertical">
@@ -470,11 +487,25 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                   marginTop: 50,
                 }}
               />
-              <span
-                style={{ display: "block", textAlign: "end", fontSize: 20 }}
+              <div
+                style={{
+                  marginTop: 35,
+                  marginBottom: 5,
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
               >
-                TOTAL • ₱{getTotal().toLocaleString()}
-              </span>
+                <div
+                  onClick={(e) => setIncludeFee(!includeFee)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <Checkbox checked={includeFee} /> Include Fee
+                </div>
+                <span style={{ textAlign: "end", fontSize: 20 }}>
+                  TOTAL • ₱{getTotal().toLocaleString()}
+                </span>
+              </div>
+
               <Button
                 style={{
                   display: "block",

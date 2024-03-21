@@ -27,6 +27,10 @@ const WalletSchema = new mongoose.Schema(
     },
     cashInFormField: [FormFieldSchema],
     cashOutFormField: [FormFieldSchema],
+    isDisabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

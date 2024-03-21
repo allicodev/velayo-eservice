@@ -41,6 +41,6 @@ export class PusherFE {
       this.channel.bind(event, function (data: any) {
         return callback(JSON.stringify(data));
       });
-    } else return Promise.reject("not subscribe yet");
+    } else return callback(JSON.stringify({ message: "not subscribe yet" }));
   }
 }

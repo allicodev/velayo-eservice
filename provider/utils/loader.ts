@@ -1,5 +1,5 @@
 export default class Loader {
-  public loader: string[] = [];
+  private loader: string[] = [];
   public loaderPush = (str: string) => {
     if (!this.loaderHas(str)) this.loader.push(str);
   };

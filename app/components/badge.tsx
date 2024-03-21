@@ -1,15 +1,66 @@
 import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
-import { Button, Dropdown, Popconfirm, Tooltip, Typography, Modal } from "antd";
+import {
+  Button,
+  Dropdown,
+  Tooltip,
+  Typography,
+  Modal,
+  Row,
+  Col,
+  Divider,
+  Checkbox,
+  message,
+} from "antd";
 import { LogoutOutlined, SettingOutlined } from "@ant-design/icons";
 
-import { UserBadgeProps } from "@/types";
+import { BillingSettingsType, UserBadgeProps, Wallet } from "@/types";
 import Cookies from "js-cookie";
+import BillService from "@/provider/bill.service";
+import WalletService from "@/provider/wallet.service";
+import EtcService from "@/provider/etc.service";
 
-const UserBadge = ({ name, style, title }: UserBadgeProps) => {
+const UserBadge = ({ name, style, title, role }: UserBadgeProps) => {
   const [currentTime, setCurrentTime] = useState(dayjs());
+  const [openDisableBill, setOpenDisbaleBill] = useState(false);
 
   const [modal, contextHolder] = Modal.useModal();
+
+  // for encoder
+  const [bills, setBills] = useState<BillingSettingsType[]>([]);
+  const [wallets, setWallets] = useState<Wallet[]>([]);
+  const [isUpdated, setIsUpdated] = useState(false);
+
+  const bill = new BillService();
+  const wallet = new WalletService();
+  const etc = new EtcService();
+
+  const getBillsAndWallets = () => {
+    (async (_) => {
+      let res = await _.getBill();
+
+      if (res.success) {
+        setBills(res.data ?? []);
+      }
+    })(bill);
+    (async (_) => {
+      let res = await _.getWallet();
+
+      if (res.success) {
+        setWallets(res.data ?? []);
+      }
+    })(wallet);
+  };
+
+  const handleUpdate = () => {
+    (async (_) => {
+      let res = await _.disableWalletBills(bills, wallets);
+
+      if (res.success) {
+        message.success(res?.message ?? "Success");
+      }
+    })(etc);
+  };
 
   useEffect(() => {
     const currentSeconds = dayjs().second();
@@ -18,6 +69,10 @@ const UserBadge = ({ name, style, title }: UserBadgeProps) => {
       (60 - currentSeconds) * 1000
     );
   }, []);
+
+  useEffect(() => {
+    if (openDisableBill) getBillsAndWallets();
+  }, [openDisableBill]);
 
   return (
     <>
@@ -36,43 +91,42 @@ const UserBadge = ({ name, style, title }: UserBadgeProps) => {
           <Dropdown
             menu={{
               items: [
+                role == "encoder"
+                  ? {
+                      key: "1",
+                      label: (
+                        <span>
+                          <SettingOutlined /> Settings
+                        </span>
+                      ),
+                      onClick: () => setOpenDisbaleBill(true),
+                    }
+                  : null,
                 {
-                  key: "1",
+                  key: "2",
                   label: (
                     <Tooltip title="Logout">
-                      {/* <Popconfirm
-                      title="Are you sure you want to logout?"
-                      okText="LOGOUT"
-                      okType="danger"
-                      onConfirm={() => {
-                        Cookies.remove("token");
-                        window.location.reload();
-                      }}
-                    > */}
-                      <div
-                        onClick={() =>
-                          modal.confirm({
-                            icon: null,
-                            title: "Logout Confirmation",
-                            content: "Are you sure you want to logout ?",
-                            okText: "LOGOUT",
-                            okButtonProps: {
-                              type: "primary",
-                              danger: true,
-                            },
-                            onOk: () => {
-                              Cookies.remove("token");
-                              window.location.reload();
-                            },
-                          })
-                        }
-                      >
+                      <div>
                         <LogoutOutlined style={{ color: "#f00" }} />{" "}
                         <span style={{ color: "#f00" }}>Logout</span>
                       </div>
-                      {/* </Popconfirm> */}
                     </Tooltip>
                   ),
+                  onClick: () =>
+                    modal.confirm({
+                      icon: null,
+                      title: "Logout Confirmation",
+                      content: "Are you sure you want to logout ?",
+                      okText: "LOGOUT",
+                      okButtonProps: {
+                        type: "primary",
+                        danger: true,
+                      },
+                      onOk: () => {
+                        Cookies.remove("token");
+                        window.location.reload();
+                      },
+                    }),
                 },
               ],
             }}
@@ -90,7 +144,85 @@ const UserBadge = ({ name, style, title }: UserBadgeProps) => {
           {currentTime.format("MMMM DD, YYYY - hh:mma")}
         </Typography.Text>
       </div>
+
+      {/* context */}
       {contextHolder}
+      <Modal
+        open={openDisableBill}
+        onCancel={() => setOpenDisbaleBill(false)}
+        closable={false}
+        footer={[
+          <Button
+            key="btn-disabled"
+            size="large"
+            type="primary"
+            disabled={!isUpdated}
+            onClick={handleUpdate}
+          >
+            Update
+          </Button>,
+        ]}
+        width={600}
+        title={<Typography.Title level={2}>Disable Options</Typography.Title>}
+      >
+        <Row gutter={[16, 16]}>
+          <Col span={11}>
+            <Typography.Title level={3}>Bills</Typography.Title>
+            <Row gutter={[16, 16]}>
+              {bills &&
+                bills.length > 0 &&
+                bills.map((e, i) => (
+                  <Col key={`bill-${i}`} span={12}>
+                    <Checkbox
+                      checked={e.isDisabled}
+                      onChange={(e) => {
+                        setIsUpdated(true);
+                        setBills((prevItems) => {
+                          if (prevItems) {
+                            return prevItems.map((item, _) => {
+                              if (_ == i) item.isDisabled = e.target.checked;
+                              return item;
+                            });
+                          } else return [];
+                        });
+                      }}
+                    />{" "}
+                    <strong style={{ fontSize: "1.2em" }}>{e.name}</strong>
+                  </Col>
+                ))}
+            </Row>
+          </Col>
+          <Col span={2}>
+            <Divider type="vertical" />
+          </Col>
+          <Col span={11}>
+            <Typography.Title level={3}>Wallets</Typography.Title>
+            <Row gutter={[16, 16]}>
+              {wallets &&
+                wallets.length > 0 &&
+                wallets.map((e, i) => (
+                  <Col key={`wallet-${i}`} span={12}>
+                    <Checkbox
+                      checked={e.isDisabled}
+                      onChange={(e) => {
+                        setIsUpdated(true);
+                        setWallets((prevItems) => {
+                          if (prevItems) {
+                            return prevItems.map((item, _) => {
+                              if (_ == i) item.isDisabled = e.target.checked;
+                              return item;
+                            });
+                          } else return [];
+                        });
+                      }}
+                    />{" "}
+                    <strong style={{ fontSize: "1.2em" }}>{e.name}</strong>
+                  </Col>
+                ))}
+            </Row>
+          </Col>
+        </Row>
+      </Modal>
     </>
   );
 };
