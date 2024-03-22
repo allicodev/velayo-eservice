@@ -157,11 +157,18 @@ class WalletService extends Loader {
     return response;
   }
 
-  public async requestWalletTransaction(biller_name: string, bill: string) {
+  public async requestWalletTransaction(
+    biller_name: string,
+    bill: string,
+    amount: number,
+    fee: number
+  ) {
     let transaction: Transaction = {
       type: "wallet",
       sub_type: biller_name,
       transactionDetails: bill,
+      amount,
+      fee,
       history: [
         {
           description: "First  Transaction requested",

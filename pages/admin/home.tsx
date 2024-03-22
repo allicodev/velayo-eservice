@@ -5,6 +5,7 @@ import { UserBadge, DashboardBtn } from "@/app/components";
 import UserList from "@/app/components/admin/user_list";
 import BillingSettings from "@/app/components/admin/billing_settings";
 import EWalletSettings from "@/app/components/admin/ewallet_settings";
+import Report from "@/app/components/admin/report";
 import { useUserStore } from "@/provider/context";
 
 const Home = () => {
@@ -17,7 +18,10 @@ const Home = () => {
     { title: "Bills", onPress: () => setOpenedMenu("bills") },
     { title: "E-Wallet", onPress: () => setOpenedMenu("wallet") },
     { title: "MISCELLANEOUS POS", onPress: () => {} },
-    { title: "Transaction Report", onPress: () => {} },
+    {
+      title: "Report",
+      onPress: () => setOpenedMenu("transaction"),
+    },
     { title: "Receipt Format", onPress: () => {} },
   ];
 
@@ -75,6 +79,10 @@ const Home = () => {
       />
       <EWalletSettings
         open={openedMenu == "wallet"}
+        close={() => setOpenedMenu("")}
+      />
+      <Report
+        open={openedMenu == "transaction"}
         close={() => setOpenedMenu("")}
       />
     </>

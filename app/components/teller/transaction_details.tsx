@@ -103,7 +103,7 @@ const TransactionDetails = ({
                   return `₱${parseInt(_[e].split("_")[0]).toLocaleString()}`;
                 // if (typeof e == "string" && e.startsWith("09"))
                 //   return `+${63}${e.slice(1)}`;
-                return e;
+                return _[e];
               }),
             dayjs(transaction?.createdAt).format("MMMM DD, YYYY - hh:mma"),
             getStatusBadge(latestHistory()!.status),

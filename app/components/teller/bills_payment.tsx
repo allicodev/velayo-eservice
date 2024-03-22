@@ -100,7 +100,9 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             ...val,
             billerId: selectedBill._id,
             transactionType: "biller",
-          })
+          }),
+          amount,
+          getFee()
         );
 
         if (res.success) {

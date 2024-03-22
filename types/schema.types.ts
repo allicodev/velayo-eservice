@@ -42,6 +42,8 @@ export interface Transaction {
   reference?: string;
   history: TransactionHistory[];
   createdAt?: Date;
+  amount?: number;
+  fee?: number;
 }
 
 export type WalletType = "cash-in" | "cash-out";

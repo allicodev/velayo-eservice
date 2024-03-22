@@ -64,7 +64,7 @@ const EncoderForm = ({
           });
           let res = await _.updateTransaction({
             ...transaction,
-            type: "bills",
+            type: transaction.type,
             reference: refNumber,
           });
 
@@ -84,7 +84,7 @@ const EncoderForm = ({
           });
           let res = await _.updateTransaction({
             ...transaction,
-            type: "bills",
+            type: transaction.type,
             reference: refNumber,
           });
 

@@ -12,7 +12,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
 
   const { method } = req;
 
-  // TODO: emit a socket to encoder
   if (method != "POST")
     res.json({
       code: 405,

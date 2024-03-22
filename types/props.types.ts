@@ -7,6 +7,7 @@ import {
   BillingSettingsType,
   Transaction,
   RoleType,
+  TransactionType,
 } from ".";
 
 export interface DashboardBtnProps {
@@ -24,6 +25,11 @@ export interface DrawerBasicProps {
   extra?: ReactNode;
   onCellClick?: (str: any) => void;
   refresh?: number;
+}
+
+export interface TransactionReportProps {
+  open: boolean;
+  close: () => void;
 }
 
 export interface GcashCollapseItemButtonProps {
@@ -142,4 +148,27 @@ export interface ApiPostProps {
   endpoint: string;
   payload?: Record<any, any>;
   publicRoute?: boolean;
+}
+
+// utils props
+
+interface GraphExtra {
+  value: number;
+  positive: boolean;
+}
+export interface LineGraphProps {
+  title: string;
+  graphTitle: string;
+  color: string;
+  prevMonth: GraphExtra;
+  prevYear: GraphExtra;
+  labels: string[];
+  data: number[];
+}
+
+export interface RecentTransaction {
+  type: TransactionType;
+  sub_type: string;
+  amount: number;
+  fee: number;
 }

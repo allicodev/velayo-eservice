@@ -30,6 +30,14 @@ const TransactionSchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
+    amount: {
+      type: Number,
+      required: true,
+    },
+    fee: {
+      type: Number,
+      required: true,
+    },
   },
   {
     timestamps: true,

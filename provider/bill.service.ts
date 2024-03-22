@@ -112,11 +112,18 @@ class BillService extends Loader {
     return response;
   }
 
-  public async requestBill(biller_name: string, bill: string) {
+  public async requestBill(
+    biller_name: string,
+    bill: string,
+    amount: number,
+    fee: number
+  ) {
     let transaction: Transaction = {
       type: "bills",
       sub_type: biller_name,
       transactionDetails: bill,
+      fee,
+      amount,
       history: [
         {
           description: "First  Transaction requested",
@@ -186,8 +193,10 @@ class BillService extends Loader {
   }
 
   public async requestEload(eload: any) {
-    eload.amount = `${eload.amount}_money`;
-    eload.fee = `${eload.fee}_money`;
+    const fee = eload.fee;
+    const amount = eload.amount;
+    eload.amount = `${amount}_money`;
+    eload.fee = `${fee}_money`;
     const provider = eload.provider;
 
     delete eload.provider;
@@ -196,6 +205,8 @@ class BillService extends Loader {
       type: "eload",
       sub_type: `${provider} LOAD` ?? "",
       transactionDetails: JSON.stringify(eload),
+      amount,
+      fee,
       history: [
         {
           description: "First  Transaction requested",

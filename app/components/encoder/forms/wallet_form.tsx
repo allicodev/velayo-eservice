@@ -76,7 +76,9 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
           ...val,
           billerId: selectedWallet?._id,
           transactionType: "wallet",
-        })
+        }),
+        includeFee ? amount - getFee() : amount,
+        getFee()
       );
 
       if (res?.success ?? false) {
