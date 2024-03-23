@@ -37,6 +37,10 @@
   color: #fff;
 }
 
+.dashboard-btn:hover .db-btn {
+  color: #fff !important;
+}
+
 .ant-drawer-mask {
   background: transparent !important;
 }

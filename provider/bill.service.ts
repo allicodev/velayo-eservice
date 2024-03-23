@@ -193,10 +193,8 @@ class BillService extends Loader {
   }
 
   public async requestEload(eload: any) {
-    const fee = eload.fee;
     const amount = eload.amount;
     eload.amount = `${amount}_money`;
-    eload.fee = `${fee}_money`;
     const provider = eload.provider;
 
     delete eload.provider;
@@ -206,7 +204,7 @@ class BillService extends Loader {
       sub_type: `${provider} LOAD` ?? "",
       transactionDetails: JSON.stringify(eload),
       amount,
-      fee,
+      fee: 2,
       history: [
         {
           description: "First  Transaction requested",

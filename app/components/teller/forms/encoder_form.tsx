@@ -20,8 +20,6 @@ import { FloatLabel } from "@/assets/ts";
 import BillService from "@/provider/bill.service";
 import EtcService from "@/provider/etc.service";
 
-// TODO: failed transaction should not be updateable
-
 const EncoderForm = ({
   open,
   close,

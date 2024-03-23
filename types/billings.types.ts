@@ -20,6 +20,8 @@ export interface NumberOptions {
   isMoney?: boolean;
   min?: number | null;
   max?: number | null;
+  minLength?: number | null;
+  maxLength?: number | null;
 }
 
 export interface TextAreaOptions {

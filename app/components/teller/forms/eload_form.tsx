@@ -5,6 +5,7 @@ import {
   Input,
   InputNumber,
   Modal,
+  Radio,
   Select,
   Typography,
   message,
@@ -19,7 +20,8 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
     provider: null,
     phone: null,
     amount: null,
-    fee: null,
+    type: "regular",
+    promo: null,
   });
 
   const update = (name: string, value: any) => {
@@ -31,46 +33,33 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
 
   const handleRequest = () => {
     // validate
-    if (Object.values(eload).filter((e) => _(e) == true).length > 0) {
+    let _$ = eload;
+
+    if (_$.type == "regular") delete _$.promo;
+    else _$.promo = eload.promo;
+
+    if (Object.values(_$).filter((e) => _(e) == true).length > 0) {
       message.warning("Some fields are blank. Please Provide.");
       return;
     }
 
-    const reg = /^(09\d{9})|\+(\d{12})|^(639\d{9})$/;
-    let number = eload?.phone;
-
-    if (number) {
-      if (/^09/.test(number) && number.length > 11) {
-        message.warning("Number should have a maximum length of 11");
+    if (eload?.phone) {
+      if (!/^09/.test(eload.phone)) {
+        message.warning("Number should start 09*****");
         return;
-      } else if (/^\+639/.test(number) && number.length > 13) {
-        message.warning("Number should have a maximum length of 12");
-        return;
-      } else if (/^639/.test(number) && number.length > 12) {
-        message.warning("Number should have a maximum length of 12");
-        return;
-      } else if (reg.test(number) || number == "") {
-      } else {
-        message.warning(
-          "Phone Number should be start in 09,+639 or 639, maximum of 11 digits."
-        );
-        return;
-      }
-
-      if (number.startsWith("+63")) {
-        number = number.replaceAll("+63", "09");
-      } else if (number.startsWith("63")) {
-        number = number.replaceAll("63", "09");
+      } else if (eload.phone.length < 11) {
+        message.warning("Number should have a length of 11");
       }
 
       (async () => {
         let a = await onSubmit({
           provider: eload.provider,
-          phone: number,
+          phone: eload?.phone,
           amount: eload.amount,
-          fee: eload.fee,
+          type: eload.type,
+          ...(eload.type == "promo" ? { promo: eload.promo } : {}),
         });
-        console.log(a);
+
         if (a) {
           message.success("Successfully Requested");
           close();
@@ -84,8 +73,15 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
       open={open}
       onCancel={() => {
         close();
+        setEload({
+          provider: null,
+          phone: null,
+          amount: null,
+          type: "regular",
+          promo: null,
+        });
       }}
-      title={<Typography.Title level={2}>E-Load</Typography.Title>}
+      title={<Typography.Title level={2}>Load</Typography.Title>}
       closable={false}
       footer={null}
       destroyOnClose
@@ -109,6 +105,8 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
           size="large"
           className="customInput"
           onChange={(e) => update("phone", e.target.value)}
+          maxLength={11}
+          minLength={11}
         />
       </FloatLabel>
       <FloatLabel bool={!_(eload.amount)} label="Amount">
@@ -122,19 +120,28 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
           controls={false}
         />
       </FloatLabel>
-      <FloatLabel bool={!_(eload.fee)} label="Fee">
-        <InputNumber
-          size="large"
-          className="customInput"
-          style={{ width: "100%" }}
-          prefix="₱"
-          min={1}
-          onChange={(e) => update("fee", e)}
-          controls={false}
-        />
-      </FloatLabel>
+      <Radio.Group
+        onChange={(e) => update("type", e.target.value)}
+        defaultValue={eload.type}
+        style={{
+          marginBottom: 10,
+        }}
+      >
+        <Radio value="regular">Regular</Radio>
+        <Radio value="promo">Promo</Radio>
+      </Radio.Group>
+      {eload.type == "promo" && (
+        <FloatLabel bool={!_(eload.promo)} label="Promo">
+          <Input.TextArea
+            className="customInput"
+            autoSize={{ minRows: 1, maxRows: 2 }}
+            value={eload.promo ?? ""}
+            onChange={(e) => update("promo", e.target.value)}
+          />
+        </FloatLabel>
+      )}
       <Button block size="large" type="primary" onClick={handleRequest}>
-        REQUEST
+        CONFIRM
       </Button>
     </Modal>
   );

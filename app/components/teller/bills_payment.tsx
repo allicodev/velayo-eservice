@@ -15,6 +15,7 @@ import {
   Select,
   message,
   Tooltip,
+  Alert,
 } from "antd";
 import { LeftOutlined } from "@ant-design/icons";
 
@@ -73,6 +74,8 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
   );
   const [amount, setAmount] = useState(0);
 
+  const [error, setError] = useState({});
+
   const bill = new BillService();
 
   const getFee = () => {
@@ -88,6 +91,13 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
   };
 
   const getTotal = () => amount + getFee();
+
+  const slugToName = (str: string) =>
+    str
+      .replaceAll("_", " ")
+      .split(" ")
+      .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
+      .join(" ");
 
   const handleFinish = (val: any) => {
     val = { ...val, fee: `${getFee()}_money` };
@@ -108,14 +118,13 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
         if (res.success) {
           setSelectedBill(null);
           message.success(res?.message ?? "Success");
+          close();
         }
       }
     })(bill);
   };
 
   const renderSelectedBill = (bill: BillingSettingsType | null): ReactNode => {
-    // TODO: create a form validation for restriction given by the options provided by admin
-
     const renderFormFieldSpecific = (
       ff: BillingsFormField | null
     ): ReactNode => {
@@ -138,11 +147,46 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                   <Input
                     size="large"
                     minLength={ff.inputOption?.minLength ?? undefined}
-                    maxLength={ff.inputOption?.minLength ?? undefined}
+                    maxLength={ff.inputOption?.maxLength ?? undefined}
                     className="customInput"
-                    onChange={(e) =>
-                      form.setFieldsValue({ [ff.slug_name!]: e.target.value })
-                    }
+                    onBlur={() => {
+                      if (ff.inputOption?.minLength ?? false) {
+                        const min = ff.inputOption?.minLength ?? 0;
+                        const value = form
+                          .getFieldValue(ff.slug_name)
+                          ?.toString();
+
+                        if (value?.length < min) {
+                          setError({
+                            ...error,
+                            [ff.slug_name!]: `${slugToName(
+                              ff.slug_name!
+                            )} has a minimum length of ${min}`,
+                          });
+                          form.setFields([
+                            {
+                              name: ff.slug_name,
+                              errors: [""],
+                            },
+                          ]);
+                        } else {
+                          const newData = { ...error };
+                          delete (newData as any)[ff.slug_name!];
+                          setError(newData);
+                        }
+                      }
+                    }}
+                    onChange={(e) => {
+                      form.setFieldsValue({ [ff.slug_name!]: e.target.value });
+
+                      // onchange validations
+                      const min = ff.inputOption?.minLength ?? 0;
+                      if (e && e.target.value.length >= min) {
+                        const newData = { ...error };
+                        delete (newData as any)[ff.slug_name!];
+                        setError(newData);
+                      }
+                    }}
                   />
                 </FloatLabel>
               </Form.Item>
@@ -177,6 +221,8 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                     style={{ width: "100%" }}
                     min={ff.inputNumberOption?.min ?? undefined}
                     max={ff.inputNumberOption?.max ?? undefined}
+                    minLength={ff.inputNumberOption?.minLength ?? undefined}
+                    maxLength={ff.inputNumberOption?.maxLength ?? undefined}
                     className={`customInput ${
                       ff.inputNumberOption?.isMoney ? "" : "no-prefix"
                     }`}
@@ -185,6 +231,33 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                         ? value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                         : value
                     }
+                    onBlur={() => {
+                      if (ff.inputNumberOption?.minLength ?? false) {
+                        const min = ff.inputNumberOption?.minLength ?? 0;
+                        const value = form
+                          .getFieldValue(ff.slug_name)
+                          .toString();
+
+                        if (value.length < min) {
+                          setError({
+                            ...error,
+                            [ff.slug_name!]: `${slugToName(
+                              ff.slug_name!
+                            )} has a minimum length of ${min}`,
+                          });
+                          form.setFields([
+                            {
+                              name: ff.slug_name,
+                              errors: [""],
+                            },
+                          ]);
+                        } else {
+                          const newData = { ...error };
+                          delete (newData as any)[ff.slug_name!];
+                          setError(newData);
+                        }
+                      }
+                    }}
                     parser={(value: any) =>
                       ff.inputNumberOption?.isMoney
                         ? value.replace(/\$\s?|(,*)/g, "")
@@ -193,9 +266,17 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                     onChange={(e) => {
                       form.setFieldsValue({
                         [ff.slug_name!]:
-                          e + (ff.inputNumberOption?.isMoney ? "_money" : null),
+                          e + (ff.inputNumberOption?.isMoney ? "_money" : ""),
                       });
                       if (ff.inputNumberOption?.mainAmount) setAmount(e);
+
+                      // onchange validations
+                      const min = ff.inputNumberOption?.minLength ?? 0;
+                      if (e && e.toString().length >= min) {
+                        const newData = { ...error };
+                        delete (newData as any)[ff.slug_name!];
+                        setError(newData);
+                      }
                     }}
                   />
                 </FloatLabel>
@@ -312,6 +393,19 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
         <Typography.Title level={2}>
           {bill?.name} Bills Payment
         </Typography.Title>
+        {Object.values(error).length > 0 && (
+          <Alert
+            type="error"
+            style={{ marginBottom: 25 }}
+            message={
+              <Space direction="vertical" size={[0, 1]}>
+                {Object.values(error).map((e: any) => (
+                  <span>{e}</span>
+                ))}
+              </Space>
+            }
+          />
+        )}
         {bill?.formField && bill?.formField?.length > 0 && (
           <React.Fragment>
             <Form
@@ -354,7 +448,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
               }}
               onClick={form.submit}
             >
-              Request
+              Confirm
             </Button>
           </React.Fragment>
         )}

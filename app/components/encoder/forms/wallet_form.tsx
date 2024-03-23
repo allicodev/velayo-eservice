@@ -45,8 +45,8 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
   // for dynamic formfields
   const selectedFormFields = () =>
     walletType == "cash-in"
-      ? selectedWallet!.cashInFormField
-      : selectedWallet!.cashOutFormField;
+      ? selectedWallet?.cashInFormField
+      : selectedWallet?.cashOutFormField;
 
   const getFee = () => {
     if (walletType == "cash-in") {
@@ -455,7 +455,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
           ) : (
             <Card
               style={{
-                width: 500,
+                width: 700,
               }}
               styles={{
                 body: {
@@ -465,7 +465,9 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                 },
               }}
             >
-              <Typography.Title level={2}>{getTitle()}</Typography.Title>
+              <Typography.Text style={{ fontSize: 35 }}>
+                {getTitle()}
+              </Typography.Text>
               <Form
                 form={form}
                 labelCol={{

@@ -17,6 +17,8 @@ import { Eload as EloadProp, TransactionOptProps } from "@/types";
 import { useUserStore } from "@/provider/context";
 import { PusherFE } from "@/provider/utils/pusher";
 import Eload from "@/app/components/teller/forms/eload_form";
+import ShoppeForm from "@/app/components/teller/shoppe_form";
+
 import BillService from "@/provider/bill.service";
 
 const pusher = new PusherFE();
@@ -38,26 +40,46 @@ const Teller = () => {
   const menu = [
     {
       title: "Bills \nPayment",
-      icon: <FaMoneyBills style={{ fontSize: 80 }} />,
+      icon: (
+        <FaMoneyBills
+          className="db-btn"
+          style={{ fontSize: 80, color: "#000" }}
+        />
+      ),
       onPress: () => setOpenedMenu("bills"),
     },
     {
       title: "Wallet Cash \nIn/out",
-      icon: <WalletOutlined style={{ fontSize: 80 }} />,
+      icon: (
+        <WalletOutlined
+          className="db-btn"
+          style={{ fontSize: 80, color: "#000" }}
+        />
+      ),
       onPress: () => setOpenedMenu("gcash"),
     },
     {
       title: "E-Load",
-      icon: <MdOutlineSendToMobile style={{ fontSize: 80 }} />,
+      icon: (
+        <MdOutlineSendToMobile
+          className="db-btn"
+          style={{ fontSize: 80, color: "#000" }}
+        />
+      ),
       onPress: () => setOpenedMenu("eload"),
     },
     {
       title: "Shopee Self \nCollect",
-      onPress: () => {},
+      onPress: () => setOpenedMenu("shoppe"),
     },
     {
       title: "Transaction History",
-      icon: <AiOutlineFileDone style={{ fontSize: 80 }} />,
+      icon: (
+        <AiOutlineFileDone
+          className="db-btn"
+          style={{ fontSize: 80, color: "#000" }}
+        />
+      ),
       onPress: () => setOpenedMenu("th"),
     },
     { title: "miscellaneous", onPress: () => {} },
@@ -168,6 +190,10 @@ const Teller = () => {
         open={openedMenu == "eload"}
         close={() => setOpenedMenu("")}
         onSubmit={handleEloadRequest}
+      />
+      <ShoppeForm
+        open={openedMenu == "shoppe"}
+        close={() => setOpenedMenu("")}
       />
     </>
   );

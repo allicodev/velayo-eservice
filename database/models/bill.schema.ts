@@ -50,6 +50,18 @@ export const FormFieldSchema = new mongoose.Schema(
           return this.type === "number";
         },
       },
+      minLength: {
+        type: Number,
+        required: function (this: any) {
+          return this.type === "number";
+        },
+      },
+      maxLength: {
+        type: Number,
+        required: function (this: any) {
+          return this.type === "number";
+        },
+      },
     },
     textareaOption: {
       minRow: {

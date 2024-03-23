@@ -295,7 +295,7 @@ const NewOption = ({
                   }}
                 />
               </div>
-              <div
+              {/* <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
@@ -360,6 +360,86 @@ const NewOption = ({
                         max,
                         mainAmount: formfield?.inputNumberOption?.mainAmount,
                         isMoney: formfield?.inputNumberOption?.isMoney ?? false,
+                      },
+                    });
+                  }}
+                />
+              </div> */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  width: 190,
+                }}
+              >
+                <label style={{ fontSize: "1.25em", marginRight: 10 }}>
+                  Minimum Length
+                </label>
+                <InputNumber
+                  min={0}
+                  className="custom-inputnumber"
+                  style={{
+                    width: 50,
+                    textAlign: "center",
+                  }}
+                  value={extraOption?.inputNumberOption?.minLength}
+                  onChange={(e) => {
+                    const minLength = e;
+                    const maxLength = extraOption?.inputNumberOption?.maxLength;
+                    const min = extraOption?.inputNumberOption?.min;
+                    const max = extraOption?.inputNumberOption?.max;
+                    const mainAmount =
+                      extraOption?.inputNumberOption?.mainAmount;
+                    setExtraOption({
+                      type: selectedType!,
+                      name: formfield != null ? formfield.name : name,
+                      inputNumberOption: {
+                        minLength,
+                        maxLength,
+                        min,
+                        max,
+                        mainAmount,
+                      },
+                    });
+                  }}
+                  controls={false}
+                />
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  width: 190,
+                }}
+              >
+                <label style={{ fontSize: "1.25em", marginRight: 10 }}>
+                  Maximum Length
+                </label>
+                <InputNumber
+                  min={0}
+                  className="custom-inputnumber"
+                  style={{
+                    maxWidth: 50,
+                    textAlign: "center",
+                  }}
+                  controls={false}
+                  value={extraOption?.inputNumberOption?.maxLength}
+                  onChange={(e) => {
+                    const minLength = extraOption?.inputNumberOption?.minLength;
+                    const maxLength = e;
+                    const min = extraOption?.inputNumberOption?.min;
+                    const max = extraOption?.inputNumberOption?.max;
+                    const mainAmount =
+                      extraOption?.inputNumberOption?.mainAmount;
+                    setExtraOption({
+                      type: selectedType!,
+                      name: formfield != null ? formfield.name : name,
+                      inputNumberOption: {
+                        minLength,
+                        maxLength,
+                        min,
+                        max,
+                        mainAmount,
                       },
                     });
                   }}

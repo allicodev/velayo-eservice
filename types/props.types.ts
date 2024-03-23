@@ -128,12 +128,13 @@ export interface EloadProps {
 }
 
 export type EloadProvider = "TM" | "GLOBE" | "SMART" | "TNT" | "DITO";
-
+export type ELoadType = "regular" | "promo";
 export interface Eload {
   provider: EloadProvider | null;
   phone: string | null;
-  fee: number | null;
   amount: number | null;
+  type: ELoadType | null;
+  promo?: string | null;
 }
 
 // backend stuffs
