@@ -26,7 +26,7 @@ export interface UserWithToken extends ProtectedUser {
 }
 
 //* transaction types
-export type TransactionType = "bills" | "wallet" | "eload";
+export type TransactionType = "bills" | "wallet" | "eload" | "miscellaneous";
 export type TransactionHistoryStatus = "completed" | "failed" | "pending";
 
 export interface TransactionHistory {

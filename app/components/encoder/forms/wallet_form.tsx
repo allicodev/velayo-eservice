@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useRef, useState } from "react";
 import {
   Drawer,
   Typography,
@@ -18,7 +18,7 @@ import {
   Tooltip,
 } from "antd";
 import type { CollapseProps } from "antd";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { LeftOutlined, RightOutlined, ReloadOutlined } from "@ant-design/icons";
 
 import {
   BillingsFormField,
@@ -41,6 +41,8 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
   const [form] = Form.useForm();
   const [amount, setAmount] = useState(0);
   const [includeFee, setIncludeFee] = useState(false);
+
+  const [searchKey, setSearchKey] = useState("");
 
   // for dynamic formfields
   const selectedFormFields = () =>
@@ -97,6 +99,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
   }: GcashCollapseItemButtonProps) => {
     return {
       key: wallet._id,
+      id: wallet.name,
       label: (
         <Tooltip
           title={
@@ -207,7 +210,10 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                   size="large"
                   minLength={ff.inputOption?.minLength ?? undefined}
                   maxLength={ff.inputOption?.minLength ?? undefined}
-                  className="customInput"
+                  className="customInput size-50"
+                  style={{
+                    height: 50,
+                  }}
                   onChange={(e) =>
                     form.setFieldsValue({ [ff.slug_name!]: e.target.value })
                   }
@@ -242,10 +248,10 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                   size="large"
                   controls={false}
                   prefix={ff.inputNumberOption?.isMoney ? "₱" : ""}
-                  style={{ width: "100%" }}
+                  style={{ width: "100%", height: 50, alignItems: "center" }}
                   min={ff.inputNumberOption?.min ?? undefined}
                   max={ff.inputNumberOption?.max ?? undefined}
-                  className={`customInput ${
+                  className={`customInput size-50 ${
                     ff.inputNumberOption?.isMoney ? "" : "no-prefix"
                   }`}
                   formatter={(value: any) =>
@@ -286,7 +292,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
               >
                 <Input.TextArea
                   size="large"
-                  className="customInput"
+                  className="customInput size-50"
                   onChange={(e) =>
                     form.setFieldsValue({ [ff.slug_name!]: e.target.value })
                   }
@@ -352,6 +358,9 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                     };
                   })}
                   size="large"
+                  style={{
+                    height: 50,
+                  }}
                   onChange={(e) => form.setFieldsValue({ [ff.slug_name!]: e })}
                 />
               </FloatLabel>
@@ -423,12 +432,47 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
     >
       <Row>
         <Col span={6}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              width: 300,
+              marginLeft: 15,
+            }}
+          >
+            <Input
+              size="large"
+              placeholder="Search/Filter Biller"
+              value={searchKey}
+              onChange={(e) => setSearchKey(e.target.value)}
+              style={{
+                width: "98%",
+                marginRight: "2%",
+              }}
+            />
+            <Tooltip title="Reset">
+              <Button
+                icon={<ReloadOutlined />}
+                size="large"
+                onClick={() => setSearchKey("")}
+              />
+            </Tooltip>
+          </div>
           <Collapse
             onChange={() => setWalletType(null)}
             style={{
               background: "#fff",
             }}
-            items={items}
+            items={
+              searchKey == ""
+                ? items
+                : items.filter((e) =>
+                    e.id
+                      ?.toString()
+                      .toLocaleLowerCase()
+                      .includes(searchKey.toLocaleLowerCase())
+                  )
+            }
             bordered={false}
             destroyInactivePanel
             activeKey={selectedWallet?._id}
@@ -506,7 +550,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                   <Checkbox checked={includeFee} /> Include Fee
                 </div>
                 <span style={{ textAlign: "end", fontSize: 20 }}>
-                  TOTAL • ₱{getTotal().toLocaleString()}
+                  TOTAL • ₱{getTotal()?.toLocaleString()}
                 </span>
               </div>
 

@@ -114,7 +114,7 @@ const NewUser = ({ open, close, onAdd }: NewUserProps) => {
         />
       </FloatLabel>
       <Button size="large" type="primary" onClick={validate} block>
-        Register
+        REGISTER
       </Button>
     </Modal>
   );

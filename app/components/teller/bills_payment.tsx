@@ -17,7 +17,7 @@ import {
   Tooltip,
   Alert,
 } from "antd";
-import { LeftOutlined } from "@ant-design/icons";
+import { LeftOutlined, ReloadOutlined } from "@ant-design/icons";
 
 import {
   BillingSettingsType,
@@ -73,7 +73,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
     null
   );
   const [amount, setAmount] = useState(0);
-
+  const [searchKey, setSearchKey] = useState("");
   const [error, setError] = useState({});
 
   const bill = new BillService();
@@ -145,10 +145,12 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                   label={ff.name}
                 >
                   <Input
-                    size="large"
                     minLength={ff.inputOption?.minLength ?? undefined}
                     maxLength={ff.inputOption?.maxLength ?? undefined}
-                    className="customInput"
+                    className="customInput size-50"
+                    style={{
+                      height: 50,
+                    }}
                     onBlur={() => {
                       if (ff.inputOption?.minLength ?? false) {
                         const min = ff.inputOption?.minLength ?? 0;
@@ -218,12 +220,12 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                     size="large"
                     controls={false}
                     prefix={ff.inputNumberOption?.isMoney ? "₱" : ""}
-                    style={{ width: "100%" }}
+                    style={{ width: "100%", height: 50, alignItems: "center" }}
                     min={ff.inputNumberOption?.min ?? undefined}
                     max={ff.inputNumberOption?.max ?? undefined}
                     minLength={ff.inputNumberOption?.minLength ?? undefined}
                     maxLength={ff.inputNumberOption?.maxLength ?? undefined}
-                    className={`customInput ${
+                    className={`customInput size-50 ${
                       ff.inputNumberOption?.isMoney ? "" : "no-prefix"
                     }`}
                     formatter={(value: any) =>
@@ -299,7 +301,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                 >
                   <Input.TextArea
                     size="large"
-                    className="customInput"
+                    className="customInput size-50"
                     onChange={(e) =>
                       form.setFieldsValue({ [ff.slug_name!]: e.target.value })
                     }
@@ -365,6 +367,9 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                       };
                     })}
                     size="large"
+                    style={{
+                      height: 50,
+                    }}
                     onChange={(e) =>
                       form.setFieldsValue({ [ff.slug_name!]: e })
                     }
@@ -434,7 +439,14 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                 marginTop: 50,
               }}
             />
-            <span style={{ display: "block", textAlign: "end", fontSize: 20 }}>
+            <span
+              style={{
+                display: "block",
+                textAlign: "end",
+                fontSize: 20,
+                wordSpacing: 15,
+              }}
+            >
               TOTAL • ₱{getTotal().toLocaleString()}
             </span>
             <Button
@@ -499,15 +511,49 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
       <Row>
         <Col span={6}>
           <Space direction="vertical">
-            {bills.map((e, i) => (
-              <BillButton
-                bill={e}
-                isSelected={e._id == selectedBill?._id}
-                onSelected={(e) => setSelectedBill(e)}
-                key={`bills-btn-${i}`}
-                disabled={e.isDisabled ?? false}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                width: 300,
+              }}
+            >
+              <Input
+                size="large"
+                placeholder="Search/Filter Biller"
+                onChange={(e) => setSearchKey(e.target.value)}
+                value={searchKey}
+                style={{
+                  width: "98%",
+                  marginRight: "2%",
+                }}
               />
-            ))}
+              <Tooltip title="Reset">
+                <Button
+                  icon={<ReloadOutlined />}
+                  size="large"
+                  onClick={() => setSearchKey("")}
+                />
+              </Tooltip>
+            </div>
+
+            {bills
+              .filter((e) => {
+                if (searchKey == "") return true;
+                else
+                  return e.name
+                    .toLocaleLowerCase()
+                    .includes(searchKey.toLocaleLowerCase());
+              })
+              .map((e, i) => (
+                <BillButton
+                  bill={e}
+                  isSelected={e._id == selectedBill?._id}
+                  onSelected={(e) => setSelectedBill(e)}
+                  key={`bills-btn-${i}`}
+                  disabled={e.isDisabled ?? false}
+                />
+              ))}
           </Space>
         </Col>
         <Col span={1}>

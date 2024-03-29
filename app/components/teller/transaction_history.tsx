@@ -96,7 +96,7 @@ const TransactionHistory = ({
     {
       title: "Reference No.",
       key: "ref",
-      render: (_, { reference }) =>
+      render: (_, { reference, type }) =>
         reference ? (
           <Typography.Link
             onClick={() => {
@@ -109,7 +109,7 @@ const TransactionHistory = ({
           </Typography.Link>
         ) : (
           <Typography.Text type="secondary" italic>
-            Not Available
+            {type == "miscellaneous" ? "Not Applicable" : "Not Available"}
           </Typography.Text>
         ),
     },

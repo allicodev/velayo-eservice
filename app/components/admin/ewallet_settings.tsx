@@ -223,126 +223,6 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
             onChange={setSelectedTabs}
             items={[
               {
-                label: "Fee Settings",
-                key: "fee-settings-tabs",
-                children: (
-                  <div
-                    style={{
-                      display: "flex",
-                    }}
-                  >
-                    <div>
-                      <strong
-                        style={{
-                          marginLeft: 15,
-                        }}
-                      >
-                        Cash-In Fee Settings
-                      </strong>
-                      <FloatLabel
-                        label="Fee"
-                        value={selectedWallet?.cashinFeeValue?.toString()}
-                        style={{
-                          marginLeft: 15,
-                          marginTop: 5,
-                        }}
-                      >
-                        <InputNumber
-                          prefix={_wallet.cashinType == "percent" ? "%" : "₱"}
-                          value={_wallet.cashinFeeValue}
-                          className="customInput"
-                          size="large"
-                          style={{
-                            width: 120,
-                          }}
-                          onChange={(e) => {
-                            setSelectedWallet({
-                              ..._wallet,
-                              cashinFeeValue: e,
-                            });
-                            setUpdated(true);
-                          }}
-                          controls={false}
-                        />
-                      </FloatLabel>
-                      <Radio.Group
-                        style={{
-                          marginLeft: 15,
-                        }}
-                        onChange={(e) => {
-                          setSelectedWallet({
-                            ..._wallet,
-                            cashinType: e.target.value,
-                          });
-                          setUpdated(true);
-                        }}
-                        value={_wallet.cashinType}
-                      >
-                        <Radio value="percent">Percent</Radio>
-                        <Radio value="fixed">Fixed</Radio>
-                      </Radio.Group>
-                    </div>
-                    <Divider
-                      type="vertical"
-                      style={{
-                        height: 120,
-                      }}
-                    />
-                    <div>
-                      <strong
-                        style={{
-                          marginLeft: 15,
-                        }}
-                      >
-                        Cash-Out Fee Settings
-                      </strong>
-                      <FloatLabel
-                        label="Fee"
-                        value={selectedWallet?.cashoutFeeValue?.toString()}
-                        style={{
-                          marginLeft: 15,
-                          marginTop: 5,
-                        }}
-                      >
-                        <InputNumber
-                          prefix={_wallet.cashoutType == "percent" ? "%" : "₱"}
-                          value={_wallet.cashoutFeeValue}
-                          className="customInput"
-                          size="large"
-                          style={{
-                            width: 120,
-                          }}
-                          onChange={(e) => {
-                            setSelectedWallet({
-                              ..._wallet,
-                              cashoutFeeValue: e,
-                            });
-                            setUpdated(true);
-                          }}
-                          controls={false}
-                        />
-                      </FloatLabel>
-                      <Radio.Group
-                        style={{
-                          marginLeft: 15,
-                        }}
-                        onChange={(e) => {
-                          setSelectedWallet({
-                            ..._wallet,
-                            cashoutType: e.target.value,
-                          });
-                          setUpdated(true);
-                        }}
-                        value={_wallet.cashoutType}
-                      >
-                        <Radio value="percent">Percent</Radio>
-                        <Radio value="fixed">Fixed</Radio>
-                      </Radio.Group>
-                    </div>
-                  </div>
-                ),
-              },
-              {
                 label: "Cash-in Settings",
                 key: "cashin-settings-tabs",
                 children: selectedFormField?.length != 0 && (
@@ -500,6 +380,126 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                       </Droppable>
                     </DragDropContext>
                   </Space>
+                ),
+              },
+              {
+                label: "Fee Settings",
+                key: "fee-settings-tabs",
+                children: (
+                  <div
+                    style={{
+                      display: "flex",
+                    }}
+                  >
+                    <div>
+                      <strong
+                        style={{
+                          marginLeft: 15,
+                        }}
+                      >
+                        Cash-In Fee Settings
+                      </strong>
+                      <FloatLabel
+                        label="Fee"
+                        value={selectedWallet?.cashinFeeValue?.toString()}
+                        style={{
+                          marginLeft: 15,
+                          marginTop: 5,
+                        }}
+                      >
+                        <InputNumber
+                          prefix={_wallet.cashinType == "percent" ? "%" : "₱"}
+                          value={_wallet.cashinFeeValue}
+                          className="customInput"
+                          size="large"
+                          style={{
+                            width: 120,
+                          }}
+                          onChange={(e) => {
+                            setSelectedWallet({
+                              ..._wallet,
+                              cashinFeeValue: e,
+                            });
+                            setUpdated(true);
+                          }}
+                          controls={false}
+                        />
+                      </FloatLabel>
+                      <Radio.Group
+                        style={{
+                          marginLeft: 15,
+                        }}
+                        onChange={(e) => {
+                          setSelectedWallet({
+                            ..._wallet,
+                            cashinType: e.target.value,
+                          });
+                          setUpdated(true);
+                        }}
+                        value={_wallet.cashinType}
+                      >
+                        <Radio value="percent">Percent</Radio>
+                        <Radio value="fixed">Fixed</Radio>
+                      </Radio.Group>
+                    </div>
+                    <Divider
+                      type="vertical"
+                      style={{
+                        height: 120,
+                      }}
+                    />
+                    <div>
+                      <strong
+                        style={{
+                          marginLeft: 15,
+                        }}
+                      >
+                        Cash-Out Fee Settings
+                      </strong>
+                      <FloatLabel
+                        label="Fee"
+                        value={selectedWallet?.cashoutFeeValue?.toString()}
+                        style={{
+                          marginLeft: 15,
+                          marginTop: 5,
+                        }}
+                      >
+                        <InputNumber
+                          prefix={_wallet.cashoutType == "percent" ? "%" : "₱"}
+                          value={_wallet.cashoutFeeValue}
+                          className="customInput"
+                          size="large"
+                          style={{
+                            width: 120,
+                          }}
+                          onChange={(e) => {
+                            setSelectedWallet({
+                              ..._wallet,
+                              cashoutFeeValue: e,
+                            });
+                            setUpdated(true);
+                          }}
+                          controls={false}
+                        />
+                      </FloatLabel>
+                      <Radio.Group
+                        style={{
+                          marginLeft: 15,
+                        }}
+                        onChange={(e) => {
+                          setSelectedWallet({
+                            ..._wallet,
+                            cashoutType: e.target.value,
+                          });
+                          setUpdated(true);
+                        }}
+                        value={_wallet.cashoutType}
+                      >
+                        <Radio value="percent">Percent</Radio>
+                        <Radio value="fixed">Fixed</Radio>
+                      </Radio.Group>
+                    </div>
+                  </div>
                 ),
               },
             ]}

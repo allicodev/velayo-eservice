@@ -221,6 +221,30 @@ class BillService extends Loader {
     this.loaderPop("request-bill");
     return response;
   }
+
+  public async requestShoppeCollect(details: string, amount: number | null) {
+    let transaction: Transaction = {
+      type: "miscellaneous",
+      sub_type: "shoppe self collect",
+      transactionDetails: details,
+      ...(amount != null ? { amount } : { amount: 0 }),
+      fee: 0,
+      history: [
+        {
+          description: "Transaction Completed",
+          status: "completed",
+        },
+      ],
+    };
+
+    this.loaderPush("request-shoppe");
+    const response = await this.instance.post<Response>({
+      endpoint: "/bill/request-transaction",
+      payload: transaction,
+    });
+    this.loaderPop("request-shoppe");
+    return response;
+  }
 }
 
 export default BillService;

@@ -1,54 +1,16 @@
 import React, { useEffect, useState } from "react";
-import {
-  Card,
-  Col,
-  Drawer,
-  Row,
-  Table,
-  TableProps,
-  Typography,
-  Layout,
-  Affix,
-  Menu,
-} from "antd";
-import { DownOutlined } from "@ant-design/icons";
+import { Drawer, Layout, Affix, Menu } from "antd";
+import { DownOutlined, BarChartOutlined } from "@ant-design/icons";
+import { FaRegFileAlt } from "react-icons/fa";
 
-import {
-  RecentTransaction,
-  Transaction,
-  TransactionReportProps,
-} from "@/types";
-import CustomGraph from "./helper/bar_graph";
+import { Transaction, TransactionReportProps } from "@/types";
 import BillService from "@/provider/bill.service";
-
-const { Sider } = Layout;
+import ReportDashboard from "./components/dashboard";
 
 const Report = ({ open, close }: TransactionReportProps) => {
   const [recentTransaction, setRecentTransction] = useState<Transaction[]>([]);
+  const [activeKey, setActiveKey] = useState("dashboard");
   const bill = new BillService();
-
-  const columns: TableProps<RecentTransaction>["columns"] = [
-    {
-      title: "Type",
-      dataIndex: "type",
-      render: (_) => _.toLocaleUpperCase(),
-    },
-    {
-      title: "biller",
-      dataIndex: "sub_type",
-      render: (_) => _.toLocaleUpperCase(),
-    },
-    {
-      title: "Amount",
-      dataIndex: "amount",
-      render: (_) => `₱${_}`,
-    },
-    {
-      title: "Fee",
-      dataIndex: "fee",
-      render: (_) => `₱${_}`,
-    },
-  ];
 
   useEffect(() => {
     (async (_) => {
@@ -69,23 +31,28 @@ const Report = ({ open, close }: TransactionReportProps) => {
       styles={{
         body: {
           padding: 0,
+          overflow: "hidden",
         },
       }}
     >
       <Layout>
         <Affix>
-          <Layout.Sider theme="light" width={150} collapsible>
+          <Layout.Sider theme="light" width={180} collapsible>
             <Menu
               // onClick={selectedIndex}
               // selectedKeys={selectedKey}
+              selectedKeys={[activeKey]}
+              onClick={(e) => setActiveKey(e.key)}
               items={[
                 {
                   label: "Transaction",
                   key: "dashboard",
+                  icon: <BarChartOutlined />,
                 },
                 {
                   label: "Logs",
                   key: "logs",
+                  icon: <FaRegFileAlt />,
                 },
               ]}
               // defaultSelectedKeys="dashboard"
@@ -99,78 +66,9 @@ const Report = ({ open, close }: TransactionReportProps) => {
           </Layout.Sider>
         </Affix>
         <Layout>
-          <Row
-            gutter={[32, 32]}
-            style={{
-              padding: 10,
-            }}
-          >
-            <Col span={6}>
-              <CustomGraph
-                title="Transactions"
-                graphTitle="123,456"
-                color="#37b99c"
-                prevMonth={{
-                  positive: true,
-                  value: 3.14,
-                }}
-                prevYear={{
-                  positive: false,
-                  value: 3.14,
-                }}
-                labels={["Jan", "Feb", "Mar", "Apr", "May"]}
-                data={Array(5)
-                  .fill(null)
-                  .map(() => Math.floor(Math.random() * 10))}
-              />
-            </Col>
-            <Col span={6}>
-              <CustomGraph
-                title="Net Income"
-                graphTitle="₱10,456"
-                color="#00ff00"
-                prevMonth={{
-                  positive: true,
-                  value: 3.14,
-                }}
-                prevYear={{
-                  positive: false,
-                  value: 3.14,
-                }}
-                labels={["Jan", "Feb", "Mar", "Apr", "May"]}
-                data={Array(5)
-                  .fill(null)
-                  .map(() => Math.floor(Math.random() * 10))}
-              />
-            </Col>
-            <Col span={7} offset={5}>
-              <Card hoverable>
-                <Typography.Title
-                  level={3}
-                  style={{
-                    margin: 0,
-                  }}
-                >
-                  Recent Transaction
-                </Typography.Title>
-                <Table
-                  dataSource={recentTransaction.map((e): RecentTransaction => {
-                    return {
-                      type: e.type,
-                      sub_type: e.sub_type,
-                      amount: e.amount ?? 0,
-                      fee: e.fee ?? 0,
-                    };
-                  })}
-                  columns={columns}
-                  pagination={false}
-                  style={{
-                    height: "78vh",
-                  }}
-                />
-              </Card>
-            </Col>
-          </Row>
+          {activeKey == "dashboard" ? (
+            <ReportDashboard transaction={recentTransaction} />
+          ) : null}
         </Layout>
       </Layout>
     </Drawer>

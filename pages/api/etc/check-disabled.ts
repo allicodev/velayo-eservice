@@ -32,7 +32,7 @@ async function handler(
   } else {
     return await Wallet.findOne({ _id: id }).then((e) => {
       return res.json({
-        success: e.isDisabled,
+        success: e?.isDisabled ?? false,
         code: 200,
       });
     });
