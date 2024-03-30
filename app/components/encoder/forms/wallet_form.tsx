@@ -274,6 +274,8 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                   }}
                   min={ff.inputNumberOption?.min ?? undefined}
                   max={ff.inputNumberOption?.max ?? undefined}
+                  minLength={ff.inputNumberOption?.minLength ?? undefined}
+                  maxLength={ff.inputNumberOption?.maxLength ?? undefined}
                   className={`customInput size-70 ${
                     ff.inputNumberOption?.isMoney ? "" : "no-prefix"
                   }`}
