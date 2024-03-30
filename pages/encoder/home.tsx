@@ -94,10 +94,14 @@ const Encoder = () => {
       title: isMobile ? "Date" : "Date Requested",
       dataIndex: "createdAt",
       key: "date-request",
-      render: (date) =>
-        dayjs(date).format(
-          isMobile ? "MMM DD 'YY hh:mma" : "MMMM DD, YYYY hh:mma"
-        ),
+
+      render: (date) => (
+        <span style={{ fontSize: isMobile ? "0.9em" : "1em" }}>
+          {dayjs(date).format(
+            isMobile ? "MMM DD 'YY hh:mma" : "MMMM DD, YYYY hh:mma"
+          )}
+        </span>
+      ),
     },
     {
       title: "Reference No.",

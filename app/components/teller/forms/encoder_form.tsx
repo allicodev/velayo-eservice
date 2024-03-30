@@ -206,56 +206,72 @@ const EncoderForm = ({
         />
       )}
       {textData[0].map((_, i) => (
-        <div style={{ display: "flex" }} key={i}>
-          <div style={{ width: 140, fontSize: isMobile ? 18 : 20 }}>{_}:</div>
-          <div style={{ width: 150, fontSize: isMobile ? 18 : 20 }}>
+        <div
+          style={{ display: "flex", justifyContent: "space-around" }}
+          key={i}
+        >
+          <div style={{ width: 140, fontSize: isMobile ? 18 : 20, flex: 2 }}>
+            {_}:
+          </div>
+          <div
+            style={{
+              width: 150,
+              fontSize: isMobile ? 18 : 20,
+              flex: i < 2 ? 3 : 2,
+            }}
+          >
             {textData[1][i]}
           </div>
-          {i != 0 &&
-          i != 1 &&
+          {i > 1 &&
           transaction &&
           transaction.history.at(-1)?.status == "pending" ? (
-            <Button
-              icon={
-                copiedIndex == i ? (
-                  <CheckCircleOutlined
-                    style={{
-                      color: "#fff",
-                    }}
-                  />
-                ) : (
-                  <CopyOutlined
-                    style={{
-                      color: "#fff",
-                    }}
-                  />
-                )
-              }
-              size="small"
+            <div
               style={{
-                backgroundColor: "#1777FF",
-                color: "#fff",
-                borderRadius: 8,
-              }}
-              onClick={() => {
-                setCopiedIndex(i);
-                setTimeout(() => setCopiedIndex(-1), 2500);
-                let textToBeCopied: any = textData[1][i];
-
-                if (textData[1][i].includes("₱")) {
-                  textToBeCopied = `${textData[1][i]
-                    .split(",")
-                    .join("")
-                    .slice(1)}`;
-                }
-
-                navigator.clipboard
-                  .writeText(textToBeCopied)
-                  .then((e) => message.success("Copied Successfully"));
+                flex: 1,
               }}
             >
-              {copiedIndex == i ? "Copied" : "Copy"}
-            </Button>
+              <Button
+                icon={
+                  copiedIndex == i ? (
+                    <CheckCircleOutlined
+                      style={{
+                        color: "#fff",
+                      }}
+                    />
+                  ) : (
+                    <CopyOutlined
+                      style={{
+                        color: "#fff",
+                      }}
+                    />
+                  )
+                }
+                size="small"
+                style={{
+                  backgroundColor: "#1777FF",
+                  color: "#fff",
+                  borderRadius: 8,
+                }}
+                onClick={() => {
+                  setCopiedIndex(i);
+                  setTimeout(() => setCopiedIndex(-1), 2500);
+                  let textToBeCopied: any = textData[1][i];
+
+                  if (textData[1][i].includes("₱")) {
+                    textToBeCopied = `${textData[1][i]
+                      .split(",")
+                      .join("")
+                      .slice(1)}`;
+                  }
+
+                  navigator.clipboard
+                    .writeText(textToBeCopied)
+                    .then((e) => message.success("Copied Successfully"));
+                }}
+              >
+                {copiedIndex == i ? "Copied" : "Copy"}
+              </Button>
+            </div>
           ) : null}
         </div>
       ))}
@@ -319,7 +335,7 @@ const EncoderForm = ({
           <span
             style={{
               color: "#8C8C8C",
-              fontSize: isMobile ? 12 : 14,
+              fontSize: isMobile ? 10 : 14,
               display: "block",
               textAlign: "center",
             }}
