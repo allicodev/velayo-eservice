@@ -144,7 +144,8 @@ class BillService extends Loader {
   public async getAllTransaction(
     page: number,
     pageSize: number,
-    status?: TransactionHistoryStatus | null
+    status?: TransactionHistoryStatus[] | null,
+    order?: "descending" | "ascending"
   ) {
     this.loaderPush("get-transaction");
     const response = await this.instance.get<Transaction[]>({
@@ -152,7 +153,8 @@ class BillService extends Loader {
       query: {
         page,
         pageSize,
-        status,
+        status: JSON.stringify(status),
+        order,
       },
     });
     this.loaderPop("get-transaction");

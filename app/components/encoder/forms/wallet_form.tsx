@@ -538,6 +538,11 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
         marginLeft: 20,
         marginBottom: 20,
       }}
+      styles={{
+        body: {
+          overflow: "hidden",
+        },
+      }}
     >
       <Row>
         <Col span={6}>
@@ -547,6 +552,10 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
               flexDirection: "row",
               width: 300,
               marginLeft: 15,
+              // position: "absolute",
+              // top: 0,
+              // left: 0,
+              // zIndex: 9999,
             }}
           >
             <Input
@@ -576,26 +585,35 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
               />
             </Tooltip>
           </div>
-          <Collapse
-            onChange={() => setWalletType(null)}
+          <div
+            className="no-scrollbar"
             style={{
-              background: "#fff",
+              overflow: "scroll",
+              maxHeight: "77vh",
+              paddingBottom: 30,
             }}
-            items={
-              searchKey == ""
-                ? items
-                : items.filter((e) =>
-                    e.id
-                      ?.toString()
-                      .toLocaleLowerCase()
-                      .includes(searchKey.toLocaleLowerCase())
-                  )
-            }
-            bordered={false}
-            destroyInactivePanel
-            activeKey={selectedWallet?._id}
-            accordion
-          />
+          >
+            <Collapse
+              onChange={() => setWalletType(null)}
+              style={{
+                background: "#fff",
+              }}
+              items={
+                searchKey == ""
+                  ? items
+                  : items.filter((e) =>
+                      e.id
+                        ?.toString()
+                        .toLocaleLowerCase()
+                        .includes(searchKey.toLocaleLowerCase())
+                    )
+              }
+              bordered={false}
+              destroyInactivePanel
+              activeKey={selectedWallet?._id}
+              accordion
+            />
+          </div>
         </Col>
         <Col span={1}>
           <Divider
@@ -619,22 +637,46 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
             <Card
               style={{
                 width: 700,
+                height: "80vh",
               }}
               styles={{
                 body: {
                   display: "flex",
                   flexDirection: "column",
-                  height: "100%",
+                  height: "77vh",
+                  overflow: "scroll",
                 },
               }}
+              classNames={{
+                body: "no-scrollbar",
+              }}
             >
-              <Typography.Text style={{ fontSize: 45, marginBottom: 10 }}>
-                {getTitle()}
-              </Typography.Text>
+              <div
+                style={{
+                  position: "absolute",
+                  width: "100%",
+                  top: 0,
+                  left: 0,
+                  background: "#fff",
+                  zIndex: 999999,
+                  border: "1px solid #ccc",
+                }}
+              >
+                <Typography.Text
+                  style={{
+                    fontSize: 45,
+                    display: "block",
+                    textAlign: "center",
+                  }}
+                >
+                  {getTitle()}
+                </Typography.Text>
+              </div>
+
               {Object.values(error).length > 0 && (
                 <Alert
                   type="error"
-                  style={{ marginBottom: 25, fontSize: "1.4em" }}
+                  style={{ marginBottom: 25, fontSize: "1.4em", marginTop: 70 }}
                   message={
                     <Space direction="vertical" size={[0, 1]}>
                       {Object.values(error).map((e: any) => (
@@ -653,6 +695,9 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                 labelWrap
                 wrapperCol={{
                   flex: 1,
+                }}
+                style={{
+                  marginTop: Object.values(error).length > 0 ? 0 : 70,
                 }}
                 colon={false}
                 requiredMark={"optional"}

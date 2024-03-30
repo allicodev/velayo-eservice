@@ -267,3 +267,7 @@ label.customCheckbox span span.ant-checkbox-inner {
   width: 32px;
   height: 32px;
 }
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

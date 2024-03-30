@@ -19,16 +19,23 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  let { page, pageSize, status } = req.query;
+  let { page, pageSize, status, order } = req.query;
 
   const _page = Number.parseInt(page!.toString()) - 1;
 
   let query = {};
+  if (status) {
+    status = JSON.parse(status!.toString());
 
-  if (status ?? false) {
+    if (status && status.length > 0)
+      status =
+        (status as any[]).filter((e) => e == null).length > 0 ? [] : status;
+  }
+
+  if ((status && status.length > 0) ?? false) {
     query = {
       $expr: {
-        $eq: [{ $last: "$history.status" }, status],
+        $in: [{ $arrayElemAt: ["$history.status", -1] }, status],
       },
     };
   }
@@ -36,6 +43,9 @@ async function handler(
   return await Transaction.find(query)
     .skip(_page * Number.parseInt(pageSize!.toString()))
     .limit(Number.parseInt(pageSize!.toString()))
+    .sort({
+      createdAt: typeof order == "string" && order == "descending" ? -1 : 1,
+    })
     .then((e) => {
       return res.json({
         code: 200,

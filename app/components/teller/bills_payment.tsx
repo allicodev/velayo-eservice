@@ -417,22 +417,42 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
       <Card
         style={{
           width: 500,
+          height: "80vh",
         }}
         styles={{
           body: {
             display: "flex",
             flexDirection: "column",
-            height: "100%",
+            height: "77vh",
+            overflow: "scroll",
           },
         }}
+        classNames={{
+          body: "no-scrollbar",
+        }}
       >
-        <Typography.Title level={1}>
-          {bill?.name} Bills Payment
-        </Typography.Title>
+        <div
+          style={{
+            position: "absolute",
+            width: "100%",
+            top: 0,
+            left: 0,
+            background: "#fff",
+            zIndex: 999999,
+            border: "1px solid #ccc",
+          }}
+        >
+          <Typography.Title
+            level={1}
+            style={{ marginTop: 20, textAlign: "center" }}
+          >
+            {bill?.name} Bills Payment
+          </Typography.Title>
+        </div>
         {Object.values(error).length > 0 && (
           <Alert
             type="error"
-            style={{ marginBottom: 25, fontSize: "1.4em" }}
+            style={{ marginBottom: 25, fontSize: "1.4em", marginTop: 80 }}
             message={
               <Space direction="vertical" size={[0, 1]}>
                 {Object.values(error).map((e: any) => (
@@ -456,6 +476,9 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             }}
             colon={false}
             requiredMark={"optional"}
+            style={{
+              marginTop: Object.values(error).length > 0 ? 0 : 70,
+            }}
             onFinish={handleFinish}
           >
             {bill?.formField?.map((e) => renderFormFieldSpecific(e))}
@@ -546,46 +569,55 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
         marginLeft: 20,
         marginBottom: 20,
       }}
+      styles={{
+        body: {
+          overflow: "hidden",
+        },
+      }}
     >
       <Row>
         <Col span={6}>
-          <Space direction="vertical">
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                width: 300,
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              width: 300,
+              marginBottom: 10,
+            }}
+          >
+            <Input
+              size="large"
+              placeholder="Search/Filter Biller"
+              onChange={(e) => {
+                setSearchKey(e.target.value);
+                setSelectedBill(null);
+                setError({});
               }}
-            >
-              <Input
+              value={searchKey}
+              style={{
+                width: "98%",
+                marginRight: "2%",
+                height: 50,
+                fontSize: 25,
+              }}
+            />
+            <Tooltip title="Reset">
+              <Button
+                icon={<ReloadOutlined />}
                 size="large"
-                placeholder="Search/Filter Biller"
-                onChange={(e) => {
-                  setSearchKey(e.target.value);
-                  setSelectedBill(null);
-                  setError({});
-                }}
-                value={searchKey}
+                onClick={() => setSearchKey("")}
                 style={{
-                  width: "98%",
-                  marginRight: "2%",
                   height: 50,
-                  fontSize: 25,
+                  width: 50,
                 }}
               />
-              <Tooltip title="Reset">
-                <Button
-                  icon={<ReloadOutlined />}
-                  size="large"
-                  onClick={() => setSearchKey("")}
-                  style={{
-                    height: 50,
-                    width: 50,
-                  }}
-                />
-              </Tooltip>
-            </div>
-
+            </Tooltip>
+          </div>
+          <Space
+            direction="vertical"
+            style={{ height: "77vh", overflow: "scroll", paddingBottom: 30 }}
+            className="no-scrollbar"
+          >
             {bills
               .filter((e) => {
                 if (searchKey == "") return true;
