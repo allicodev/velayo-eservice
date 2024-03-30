@@ -241,6 +241,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
               key={ff.slug_name}
               style={{
                 margin: 0,
+                marginBottom: 10,
               }}
             >
               <FloatLabel
