@@ -75,6 +75,10 @@ const TransactionHistory = ({
               ? "#297BFA"
               : type == "bills"
               ? "#28a745"
+              : type == "shoppe"
+              ? "#ee4d2d"
+              : type == "eload"
+              ? "#4c772d"
               : "#EFB40D"
           }
         >

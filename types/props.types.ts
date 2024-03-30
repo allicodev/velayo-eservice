@@ -44,12 +44,14 @@ export interface UserBadgeProps {
   title: UserBadgeTitle | null | string;
   style?: CSSProperties;
   role?: RoleType;
+  isMobile?: boolean;
 }
 export interface BillsPaymentProps {
   open: boolean;
   close: () => void;
   transaction: Transaction | null;
   refresh?: () => void;
+  isMobile: boolean;
 }
 
 export interface FloatLabelProps {

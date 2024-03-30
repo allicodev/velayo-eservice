@@ -14,6 +14,8 @@ import {
 import { CopyOutlined, PrinterOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
+// TODO: fix pusher connection
+
 import {
   TransactionOptProps,
   Transaction,
@@ -39,6 +41,7 @@ const Encoder = () => {
   const [transactions, setTransaction] = useState<Transaction[]>([]);
   const [selectedStatus, setSelectedStatus] =
     useState<TransactionHistoryStatus | null>("pending");
+  const [isMobile, setIsMobile] = useState<any>();
 
   const [api, contextHolder] = notification.useNotification();
 
@@ -67,9 +70,10 @@ const Encoder = () => {
       title: "ID",
       key: "id",
       dataIndex: "queue",
+      width: 50,
     },
     {
-      title: "Transaction Type",
+      title: isMobile ? "Type" : "Transaction Type",
       dataIndex: "name",
       key: "name",
       render: (_, { type }) => (
@@ -87,14 +91,18 @@ const Encoder = () => {
       ),
     },
     {
-      title: "Date Requested",
+      title: isMobile ? "Date" : "Date Requested",
       dataIndex: "createdAt",
       key: "date-request",
-      render: (date) => dayjs(date).format("MMMM DD, YYYY hh:mma"),
+      render: (date) =>
+        dayjs(date).format(
+          isMobile ? "MMM DD 'YY hh:mma" : "MMMM DD, YYYY hh:mma"
+        ),
     },
     {
       title: "Reference No.",
       key: "ref",
+      responsive: ["md", "lg"],
       render: (_, { reference }) =>
         reference ? (
           <Typography.Link
@@ -121,6 +129,7 @@ const Encoder = () => {
     {
       title: "Actions",
       align: "center",
+      responsive: ["md", "lg"],
       dataIndex: "_id",
       render: (_) => (
         <Space>
@@ -169,6 +178,10 @@ const Encoder = () => {
     }
   }, [trigger]);
 
+  useEffect(() => {
+    setIsMobile(typeof window !== "undefined" ? window.innerWidth < 768 : null);
+  }, []);
+
   return (
     <>
       <div className="teller main-content">
@@ -189,8 +202,9 @@ const Encoder = () => {
                 : null
             }
             role="encoder"
+            isMobile={isMobile ?? false}
             style={{
-              margin: 25,
+              margin: isMobile ? 10 : 25,
             }}
           />
 
@@ -260,6 +274,7 @@ const Encoder = () => {
       <EncoderForm
         close={() => setBillsOption({ open: false, transaction: null })}
         refresh={() => setTrigger(trigger + 1)}
+        isMobile={isMobile}
         {...billsOption}
       />
     </>

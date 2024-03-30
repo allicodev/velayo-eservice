@@ -25,6 +25,7 @@ const EncoderForm = ({
   close,
   transaction,
   refresh,
+  isMobile,
 }: BillsPaymentProps) => {
   const [textData, setTextData] = useState<string[][]>([[], []]);
   const [copiedIndex, setCopiedIndex] = useState(-1);
@@ -150,7 +151,47 @@ const EncoderForm = ({
       open={open}
       onCancel={close}
       footer={null}
-      title={<Typography.Title level={2}>Transaction Details</Typography.Title>}
+      title={
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <Typography.Title
+            level={isMobile ? 3 : 2}
+            style={{
+              margin: 0,
+              marginRight: 10,
+            }}
+          >
+            Transaction Details
+          </Typography.Title>
+          {transaction?.history.at(-1)?.status == "completed" && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                height: 30,
+              }}
+            >
+              (Ref #:{" "}
+              <Typography.Link
+                style={{ marginLeft: 5 }}
+                onClick={() => {
+                  navigator.clipboard
+                    .writeText(transaction.reference!)
+                    .then((e) => message.success("Copied Successfully"));
+                }}
+              >
+                {transaction.reference}
+              </Typography.Link>
+              )
+            </div>
+          )}
+        </div>
+      }
     >
       {isDisabled && (
         <Alert
@@ -163,8 +204,10 @@ const EncoderForm = ({
       )}
       {textData[0].map((_, i) => (
         <div style={{ display: "flex" }} key={i}>
-          <div style={{ width: 200, fontSize: 20 }}>{_}:</div>
-          <div style={{ width: 150, fontSize: 20 }}>{textData[1][i]}</div>
+          <div style={{ width: 140, fontSize: isMobile ? 18 : 20 }}>{_}:</div>
+          <div style={{ width: 150, fontSize: isMobile ? 18 : 20 }}>
+            {textData[1][i]}
+          </div>
           {i != 0 &&
           i != 1 &&
           transaction &&
@@ -273,7 +316,7 @@ const EncoderForm = ({
           <span
             style={{
               color: "#8C8C8C",
-              fontSize: 14,
+              fontSize: isMobile ? 12 : 14,
               display: "block",
               textAlign: "center",
             }}
@@ -292,8 +335,10 @@ const EncoderForm = ({
       ) : (
         <>
           <div style={{ display: "flex" }}>
-            <div style={{ width: 200, fontSize: 20 }}>Current Status:</div>
-            <div style={{ width: 150, fontSize: 20 }}>
+            <div style={{ width: 140, fontSize: isMobile ? 18 : 20 }}>
+              Current Status:
+            </div>
+            <div style={{ width: 80, fontSize: isMobile ? 18 : 20 }}>
               <Tag
                 color={
                   transaction?.history.at(-1)?.status == "failed"

@@ -20,7 +20,7 @@ import BillService from "@/provider/bill.service";
 import WalletService from "@/provider/wallet.service";
 import EtcService from "@/provider/etc.service";
 
-const UserBadge = ({ name, style, title, role }: UserBadgeProps) => {
+const UserBadge = ({ name, style, title, role, isMobile }: UserBadgeProps) => {
   const [currentTime, setCurrentTime] = useState(dayjs());
   const [openDisableBill, setOpenDisbaleBill] = useState(false);
 
@@ -81,10 +81,15 @@ const UserBadge = ({ name, style, title, role }: UserBadgeProps) => {
           style={{
             display: "flex",
             justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
           <Typography.Text
-            style={{ fontSize: 45, display: "block", lineHeight: 0.6 }}
+            style={{
+              fontSize: isMobile ? 25 : 45,
+              display: "block",
+              lineHeight: 0.6,
+            }}
           >
             Welcome {title} {name}
           </Typography.Text>
@@ -140,7 +145,7 @@ const UserBadge = ({ name, style, title, role }: UserBadgeProps) => {
           </Dropdown>
         </div>
 
-        <Typography.Text style={{ fontSize: 26 }}>
+        <Typography.Text style={{ fontSize: isMobile ? 18 : 26 }}>
           {currentTime.format("MMMM DD, YYYY - hh:mma")}
         </Typography.Text>
       </div>
