@@ -19,7 +19,7 @@ const TransactionSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["bills", "wallet", "eload", "shoppe", "miscellaneous"],
+      enum: ["bills", "wallet", "eload", "shopee", "miscellaneous"],
       required: true,
     },
     sub_type: String,

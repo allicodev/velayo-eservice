@@ -31,7 +31,7 @@ export type TransactionType =
   | "wallet"
   | "eload"
   | "miscellaneous"
-  | "shoppe";
+  | "shopee";
 export type TransactionHistoryStatus = "completed" | "failed" | "pending";
 
 export interface TransactionHistory {

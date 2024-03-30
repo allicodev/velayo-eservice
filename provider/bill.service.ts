@@ -224,8 +224,8 @@ class BillService extends Loader {
 
   public async requestShoppeCollect(details: string, amount: number | null) {
     let transaction: Transaction = {
-      type: "shoppe",
-      sub_type: "shoppe self collect",
+      type: "shopee",
+      sub_type: "shopee self collect",
       transactionDetails: details,
       ...(amount != null ? { amount } : { amount: 0 }),
       fee: 0,
