@@ -106,7 +106,9 @@ const EncoderForm = ({
             "Type",
             "Biller",
             ...Object.keys(_)
-              .filter((e: any) => !["billerId", "transactionType"].includes(e))
+              .filter(
+                (e: any) => !["billerId", "transactionType", "fee"].includes(e)
+              )
               .map((e) =>
                 e
                   .replaceAll("_", " ")
@@ -119,7 +121,9 @@ const EncoderForm = ({
             transaction.type.toLocaleUpperCase(),
             transaction.sub_type.toLocaleUpperCase(),
             ...Object.keys(_)
-              .filter((e: any) => !["billerId", "transactionType"].includes(e))
+              .filter(
+                (e: any) => !["billerId", "transactionType", "fee"].includes(e)
+              )
               .map((e: any) => {
                 if (typeof _[e] == "string" && _[e].includes("_money"))
                   return `₱${Number.parseFloat(
