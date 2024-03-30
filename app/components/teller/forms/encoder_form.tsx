@@ -31,7 +31,7 @@ const EncoderForm = ({
   const [copiedIndex, setCopiedIndex] = useState(-1);
   const [isFailed, setIsFailed] = useState(false);
   const [reason, setReason] = useState("");
-  const [refNumber, setRefNumber] = useState("");
+  const [refNumber, setRefNumber] = useState<string | null>("");
   const [isDisabled, setIsDisabled] = useState(false);
 
   const bill = new BillService();
@@ -64,7 +64,7 @@ const EncoderForm = ({
           let res = await _.updateTransaction({
             ...transaction,
             type: transaction.type,
-            reference: refNumber,
+            reference: refNumber!,
           });
 
           if (res.success) {
@@ -84,7 +84,7 @@ const EncoderForm = ({
           let res = await _.updateTransaction({
             ...transaction,
             type: transaction.type,
-            reference: refNumber,
+            reference: refNumber!,
           });
 
           if (res.success) {
@@ -149,7 +149,10 @@ const EncoderForm = ({
   return (
     <Modal
       open={open}
-      onCancel={close}
+      onCancel={() => {
+        close();
+        setRefNumber(null);
+      }}
       footer={null}
       title={
         <div
@@ -284,10 +287,10 @@ const EncoderForm = ({
             </FloatLabel>
           ) : (
             <div style={{ marginTop: 20 }}>
-              <FloatLabel label="Reference Number" value={refNumber}>
+              <FloatLabel label="Reference Number" value={refNumber!}>
                 <Input
                   size="large"
-                  value={refNumber}
+                  value={refNumber!}
                   onChange={(e) => setRefNumber(e.target.value)}
                   suffix={
                     <Button

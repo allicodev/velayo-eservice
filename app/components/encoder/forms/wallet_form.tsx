@@ -56,13 +56,15 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
         ? selectedWallet?.cashinFeeValue!
         : amount * (selectedWallet?.cashinFeeValue! / 100);
     } else {
-      return selectedWallet?.cashoutType == "fixed"
+      return selectedWallet?.cashoutType == "fixed" || includeFee
         ? selectedWallet?.cashoutFeeValue!
         : amount * (selectedWallet?.cashoutFeeValue! / 100);
     }
   };
 
   const getTotal = () => {
+    if (walletType == "cash-out" && includeFee)
+      return amount - getFee() < 0 ? 0 : amount - getFee();
     if (includeFee) return amount;
     else return amount + getFee();
   };
@@ -113,6 +115,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
               paddingTop: 10,
               paddingBottom: 10,
               height: 70,
+              fontWeight: "bolder",
               ...(selectedWallet?._id == wallet._id
                 ? {
                     background: "#294B0F",
@@ -144,8 +147,9 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
             <Button
               style={{
                 width: 150,
-                height: 40,
-                fontSize: 20,
+                height: 50,
+                fontSize: 25,
+                fontWeight: "bolder",
                 ...(walletType == "cash-in"
                   ? {
                       background: "#294B0F",
@@ -166,8 +170,9 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
             <Button
               style={{
                 width: 150,
-                height: 40,
-                fontSize: 20,
+                height: 50,
+                fontSize: 25,
+                fontWeight: "bolder",
                 ...(walletType == "cash-out"
                   ? {
                       background: "#294B0F",
@@ -200,6 +205,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
               key={ff.slug_name}
               style={{
                 margin: 0,
+                marginBottom: 10,
               }}
             >
               <FloatLabel
@@ -210,9 +216,10 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                   size="large"
                   minLength={ff.inputOption?.minLength ?? undefined}
                   maxLength={ff.inputOption?.minLength ?? undefined}
-                  className="customInput size-50"
+                  className="customInput size-70"
                   style={{
-                    height: 50,
+                    height: 70,
+                    fontSize: "2em",
                   }}
                   onChange={(e) =>
                     form.setFieldsValue({ [ff.slug_name!]: e.target.value })
@@ -238,8 +245,14 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                 label={ff.name}
                 extra={
                   ff.inputNumberOption?.mainAmount && (
-                    <span style={{ float: "right", marginBottom: 10 }}>
-                      +₱{getFee().toLocaleString()} (fee)
+                    <span
+                      style={{
+                        float: "right",
+                        marginBottom: 10,
+                        fontSize: "1.8em",
+                      }}
+                    >
+                      +₱{includeFee ? "0" : getFee().toLocaleString()} (fee)
                     </span>
                   )
                 }
@@ -248,10 +261,15 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                   size="large"
                   controls={false}
                   prefix={ff.inputNumberOption?.isMoney ? "₱" : ""}
-                  style={{ width: "100%", height: 50, alignItems: "center" }}
+                  style={{
+                    width: "100%",
+                    height: 70,
+                    alignItems: "center",
+                    fontSize: "2em",
+                  }}
                   min={ff.inputNumberOption?.min ?? undefined}
                   max={ff.inputNumberOption?.max ?? undefined}
-                  className={`customInput size-50 ${
+                  className={`customInput size-70 ${
                     ff.inputNumberOption?.isMoney ? "" : "no-prefix"
                   }`}
                   formatter={(value: any) =>
@@ -292,14 +310,15 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
               >
                 <Input.TextArea
                   size="large"
-                  className="customInput size-50"
+                  className="customInput size-70"
                   onChange={(e) =>
                     form.setFieldsValue({ [ff.slug_name!]: e.target.value })
                   }
-                  autoSize={{
-                    minRows: ff.textareaOption?.minRow ?? undefined,
-                    maxRows: ff.textareaOption?.maxRow ?? undefined,
-                  }}
+                  autoSize
+                  // autoSize={{
+                  //   minRows: ff.textareaOption?.minRow ?? undefined,
+                  //   maxRows: ff.textareaOption?.maxRow ?? undefined,
+                  // }}
                 />
               </FloatLabel>
             </Form.Item>
@@ -351,18 +370,22 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                 label={ff.name}
               >
                 <Select
-                  options={ff.selectOption?.items?.map((e) => {
-                    return {
-                      label: e.name,
-                      value: e.value,
-                    };
-                  })}
+                  className="customInput size-70"
                   size="large"
                   style={{
-                    height: 50,
+                    height: 70,
                   }}
                   onChange={(e) => form.setFieldsValue({ [ff.slug_name!]: e })}
-                />
+                >
+                  {ff.selectOption?.items?.map((e) => (
+                    <Select.Option
+                      value={e.value}
+                      style={{ fontSize: "1.5em" }}
+                    >
+                      {e.name}
+                    </Select.Option>
+                  ))}
+                </Select>
               </FloatLabel>
             </Form.Item>
           );
@@ -442,12 +465,14 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
           >
             <Input
               size="large"
-              placeholder="Search/Filter Biller"
+              placeholder="Search/Filter Wallet"
               value={searchKey}
               onChange={(e) => setSearchKey(e.target.value)}
               style={{
                 width: "98%",
                 marginRight: "2%",
+                height: 50,
+                fontSize: 25,
               }}
             />
             <Tooltip title="Reset">
@@ -455,6 +480,10 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                 icon={<ReloadOutlined />}
                 size="large"
                 onClick={() => setSearchKey("")}
+                style={{
+                  height: 50,
+                  width: 50,
+                }}
               />
             </Tooltip>
           </div>
@@ -509,7 +538,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                 },
               }}
             >
-              <Typography.Text style={{ fontSize: 35 }}>
+              <Typography.Text style={{ fontSize: 45, marginBottom: 10 }}>
                 {getTitle()}
               </Typography.Text>
               <Form
@@ -545,11 +574,26 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
               >
                 <div
                   onClick={(e) => setIncludeFee(!includeFee)}
-                  style={{ cursor: "pointer" }}
+                  style={{
+                    display: "flex",
+                    cursor: "pointer",
+                    alignItems: "center",
+                  }}
                 >
-                  <Checkbox checked={includeFee} /> Include Fee
+                  <Checkbox
+                    checked={includeFee}
+                    className="customCheckbox"
+                    style={{ marginRight: 10 }}
+                  />{" "}
+                  <span
+                    style={{
+                      fontSize: "2em",
+                    }}
+                  >
+                    Include Fee
+                  </span>
                 </div>
-                <span style={{ textAlign: "end", fontSize: 20 }}>
+                <span style={{ textAlign: "end", fontSize: "2em" }}>
                   TOTAL • ₱{getTotal()?.toLocaleString()}
                 </span>
               </div>
@@ -557,15 +601,15 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
               <Button
                 style={{
                   display: "block",
-                  fontSize: 25,
+                  fontSize: 35,
                   color: "#fff",
                   background: "#1777FF",
-                  height: 50,
+                  height: 70,
                   marginTop: 25,
                 }}
                 onClick={form.submit}
               >
-                Request
+                Confirm
               </Button>
             </Card>
           )}

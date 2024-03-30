@@ -13,6 +13,9 @@ export default function FloatLabel({
   const [focus, setFocus] = useState(false);
 
   if (!labelClassName) labelClassName = "";
+
+  if (value?.includes("null_money")) value = undefined;
+
   const labelClass =
     focus || (value && value.length !== 0) || bool
       ? `label label-float ${labelClassName}`

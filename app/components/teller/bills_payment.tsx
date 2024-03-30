@@ -138,6 +138,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                 key={ff.slug_name}
                 style={{
                   margin: 0,
+                  marginBottom: 10,
                 }}
               >
                 <FloatLabel
@@ -147,9 +148,10 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                   <Input
                     minLength={ff.inputOption?.minLength ?? undefined}
                     maxLength={ff.inputOption?.maxLength ?? undefined}
-                    className="customInput size-50"
+                    className="customInput size-70"
                     style={{
-                      height: 50,
+                      height: 70,
+                      fontSize: "2em",
                     }}
                     onBlur={() => {
                       if (ff.inputOption?.minLength ?? false) {
@@ -210,7 +212,13 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                   label={ff.name}
                   extra={
                     ff.inputNumberOption?.mainAmount && (
-                      <span style={{ float: "right", marginBottom: 10 }}>
+                      <span
+                        style={{
+                          float: "right",
+                          marginBottom: 10,
+                          fontSize: "1.8em",
+                        }}
+                      >
                         +₱{getFee()} (fee)
                       </span>
                     )
@@ -220,12 +228,17 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                     size="large"
                     controls={false}
                     prefix={ff.inputNumberOption?.isMoney ? "₱" : ""}
-                    style={{ width: "100%", height: 50, alignItems: "center" }}
+                    style={{
+                      width: "100%",
+                      height: 70,
+                      alignItems: "center",
+                      fontSize: "2em",
+                    }}
                     min={ff.inputNumberOption?.min ?? undefined}
                     max={ff.inputNumberOption?.max ?? undefined}
                     minLength={ff.inputNumberOption?.minLength ?? undefined}
                     maxLength={ff.inputNumberOption?.maxLength ?? undefined}
-                    className={`customInput size-50 ${
+                    className={`customInput size-70 ${
                       ff.inputNumberOption?.isMoney ? "" : "no-prefix"
                     }`}
                     formatter={(value: any) =>
@@ -301,14 +314,23 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                 >
                   <Input.TextArea
                     size="large"
-                    className="customInput size-50"
+                    className="customInput size-70"
                     onChange={(e) =>
                       form.setFieldsValue({ [ff.slug_name!]: e.target.value })
                     }
-                    autoSize={{
-                      minRows: ff.textareaOption?.minRow ?? undefined,
-                      maxRows: ff.textareaOption?.maxRow ?? undefined,
+                    styles={{
+                      textarea: {
+                        minHeight: 70,
+                        maxHeight: 200,
+                        fontSize: "1.8em",
+                        marginBottom: 10,
+                      },
                     }}
+                    autoSize
+                    // autoSize={{
+                    //   minRows: ff.textareaOption?.minRow ?? 2,
+                    //   maxRows: ff.textareaOption?.maxRow ?? 2,
+                    // }}
                   />
                 </FloatLabel>
               </Form.Item>
@@ -360,20 +382,24 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                   label={ff.name}
                 >
                   <Select
-                    options={ff.selectOption?.items?.map((e) => {
-                      return {
-                        label: e.name,
-                        value: e.value,
-                      };
-                    })}
                     size="large"
+                    className="customInput size-70"
                     style={{
-                      height: 50,
+                      height: 70,
                     }}
                     onChange={(e) =>
                       form.setFieldsValue({ [ff.slug_name!]: e })
                     }
-                  />
+                  >
+                    {ff.selectOption?.items?.map((e) => (
+                      <Select.Option
+                        value={e.value}
+                        style={{ fontSize: "1.5em" }}
+                      >
+                        {e.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
                 </FloatLabel>
               </Form.Item>
             );
@@ -395,13 +421,13 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
           },
         }}
       >
-        <Typography.Title level={2}>
+        <Typography.Title level={1}>
           {bill?.name} Bills Payment
         </Typography.Title>
         {Object.values(error).length > 0 && (
           <Alert
             type="error"
-            style={{ marginBottom: 25 }}
+            style={{ marginBottom: 25, fontSize: "1.4em" }}
             message={
               <Space direction="vertical" size={[0, 1]}>
                 {Object.values(error).map((e: any) => (
@@ -443,7 +469,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
               style={{
                 display: "block",
                 textAlign: "end",
-                fontSize: 20,
+                fontSize: "2em",
                 wordSpacing: 15,
               }}
             >
@@ -452,15 +478,15 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             <Button
               style={{
                 display: "block",
-                fontSize: 25,
+                fontSize: 35,
                 color: "#fff",
                 background: "#1777FF",
-                height: 50,
+                height: 70,
                 marginTop: 25,
               }}
               onClick={form.submit}
             >
-              Confirm
+              CONFIRM
             </Button>
           </React.Fragment>
         )}
@@ -490,7 +516,12 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
   return (
     <Drawer
       open={open}
-      onClose={close}
+      onClose={() => {
+        close();
+        setSelectedBill(null);
+        setError({});
+        form.resetFields();
+      }}
       width="100%"
       closeIcon={<LeftOutlined />}
       title={
@@ -521,11 +552,17 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
               <Input
                 size="large"
                 placeholder="Search/Filter Biller"
-                onChange={(e) => setSearchKey(e.target.value)}
+                onChange={(e) => {
+                  setSearchKey(e.target.value);
+                  setSelectedBill(null);
+                  setError({});
+                }}
                 value={searchKey}
                 style={{
                   width: "98%",
                   marginRight: "2%",
+                  height: 50,
+                  fontSize: 25,
                 }}
               />
               <Tooltip title="Reset">
@@ -533,6 +570,10 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                   icon={<ReloadOutlined />}
                   size="large"
                   onClick={() => setSearchKey("")}
+                  style={{
+                    height: 50,
+                    width: 50,
+                  }}
                 />
               </Tooltip>
             </div>
@@ -549,7 +590,9 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                 <BillButton
                   bill={e}
                   isSelected={e._id == selectedBill?._id}
-                  onSelected={(e) => setSelectedBill(e)}
+                  onSelected={(e) => {
+                    setSelectedBill(e);
+                  }}
                   key={`bills-btn-${i}`}
                   disabled={e.isDisabled ?? false}
                 />

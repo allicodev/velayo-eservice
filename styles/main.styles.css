@@ -90,16 +90,18 @@ input[type="text"].customInput {
   top: 5px;
 }
 
-.float-label input[type="text"].customInput.size-50 ~ label.label {
-  top: 10px;
+.float-label input[type="text"].customInput.size-70 ~ label.label {
+  top: 15px;
+  font-size: 1.8em !important;
 }
 
 .float-label input[type="text"] ~ label.label-float {
   top: -10px;
 }
 
-.float-label input[type="text"].customInput.size-50 ~ label.label-float {
-  top: -12px;
+.float-label input[type="text"].customInput.size-70 ~ label.label-float {
+  font-size: 1.5em !important;
+  top: -18px;
 }
 
 .label {
@@ -156,6 +158,22 @@ textarea.customInput {
   top: 10px;
 }
 
+/* size-70 */
+.ant-select.customInput.size-70 ~ label.label {
+  top: 15px;
+  font-size: 1.8em !important;
+}
+
+.ant-select.customInput.size-70 ~ label.label-float {
+  top: -20px;
+}
+
+.ant-select.customInput.size-70
+  div.ant-select-selector
+  span.ant-select-selection-item {
+  font-size: 1.8em !important;
+}
+
 .ant-select ~ label.label-float,
 .ant-select.customInput ~ label.label-float {
   top: -10px;
@@ -167,13 +185,24 @@ textarea.customInput {
   z-index: 999;
 }
 
-.ant-input-number-outlined.customInput.size-50 + label {
-  top: 10px;
-  left: 30px;
+.ant-input-number-outlined.customInput.size-70 + label {
+  top: 15px;
+  left: 40px;
   z-index: 999;
+  font-size: 1.8em !important;
 }
 
-.ant-input-number-outlined.customInput.size-50.no-prefix + label {
+.ant-input-number-outlined.customInput.size-70 div div input {
+  font-size: 1.8em !important;
+}
+
+.ant-input-number-outlined.customInput.size-70 + label.label-float {
+  font-size: 1.5em !important;
+  left: 30px;
+  top: -15px;
+}
+
+.ant-input-number-outlined.customInput.size-70.no-prefix + label {
   top: 10px;
   left: 15px;
   z-index: 999;
@@ -193,8 +222,14 @@ textarea.customInput + label {
   top: 5px;
 }
 
-textarea.customInput.size-50 + label {
-  top: 8px;
+textarea.customInput.size-70 + label {
+  top: 15px;
+  font-size: 1.8em !important;
+}
+
+textarea.customInput.size-70 + label.label-float {
+  top: -15px;
+  font-size: 1.5em !important;
 }
 
 textarea.customInput + label.label-float {
@@ -217,4 +252,9 @@ textarea.customInput.special + label.label-float {
 .custom-inputnumber div input.ant-input-number-input {
   text-align: center;
   min-width: 50px;
+}
+
+label.customCheckbox span span.ant-checkbox-inner {
+  width: 32px;
+  height: 32px;
 }
