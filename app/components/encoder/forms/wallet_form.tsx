@@ -88,6 +88,9 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
       if (res?.success ?? false) {
         message.success(res?.message ?? "Success");
         form.resetFields();
+        setSelectedWallet(null);
+        setWalletType(null);
+        setAmount(0);
         close();
       }
     })(wallet);
@@ -434,6 +437,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
       onClose={() => {
         setSelectedWallet(null);
         setWalletType(null);
+        setAmount(0);
         close();
       }}
       width="100%"

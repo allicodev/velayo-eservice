@@ -202,10 +202,19 @@ textarea.customInput {
   top: -15px;
 }
 
+.ant-input-number-outlined.customInput.size-70.no-prefix div input {
+  height: 70px;
+}
+
 .ant-input-number-outlined.customInput.size-70.no-prefix + label {
-  top: 10px;
+  top: 15px;
   left: 15px;
   z-index: 999;
+}
+
+.ant-input-number-outlined.customInput.size-70.no-prefix + label.label-float {
+  font-size: 1.5em !important;
+  top: -15px;
 }
 
 .ant-input-number-outlined.customInput + label.label-float {

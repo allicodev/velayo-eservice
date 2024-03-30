@@ -769,7 +769,10 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                             color: "#000",
                           }),
                     }}
-                    onClick={() => setSelectedWallet(e)}
+                    onClick={() => {
+                      setSelectedTabs("cashin-settings-tabs");
+                      setSelectedWallet(e);
+                    }}
                   >
                     {e.name.toLocaleUpperCase()}
                   </Button>

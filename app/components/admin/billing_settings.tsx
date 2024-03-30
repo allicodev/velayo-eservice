@@ -615,7 +615,10 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                             color: "#000",
                           }),
                     }}
-                    onClick={() => setSelectedBiller(e)}
+                    onClick={() => {
+                      setSelectedBiller(e);
+                      setSelectedTab("form-settings-tab");
+                    }}
                   >
                     {e.name.toLocaleUpperCase()}
                   </Button>

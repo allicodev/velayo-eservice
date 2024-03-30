@@ -344,7 +344,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    marginBottom: 5,
+                    marginBottom: 10,
                   }}
                 >
                   <Typography.Paragraph
@@ -375,6 +375,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                 rules={[{ required: true }]}
                 style={{
                   margin: 0,
+                  marginBottom: 10,
                 }}
               >
                 <FloatLabel

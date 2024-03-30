@@ -28,6 +28,8 @@ import {
   SelectItem,
 } from "@/types";
 
+// TODO: fix select name with options update (name not updated)
+
 const NewOption = ({
   open,
   close,
