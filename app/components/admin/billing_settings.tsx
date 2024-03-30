@@ -6,6 +6,7 @@ import {
   Col,
   Divider,
   Drawer,
+  Input,
   InputNumber,
   Row,
   Space,
@@ -19,6 +20,7 @@ import {
   PlusOutlined,
   SettingOutlined,
   SaveOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import {
   DragDropContext,
@@ -56,6 +58,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
     additionalFee: null,
   });
   const [selectedTab, setSelectedTab] = useState("");
+  const [searchKey, setSearchKey] = useState("");
 
   const [selectedBiller, setSelectedBiller] =
     useState<BillingSettingsType | null>();
@@ -548,30 +551,75 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
             }}
           >
             <Space direction="vertical">
-              {billers.map((e, i) => (
-                <Button
-                  key={`billing-btn-${i}`}
-                  style={{
-                    width: 280,
-                    fontSize: 30,
-                    paddingTop: 8,
-                    paddingBottom: 8,
-                    height: 60,
-                    ...(selectedBiller?.name == e.name ?? false
-                      ? {
-                          background: "#294B0F",
-                          color: "#fff",
-                        }
-                      : {
-                          background: "#fff",
-                          color: "#000",
-                        }),
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  width: 300,
+                }}
+              >
+                <Input
+                  size="large"
+                  placeholder="Search/Filter Biller"
+                  onChange={(e) => {
+                    setSearchKey(e.target.value);
+                    setSelectedBiller(null);
                   }}
-                  onClick={() => setSelectedBiller(e)}
-                >
-                  {e.name.toLocaleUpperCase()}
-                </Button>
-              ))}
+                  value={searchKey}
+                  style={{
+                    width: "98%",
+                    marginRight: "2%",
+                    height: 50,
+                    fontSize: 25,
+                  }}
+                />
+                <Tooltip title="Reset">
+                  <Button
+                    icon={<ReloadOutlined />}
+                    size="large"
+                    onClick={() => {
+                      setSearchKey("");
+                      setSelectedBiller(null);
+                    }}
+                    style={{
+                      height: 50,
+                      width: 50,
+                    }}
+                  />
+                </Tooltip>
+              </div>
+              {billers
+                .filter((e) => {
+                  if (searchKey == "") return true;
+                  else
+                    return e.name
+                      .toLocaleLowerCase()
+                      .includes(searchKey.toLocaleLowerCase());
+                })
+                .map((e, i) => (
+                  <Button
+                    key={`billing-btn-${i}`}
+                    style={{
+                      width: 300,
+                      fontSize: 30,
+                      paddingTop: 8,
+                      paddingBottom: 8,
+                      height: 60,
+                      ...(selectedBiller?.name == e.name ?? false
+                        ? {
+                            background: "#294B0F",
+                            color: "#fff",
+                          }
+                        : {
+                            background: "#fff",
+                            color: "#000",
+                          }),
+                    }}
+                    onClick={() => setSelectedBiller(e)}
+                  >
+                    {e.name.toLocaleUpperCase()}
+                  </Button>
+                ))}
             </Space>
             <Button
               size="large"

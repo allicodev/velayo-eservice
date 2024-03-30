@@ -17,7 +17,12 @@ import {
   Tooltip,
   Alert,
 } from "antd";
-import { DownOutlined, SaveOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  DownOutlined,
+  SaveOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
 
 import {
   BillingsFormField,
@@ -44,6 +49,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
   const [trigger, setTrigger] = useState(0);
   const [updated, setUpdated] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [searchKey, setSearchKey] = useState("");
   const [walletOptions, setWalletOptions] = useState<OptionTypeWithFlag>({
     open: false,
     options: null,
@@ -699,30 +705,75 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
             }}
           >
             <Space direction="vertical">
-              {wallets.map((e, i) => (
-                <Button
-                  key={`wallet-btn-${i}`}
-                  style={{
-                    width: 280,
-                    fontSize: 30,
-                    paddingTop: 8,
-                    paddingBottom: 8,
-                    height: 60,
-                    ...(selectedWallet?.name == e.name ?? false
-                      ? {
-                          background: "#294B0F",
-                          color: "#fff",
-                        }
-                      : {
-                          background: "#fff",
-                          color: "#000",
-                        }),
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  width: 300,
+                }}
+              >
+                <Input
+                  size="large"
+                  placeholder="Search/Filter Biller"
+                  onChange={(e) => {
+                    setSearchKey(e.target.value);
+                    setSelectedWallet(null);
                   }}
-                  onClick={() => setSelectedWallet(e)}
-                >
-                  {e.name.toLocaleUpperCase()}
-                </Button>
-              ))}
+                  value={searchKey}
+                  style={{
+                    width: "98%",
+                    marginRight: "2%",
+                    height: 50,
+                    fontSize: 25,
+                  }}
+                />
+                <Tooltip title="Reset">
+                  <Button
+                    icon={<ReloadOutlined />}
+                    size="large"
+                    onClick={() => {
+                      setSearchKey("");
+                      setSelectedWallet(null);
+                    }}
+                    style={{
+                      height: 50,
+                      width: 50,
+                    }}
+                  />
+                </Tooltip>
+              </div>
+              {wallets
+                .filter((e) => {
+                  if (searchKey == "") return true;
+                  else
+                    return e.name
+                      .toLocaleLowerCase()
+                      .includes(searchKey.toLocaleLowerCase());
+                })
+                .map((e, i) => (
+                  <Button
+                    key={`wallet-btn-${i}`}
+                    style={{
+                      width: 300,
+                      fontSize: 30,
+                      paddingTop: 8,
+                      paddingBottom: 8,
+                      height: 60,
+                      ...(selectedWallet?.name == e.name ?? false
+                        ? {
+                            background: "#294B0F",
+                            color: "#fff",
+                          }
+                        : {
+                            background: "#fff",
+                            color: "#000",
+                          }),
+                    }}
+                    onClick={() => setSelectedWallet(e)}
+                  >
+                    {e.name.toLocaleUpperCase()}
+                  </Button>
+                ))}
             </Space>
             <Button
               size="large"
