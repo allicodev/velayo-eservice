@@ -40,13 +40,10 @@ const ShoppeForm = ({ open, close }: { open: boolean; close: () => void }) => {
       obj[`pin_collection_#${i + 1}`] = e;
     });
 
-    if (amount != 0) obj.amount = `${amount}_money`;
+    obj.amount = `${amount == null ? 0 : amount}_money`;
 
     (async (_) => {
-      let res = await _.requestShoppeCollect(
-        JSON.stringify(obj),
-        amount != 0 ? amount : null
-      );
+      let res = await _.requestShoppeCollect(JSON.stringify(obj), amount);
 
       if (res.success) {
         message.success("Transaction Completed");

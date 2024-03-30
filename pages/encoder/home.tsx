@@ -11,7 +11,7 @@ import {
   message,
   notification,
 } from "antd";
-import { CopyOutlined, PrinterOutlined } from "@ant-design/icons";
+import { CopyOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
 // TODO: fix pusher connection
@@ -130,17 +130,6 @@ const Encoder = () => {
       render: (_, { history }) =>
         getStatusBadge(history?.at(-1)?.status ?? null),
     },
-    {
-      title: "Actions",
-      align: "center",
-      responsive: ["md", "lg"],
-      dataIndex: "_id",
-      render: (_) => (
-        <Space>
-          <Button icon={<PrinterOutlined />} />
-        </Space>
-      ),
-    },
   ];
 
   const getTransactions = ({
@@ -150,7 +139,7 @@ const Encoder = () => {
   }: {
     page: number;
     pageSize?: number;
-    status?: TransactionHistoryStatus | null;
+    status?: TransactionHistoryStatus[] | null;
   }) => {
     if (!pageSize) pageSize = 10;
     (async (_) => {
@@ -171,11 +160,11 @@ const Encoder = () => {
       message: "There is a new request transaction",
       duration: 0,
     });
-    getTransactions({ page: 1, status: selectedStatus });
+    getTransactions({ page: 1, status: [selectedStatus!] });
   };
 
   useEffect(() => {
-    getTransactions({ page: 1, status: selectedStatus });
+    getTransactions({ page: 1, status: [selectedStatus!] });
     if (!pusher.hasSubscribe) {
       pusherProvider = pusher.subscribe("encoder");
       initPusherProvider();
@@ -225,7 +214,7 @@ const Encoder = () => {
               key="status-filter"
               defaultValue="pending"
               onChange={(e: any) => {
-                if (e) getTransactions({ page: 1, status: e });
+                if (e) getTransactions({ page: 1, status: [e] });
                 else getTransactions({ page: 1 });
                 setSelectedStatus(e);
               }}

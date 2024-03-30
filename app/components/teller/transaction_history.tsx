@@ -10,7 +10,7 @@ import {
   message,
   Select,
 } from "antd";
-import { DownOutlined, PrinterOutlined, CopyOutlined } from "@ant-design/icons";
+import { DownOutlined, CopyOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
 import BillService from "@/provider/bill.service";
@@ -30,6 +30,9 @@ const TransactionHistory = ({
   refresh,
 }: DrawerBasicProps) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<
+    TransactionHistoryStatus[]
+  >(["pending", "failed"]);
   const [trigger, setTrigger] = useState(0);
   const bill = new BillService();
 
@@ -92,6 +95,11 @@ const TransactionHistory = ({
       render: (_) => _.toLocaleUpperCase(),
     },
     {
+      title: "Amount",
+      dataIndex: "amount",
+      render: (_) => `₱${_}`,
+    },
+    {
       title: "Date Requested",
       dataIndex: "dateCreated",
       key: "date-request",
@@ -123,16 +131,6 @@ const TransactionHistory = ({
       render: (_, { history }) =>
         getStatusBadge(history?.at(-1)?.status ?? null),
     },
-    {
-      title: "Actions",
-      align: "center",
-      dataIndex: "_id",
-      render: (_) => (
-        <Space>
-          <Button icon={<PrinterOutlined />} />
-        </Space>
-      ),
-    },
   ];
 
   const getTransaction = ({
@@ -142,12 +140,17 @@ const TransactionHistory = ({
   }: {
     page: number;
     pageSize?: number;
-    status?: TransactionHistoryStatus | null;
+    status?: TransactionHistoryStatus[] | null;
   }): Promise<Transaction[] | void> => {
     return new Promise((resolve, reject) => {
       if (!pageSize) pageSize = 10;
       (async (_) => {
-        let res = await _.getAllTransaction(page, pageSize, status);
+        let res = await _.getAllTransaction(
+          page,
+          pageSize,
+          status ? status : null,
+          "descending"
+        );
 
         if (res.success) {
           setTransactions(res?.data ?? []);
@@ -158,26 +161,63 @@ const TransactionHistory = ({
   };
 
   useEffect(() => {
-    if (open) getTransaction({ page: 1 });
+    if (open) getTransaction({ page: 1, status: ["pending", "failed"] });
   }, [open, trigger, refresh]);
 
   return (
     <Drawer
       open={open}
-      onClose={close}
+      onClose={() => {
+        setSelectedStatus(["pending", "failed"]);
+        close();
+      }}
       width="100%"
       height="100%"
       closeIcon={<DownOutlined />}
       extra={[
         <Select
           key="status-filter"
-          defaultValue={null}
+          mode="tags"
+          defaultValue={["pending", "failed"]}
+          value={selectedStatus}
+          tagRender={(props) => {
+            const { label, value, closable, onClose } = props;
+            const onPreventMouseDown = (
+              event: React.MouseEvent<HTMLSpanElement>
+            ) => {
+              event.preventDefault();
+              event.stopPropagation();
+            };
+
+            return (
+              <Tag
+                color={
+                  value == "pending"
+                    ? "#EFB40D"
+                    : value == "completed"
+                    ? "#29A645"
+                    : value == null
+                    ? "#ccc"
+                    : "#FF0000"
+                }
+                onMouseDown={onPreventMouseDown}
+                closable={closable}
+                onClose={onClose}
+                style={{
+                  marginInlineEnd: 4,
+                }}
+              >
+                {label}
+              </Tag>
+            );
+          }}
           onChange={(e: any) => {
+            setSelectedStatus(e);
             if (e) getTransaction({ page: 1, status: e });
             else getTransaction({ page: 1 });
           }}
           style={{
-            width: 100,
+            minWidth: 120,
           }}
           options={[
             {
@@ -197,6 +237,7 @@ const TransactionHistory = ({
               value: "failed",
             },
           ]}
+          allowClear
         />,
       ]}
       placement="bottom"
