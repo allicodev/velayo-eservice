@@ -17,25 +17,47 @@ export async function middleware(req: NextRequest) {
     }
   }
   const authRoute = ["/login"];
-  const protectedRoute = ["/teller/home", "/encoder/home", "/admin/home"];
+  const protectedRoute = [
+    "/teller/home",
+    "/encoder/home",
+    "/admin/home",
+    "/pos/settings",
+  ];
 
   if (pathname == "/") {
     if (currentUser) url.pathname = `/${currentUser.role}/home`;
     else url.pathname = "/login";
   } else {
-    if (protectedRoute.includes(pathname)) {
-      if (currentUser) {
-        url.pathname = `/${currentUser.role}/home`;
-      } else {
-        url.pathname = "/login";
+    // auth check if pos settings access is admin
+    if (pathname == "/pos/settings") {
+      if (currentUser && currentUser.role == "admin")
+        url.pathname = "/pos/settings";
+      else {
+        if (currentUser) url.pathname = `/${currentUser.role}/home`;
+        else url.pathname = "/login";
       }
-    } else if (authRoute.includes(pathname) && currentUser) {
-      url.pathname = `/${currentUser.role}/home`;
+    } else {
+      if (protectedRoute.includes(pathname)) {
+        if (currentUser) {
+          url.pathname = `/${currentUser.role}/home`;
+        } else {
+          url.pathname = "/login";
+        }
+      } else if (authRoute.includes(pathname) && currentUser) {
+        url.pathname = `/${currentUser.role}/home`;
+      }
     }
   }
   return NextResponse.rewrite(url);
 }
 
 export const config = {
-  matcher: ["/", "/login", "/teller/home", "/encoder/home", "/admin/home"],
+  matcher: [
+    "/",
+    "/login",
+    "/teller/home",
+    "/encoder/home",
+    "/admin/home",
+    "/pos/settings",
+  ],
 };
