@@ -125,7 +125,7 @@ const User = ({
         placement="bottom"
         title={
           <Typography.Text style={{ fontSize: 25 }}>
-            {title ?? "Transaction History"}
+            {title ?? "User List"}
           </Typography.Text>
         }
         style={{

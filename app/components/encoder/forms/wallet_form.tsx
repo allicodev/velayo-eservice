@@ -109,11 +109,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
       key: wallet._id,
       id: wallet.name,
       label: (
-        <Tooltip
-          title={
-            wallet.isDisabled ? "This Wallet has been disabled by encoder" : ""
-          }
-        >
+        <Tooltip title={wallet.isDisabled ? "This Wallet is unavailable" : ""}>
           <Button
             style={{
               width: 300,
@@ -131,6 +127,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                     background: "#fff",
                     color: "#000",
                   }),
+              ...(wallet.isDisabled ? { color: "#CCCCCC" } : {}),
             }}
             onClick={() => {
               if (wallet._id == selectedWallet?._id) {
@@ -433,8 +430,8 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
   }, []);
 
   useEffect(() => {
-    getWallets();
-  }, []);
+    if (open) getWallets();
+  }, [open]);
 
   return (
     <Drawer

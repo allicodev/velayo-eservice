@@ -11,6 +11,7 @@ import {
   Divider,
   Checkbox,
   message,
+  Space,
 } from "antd";
 import { LogoutOutlined, SettingOutlined } from "@ant-design/icons";
 
@@ -94,6 +95,7 @@ const UserBadge = ({ name, style, title, role, isMobile }: UserBadgeProps) => {
             Welcome {title} {name}
           </Typography.Text>
           <Dropdown
+            trigger={["click"]}
             menu={{
               items: [
                 role == "encoder"
@@ -172,58 +174,76 @@ const UserBadge = ({ name, style, title, role, isMobile }: UserBadgeProps) => {
       >
         <Row gutter={[16, 16]}>
           <Col span={11}>
-            <Typography.Title level={3}>Bills</Typography.Title>
+            <Typography.Title level={3} style={{ fontWeight: "bolder" }}>
+              Bills
+            </Typography.Title>
             <Row gutter={[16, 16]}>
-              {bills &&
-                bills.length > 0 &&
-                bills.map((e, i) => (
-                  <Col key={`bill-${i}`} span={12}>
-                    <Checkbox
-                      checked={e.isDisabled}
-                      onChange={(e) => {
-                        setIsUpdated(true);
-                        setBills((prevItems) => {
-                          if (prevItems) {
-                            return prevItems.map((item, _) => {
-                              if (_ == i) item.isDisabled = e.target.checked;
-                              return item;
-                            });
-                          } else return [];
-                        });
-                      }}
-                    />{" "}
-                    <strong style={{ fontSize: "1.2em" }}>{e.name}</strong>
-                  </Col>
-                ))}
+              <Space direction="vertical">
+                {bills &&
+                  bills.length > 0 &&
+                  bills.map((e, i) => (
+                    <Col
+                      key={`bill-${i}`}
+                      span={12}
+                      style={{ display: "flex", width: 250 }}
+                    >
+                      <Checkbox
+                        checked={e.isDisabled}
+                        style={{ marginRight: 10 }}
+                        onChange={(e) => {
+                          setIsUpdated(true);
+                          setBills((prevItems) => {
+                            if (prevItems) {
+                              return prevItems.map((item, _) => {
+                                if (_ == i) item.isDisabled = e.target.checked;
+                                return item;
+                              });
+                            } else return [];
+                          });
+                        }}
+                      />{" "}
+                      <strong style={{ fontSize: "1.2em" }}>{e.name}</strong>
+                    </Col>
+                  ))}
+              </Space>
             </Row>
           </Col>
           <Col span={2}>
             <Divider type="vertical" />
           </Col>
           <Col span={11}>
-            <Typography.Title level={3}>Wallets</Typography.Title>
+            <Typography.Title level={3} style={{ fontWeight: "bolder" }}>
+              Wallets
+            </Typography.Title>
             <Row gutter={[16, 16]}>
-              {wallets &&
-                wallets.length > 0 &&
-                wallets.map((e, i) => (
-                  <Col key={`wallet-${i}`} span={12}>
-                    <Checkbox
-                      checked={e.isDisabled}
-                      onChange={(e) => {
-                        setIsUpdated(true);
-                        setWallets((prevItems) => {
-                          if (prevItems) {
-                            return prevItems.map((item, _) => {
-                              if (_ == i) item.isDisabled = e.target.checked;
-                              return item;
-                            });
-                          } else return [];
-                        });
-                      }}
-                    />{" "}
-                    <strong style={{ fontSize: "1.2em" }}>{e.name}</strong>
-                  </Col>
-                ))}
+              <Space direction="vertical">
+                {wallets &&
+                  wallets.length > 0 &&
+                  wallets.map((e, i) => (
+                    <Col
+                      key={`wallet-${i}`}
+                      span={12}
+                      style={{ display: "flex", width: 250 }}
+                    >
+                      <Checkbox
+                        checked={e.isDisabled}
+                        style={{ marginRight: 10 }}
+                        onChange={(e) => {
+                          setIsUpdated(true);
+                          setWallets((prevItems) => {
+                            if (prevItems) {
+                              return prevItems.map((item, _) => {
+                                if (_ == i) item.isDisabled = e.target.checked;
+                                return item;
+                              });
+                            } else return [];
+                          });
+                        }}
+                      />{" "}
+                      <strong style={{ fontSize: "1.2em" }}>{e.name}</strong>
+                    </Col>
+                  ))}
+              </Space>
             </Row>
           </Col>
         </Row>

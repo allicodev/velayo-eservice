@@ -38,7 +38,7 @@ const BillButton = ({
   disabled,
 }: BillButtonProps) => {
   return (
-    <Tooltip title={disabled ? "This Biller has been disabled by encoder" : ""}>
+    <Tooltip title={disabled ? "This biller is unavailable" : ""}>
       <Button
         size="large"
         style={{
@@ -56,6 +56,7 @@ const BillButton = ({
                 background: "#fff",
                 color: "#000",
               }),
+          ...(disabled ? { color: "#CCCCCC" } : {}),
         }}
         onClick={() => onSelected(bill)}
         disabled={disabled}
@@ -513,8 +514,8 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
   };
 
   useEffect(() => {
-    getBills();
-  }, []);
+    if (open) getBills();
+  }, [open]);
 
   useEffect(() => {
     setWindow(window);
