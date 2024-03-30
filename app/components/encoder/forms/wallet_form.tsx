@@ -28,6 +28,8 @@ import {
   WalletType,
 } from "@/types";
 
+// TODO: validation on confirm
+
 import WalletService from "@/provider/wallet.service";
 import { FloatLabel } from "@/assets/ts";
 
@@ -205,7 +207,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
           return (
             <Form.Item
               name={ff.slug_name}
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "" }]}
               key={ff.slug_name}
               style={{
                 margin: 0,
@@ -224,6 +226,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                   style={{
                     height: 70,
                     fontSize: "2em",
+                    letterSpacing: 1,
                   }}
                   onChange={(e) =>
                     form.setFieldsValue({ [ff.slug_name!]: e.target.value })
@@ -238,7 +241,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
           return (
             <Form.Item
               name={ff.slug_name}
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "" }]}
               key={ff.slug_name}
               style={{
                 margin: 0,
@@ -304,7 +307,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
           return (
             <Form.Item
               name={ff.slug_name}
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "" }]}
               style={{
                 margin: 0,
               }}
@@ -365,7 +368,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
           return (
             <Form.Item
               name={ff.slug_name}
-              rules={[{ required: true }]}
+              rules={[{ required: true, message: "" }]}
               style={{
                 margin: 0,
               }}
@@ -616,7 +619,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                 }}
                 onClick={form.submit}
               >
-                Confirm
+                CONFIRM
               </Button>
             </Card>
           )}

@@ -28,6 +28,8 @@ import {
 import BillService from "@/provider/bill.service";
 import { FloatLabel } from "@/assets/ts";
 
+// TODO: validation on confirm
+
 //* component helper
 const BillButton = ({
   bill,
@@ -134,7 +136,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             return (
               <Form.Item
                 name={ff.slug_name}
-                rules={[{ required: true }]}
+                rules={[{ required: true, message: "" }]}
                 key={ff.slug_name}
                 style={{
                   margin: 0,
@@ -201,7 +203,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             return (
               <Form.Item
                 name={ff.slug_name}
-                rules={[{ required: true }]}
+                rules={[{ required: true, message: "" }]}
                 key={ff.slug_name}
                 style={{
                   margin: 0,
@@ -304,7 +306,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             return (
               <Form.Item
                 name={ff.slug_name}
-                rules={[{ required: true }]}
+                rules={[{ required: true, message: "" }]}
                 style={{
                   margin: 0,
                 }}
@@ -373,7 +375,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             return (
               <Form.Item
                 name={ff.slug_name}
-                rules={[{ required: true }]}
+                rules={[{ required: true, message: "" }]}
                 style={{
                   margin: 0,
                   marginBottom: 10,
