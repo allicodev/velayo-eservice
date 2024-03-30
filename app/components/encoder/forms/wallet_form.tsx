@@ -91,6 +91,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
         setSelectedWallet(null);
         setWalletType(null);
         setAmount(0);
+        setIncludeFee(false);
         close();
       }
     })(wallet);
@@ -439,6 +440,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
         setSelectedWallet(null);
         setWalletType(null);
         setAmount(0);
+        setIncludeFee(false);
         close();
       }}
       width="100%"
