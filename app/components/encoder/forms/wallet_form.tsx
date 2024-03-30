@@ -16,6 +16,7 @@ import {
   Select,
   message,
   Tooltip,
+  Alert,
 } from "antd";
 import type { CollapseProps } from "antd";
 import { LeftOutlined, RightOutlined, ReloadOutlined } from "@ant-design/icons";
@@ -43,8 +44,8 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
   const [form] = Form.useForm();
   const [amount, setAmount] = useState(0);
   const [includeFee, setIncludeFee] = useState(false);
-
   const [searchKey, setSearchKey] = useState("");
+  const [error, setError] = useState({});
 
   // for dynamic formfields
   const selectedFormFields = () =>
@@ -70,6 +71,13 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
     if (includeFee) return amount;
     else return amount + getFee();
   };
+
+  const slugToName = (str: string) =>
+    str
+      .replaceAll("_", " ")
+      .split(" ")
+      .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
+      .join(" ");
 
   const handleFinish = (val: any) => {
     val = { ...val, fee: `${getFee()}_money` };
@@ -225,9 +233,44 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                     fontSize: "2em",
                     letterSpacing: 1,
                   }}
-                  onChange={(e) =>
-                    form.setFieldsValue({ [ff.slug_name!]: e.target.value })
-                  }
+                  onBlur={() => {
+                    if (ff.inputOption?.minLength ?? false) {
+                      const min = ff.inputOption?.minLength ?? 0;
+                      const value = form
+                        .getFieldValue(ff.slug_name)
+                        ?.toString();
+
+                      if (value?.length < min) {
+                        setError({
+                          ...error,
+                          [ff.slug_name!]: `${slugToName(
+                            ff.slug_name!
+                          )} has a minimum length of ${min}`,
+                        });
+                        form.setFields([
+                          {
+                            name: ff.slug_name,
+                            errors: [""],
+                          },
+                        ]);
+                      } else {
+                        const newData = { ...error };
+                        delete (newData as any)[ff.slug_name!];
+                        setError(newData);
+                      }
+                    }
+                  }}
+                  onChange={(e) => {
+                    form.setFieldsValue({ [ff.slug_name!]: e.target.value });
+
+                    // onchange validations
+                    const min = ff.inputOption?.minLength ?? 0;
+                    if (e && e.target.value.length >= min) {
+                      const newData = { ...error };
+                      delete (newData as any)[ff.slug_name!];
+                      setError(newData);
+                    }
+                  }}
                 />
               </FloatLabel>
             </Form.Item>
@@ -295,6 +338,39 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                         e + (ff.inputNumberOption?.isMoney ? "_money" : null),
                     });
                     if (ff.inputNumberOption?.mainAmount) setAmount(e);
+
+                    // onchange validations
+                    const min = ff.inputNumberOption?.minLength ?? 0;
+                    if (e && e.toString().length >= min) {
+                      const newData = { ...error };
+                      delete (newData as any)[ff.slug_name!];
+                      setError(newData);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (ff.inputNumberOption?.minLength ?? false) {
+                      const min = ff.inputNumberOption?.minLength ?? 0;
+                      const value = form.getFieldValue(ff.slug_name).toString();
+
+                      if (value.length < min) {
+                        setError({
+                          ...error,
+                          [ff.slug_name!]: `${slugToName(
+                            ff.slug_name!
+                          )} has a minimum length of ${min}`,
+                        });
+                        form.setFields([
+                          {
+                            name: ff.slug_name,
+                            errors: [""],
+                          },
+                        ]);
+                      } else {
+                        const newData = { ...error };
+                        delete (newData as any)[ff.slug_name!];
+                        setError(newData);
+                      }
+                    }
                   }}
                 />
               </FloatLabel>
@@ -443,6 +519,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
         setWalletType(null);
         setAmount(0);
         setIncludeFee(false);
+        setError({});
         close();
       }}
       width="100%"
@@ -476,7 +553,10 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
               size="large"
               placeholder="Search/Filter Wallet"
               value={searchKey}
-              onChange={(e) => setSearchKey(e.target.value)}
+              onChange={(e) => {
+                setSearchKey(e.target.value);
+                setError({});
+              }}
               style={{
                 width: "98%",
                 marginRight: "2%",
@@ -551,6 +631,19 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
               <Typography.Text style={{ fontSize: 45, marginBottom: 10 }}>
                 {getTitle()}
               </Typography.Text>
+              {Object.values(error).length > 0 && (
+                <Alert
+                  type="error"
+                  style={{ marginBottom: 25, fontSize: "1.4em" }}
+                  message={
+                    <Space direction="vertical" size={[0, 1]}>
+                      {Object.values(error).map((e: any) => (
+                        <span>{e}</span>
+                      ))}
+                    </Space>
+                  }
+                />
+              )}
               <Form
                 form={form}
                 labelCol={{
