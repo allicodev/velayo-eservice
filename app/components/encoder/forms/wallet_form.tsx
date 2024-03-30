@@ -56,11 +56,11 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
     if (walletType == "cash-in") {
       return selectedWallet?.cashinType == "fixed"
         ? selectedWallet?.cashinFeeValue!
-        : amount * (selectedWallet?.cashinFeeValue! / 100);
+        : Math.round(amount * (selectedWallet?.cashinFeeValue! / 100));
     } else {
       return selectedWallet?.cashoutType == "fixed" || includeFee
         ? selectedWallet?.cashoutFeeValue!
-        : amount * (selectedWallet?.cashoutFeeValue! / 100);
+        : Math.round(amount * (selectedWallet?.cashoutFeeValue! / 100));
     }
   };
 
@@ -74,29 +74,30 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
   const handleFinish = (val: any) => {
     val = { ...val, fee: `${getFee()}_money` };
     if (includeFee) val.amount = `${amount - getFee()}_money`;
+    console.log(val);
 
-    (async (_) => {
-      let res = await _.requestWalletTransaction(
-        `${selectedWallet!.name!} ${walletType}`,
-        JSON.stringify({
-          ...val,
-          billerId: selectedWallet?._id,
-          transactionType: "wallet",
-        }),
-        includeFee ? amount - getFee() : amount,
-        getFee()
-      );
+    // (async (_) => {
+    //   let res = await _.requestWalletTransaction(
+    //     `${selectedWallet!.name!} ${walletType}`,
+    //     JSON.stringify({
+    //       ...val,
+    //       billerId: selectedWallet?._id,
+    //       transactionType: "wallet",
+    //     }),
+    //     includeFee ? amount - getFee() : amount,
+    //     getFee()
+    //   );
 
-      if (res?.success ?? false) {
-        message.success(res?.message ?? "Success");
-        form.resetFields();
-        setSelectedWallet(null);
-        setWalletType(null);
-        setAmount(0);
-        setIncludeFee(false);
-        close();
-      }
-    })(wallet);
+    //   if (res?.success ?? false) {
+    //     message.success(res?.message ?? "Success");
+    //     form.resetFields();
+    //     setSelectedWallet(null);
+    //     setWalletType(null);
+    //     setAmount(0);
+    //     setIncludeFee(false);
+    //     close();
+    //   }
+    // })(wallet);
   };
 
   const toCollapsibleItemButton = ({
