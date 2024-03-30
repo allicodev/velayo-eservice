@@ -535,7 +535,8 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
         >
           {walletType == null ? (
             <></>
-          ) : (
+          ) : selectedFormFields() != undefined &&
+            selectedFormFields()!.length > 0 ? (
             <Card
               style={{
                 width: 700,
@@ -622,6 +623,10 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                 CONFIRM
               </Button>
             </Card>
+          ) : (
+            <Typography.Text type="secondary" style={{ fontSize: "2em" }}>
+              There are no Form Fields added on this Wallet
+            </Typography.Text>
           )}
         </Col>
       </Row>

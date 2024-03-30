@@ -412,7 +412,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
       } else return <></>;
     };
 
-    return (
+    return bill?.formField && bill?.formField?.length > 0 ? (
       <Card
         style={{
           width: 500,
@@ -441,60 +441,63 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             }
           />
         )}
-        {bill?.formField && bill?.formField?.length > 0 && (
-          <React.Fragment>
-            <Form
-              form={form}
-              labelCol={{
-                flex: 100,
-              }}
-              labelAlign="left"
-              labelWrap
-              wrapperCol={{
-                flex: 1,
-              }}
-              colon={false}
-              requiredMark={"optional"}
-              onFinish={handleFinish}
-            >
-              {bill?.formField?.map((e) => renderFormFieldSpecific(e))}
-              {/* <Button htmlType="submit" type="primary" size="large" block>
+
+        <React.Fragment>
+          <Form
+            form={form}
+            labelCol={{
+              flex: 100,
+            }}
+            labelAlign="left"
+            labelWrap
+            wrapperCol={{
+              flex: 1,
+            }}
+            colon={false}
+            requiredMark={"optional"}
+            onFinish={handleFinish}
+          >
+            {bill?.formField?.map((e) => renderFormFieldSpecific(e))}
+            {/* <Button htmlType="submit" type="primary" size="large" block>
             Make Request
           </Button> */}
-            </Form>
-            <Divider
-              style={{
-                background: "#eee",
-                margin: 0,
-                marginTop: 50,
-              }}
-            />
-            <span
-              style={{
-                display: "block",
-                textAlign: "end",
-                fontSize: "2em",
-                wordSpacing: 15,
-              }}
-            >
-              TOTAL • ₱{getTotal().toLocaleString()}
-            </span>
-            <Button
-              style={{
-                display: "block",
-                fontSize: 35,
-                color: "#fff",
-                background: "#1777FF",
-                height: 70,
-                marginTop: 25,
-              }}
-              onClick={form.submit}
-            >
-              CONFIRM
-            </Button>
-          </React.Fragment>
-        )}
+          </Form>
+          <Divider
+            style={{
+              background: "#eee",
+              margin: 0,
+              marginTop: 50,
+            }}
+          />
+          <span
+            style={{
+              display: "block",
+              textAlign: "end",
+              fontSize: "2em",
+              wordSpacing: 15,
+            }}
+          >
+            TOTAL • ₱{getTotal().toLocaleString()}
+          </span>
+          <Button
+            style={{
+              display: "block",
+              fontSize: 35,
+              color: "#fff",
+              background: "#1777FF",
+              height: 70,
+              marginTop: 25,
+            }}
+            onClick={form.submit}
+          >
+            CONFIRM
+          </Button>
+        </React.Fragment>
       </Card>
+    ) : (
+      <Typography.Text type="secondary" style={{ fontSize: "2em" }}>
+        There are no Form Fields added on this Biller
+      </Typography.Text>
     );
   };
 
