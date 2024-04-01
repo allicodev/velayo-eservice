@@ -271,3 +271,27 @@ label.customCheckbox span span.ant-checkbox-inner {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* .no-leaf span span.ant-tree-iconEle {
+  display: none !important;
+} */
+
+.tree-title span.ant-tree-node-content-wrapper {
+  display: flex;
+}
+
+.tree-title
+  span.ant-tree-node-content-wrapper
+  span.ant-tree-title:not(.ant-tree-icon__customize) {
+  width: 100%;
+}
+
+.no-leaf-icon
+  div.ant-tree-list
+  div.ant-tree-list-holder
+  div
+  div.ant-tree-list-holder-inner
+  span.ant-tree-node-content-wrapper
+  span.ant-tree-iconEle {
+  display: none !important;
+}

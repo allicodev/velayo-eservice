@@ -70,3 +70,15 @@ export interface Fee {
   type: FeeType;
   fee: number | null;
 }
+
+//* Items
+
+export interface Items {
+  _id: string;
+  name: string;
+  isParent: boolean;
+  parentId: string;
+  amount: Number;
+  quantity: Number;
+  sub_categories?: Items[];
+}

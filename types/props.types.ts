@@ -175,3 +175,17 @@ export interface RecentTransaction {
   amount: number;
   fee: number;
 }
+
+//* POS
+export interface POSButtonProps {
+  label: string;
+  value: string;
+  icon: any;
+  onClick: (str: string) => void;
+}
+
+export interface NewParentItemProps {
+  open: boolean;
+  close: () => void;
+  onSave: (str: string) => void;
+}
