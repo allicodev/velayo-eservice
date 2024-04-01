@@ -184,8 +184,10 @@ export interface POSButtonProps {
   onClick: (str: string) => void;
 }
 
-export interface NewParentItemProps {
+export interface NewItemProps {
+  title: string;
   open: boolean;
   close: () => void;
+  parentId?: string;
   onSave: (str: string) => void;
 }

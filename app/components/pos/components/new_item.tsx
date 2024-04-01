@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Button, Input, Modal, Typography } from "antd";
 
-import { NewParentItemProps } from "@/types";
+import { NewItemProps } from "@/types";
 
-const NewParentItem = ({ open, close, onSave }: NewParentItemProps) => {
+const NewItem = ({ title, open, close, parentId, onSave }: NewItemProps) => {
   const [name, setName] = useState("");
 
   return (
@@ -25,10 +25,11 @@ const NewParentItem = ({ open, close, onSave }: NewParentItemProps) => {
           CONFIRM
         </Button>,
       ]}
-      title={<Typography.Title level={2}>New Item</Typography.Title>}
+      title={<Typography.Title level={3}>{title}</Typography.Title>}
     >
       <Input
         size="large"
+        placeholder="Item name..."
         style={{
           letterSpacing: 0.5,
         }}
@@ -39,4 +40,4 @@ const NewParentItem = ({ open, close, onSave }: NewParentItemProps) => {
   );
 };
 
-export default NewParentItem;
+export default NewItem;

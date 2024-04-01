@@ -295,3 +295,7 @@ label.customCheckbox span span.ant-checkbox-inner {
   span.ant-tree-iconEle {
   display: none !important;
 }
+
+.site-tree-search-value {
+  color: #f50;
+}

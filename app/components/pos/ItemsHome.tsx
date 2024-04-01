@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Col,
@@ -7,20 +7,30 @@ import {
   Input,
   Row,
   Tree,
+  TreeDataNode,
   Typography,
   message,
 } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 
 import { DrawerBasicProps, Items } from "@/types";
-import NewParentItem from "./components/new-parent-item";
+import NewItem from "./components/new_item";
 import ItemService from "@/provider/item.service";
-import { parseTree, buildTree } from "@/assets/ts";
+import { parseTree, buildTree, findItemNameByKey, TreeNode } from "@/assets/ts";
 
 const ItemsHome = ({ open, close }: DrawerBasicProps) => {
-  const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [items, setItems] = useState<Items[]>([]);
-  const [openNewParent, setOpenNewParent] = useState(false);
+  const [sortedItems, setSortedItems] = useState<Items[]>([]);
+  const [openNewItem, setOpenNewItem] = useState({
+    open: false,
+    parentId: "",
+  });
+
+  // * for search feature
+  const [autoExpandParent, setAutoExpandParent] = useState(true);
+  const [searchValue, setSearchValue] = useState("");
+  const [treeNodes, setTreeNodes] = useState<TreeNode[]>([]);
 
   // * utils
   const [_window, setWindow] = useState({ innerHeight: 0 });
@@ -28,7 +38,12 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
 
   const renderView1 = () => (
     <>
-      <Input size="large" placeholder="Search an item..." allowClear />
+      <Input
+        size="large"
+        placeholder="Search an item..."
+        // onChange={onSearchChange}
+        allowClear
+      />
       <div style={{ marginTop: 10 }}>
         <Tree.DirectoryTree
           multiple
@@ -36,25 +51,30 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
           className="no-leaf-icon"
           expandedKeys={expandedKeys}
           onExpand={(keys: React.Key[]) => {
-            if (keys.length > 0) {
-              setExpandedKeys([keys[keys.length - 1].toString()]);
-            } else {
-              setExpandedKeys([]);
-            }
+            setExpandedKeys(keys.map((e) => e.toString()));
+            setAutoExpandParent(false);
           }}
           rootStyle={{
             overflow: "scroll",
             height: "80vh",
           }}
-          treeData={buildTree(parseTree(items, null), null)}
+          treeData={treeNodes}
         />
       </div>
     </>
   );
 
+  const getItemName = (id: string) => items.filter((e) => e._id == id)[0].name;
+
+  const handleItemOnclick = (id: string) =>
+    setOpenNewItem({ open: true, parentId: id });
+
   const handleNewParentItem = (str: string) => {
     (async (_) => {
-      let res = await _.newParentItem(str);
+      let res = await _.newItem(
+        str,
+        openNewItem.parentId != "" ? openNewItem.parentId : undefined
+      );
 
       if (res.success) {
         message.success(res?.message ?? "Success");
@@ -66,16 +86,20 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
   const fetchItems = () => {
     (async (_) => {
       let res = await _.getItems();
-      console.log(res);
       if (res.success) {
-        setItems(res?.data ?? []);
+        if (res?.data) {
+          setItems(res?.data ?? []);
+          setSortedItems(parseTree(res.data, null));
+          setTreeNodes(
+            buildTree(parseTree(res.data, null), null, handleItemOnclick)
+          );
+        }
       }
     })(item);
   };
 
   useEffect(() => {
     setWindow(window);
-
     fetchItems();
   }, []);
 
@@ -106,14 +130,14 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
             style={{
               fontWeight: "bolder",
             }}
-            onClick={() => setOpenNewParent(true)}
+            onClick={() => setOpenNewItem({ open: true, parentId: "" })}
           >
             New
           </Button>,
         ]}
       >
         <Row gutter={[16, 16]}>
-          <Col span={12}>{renderView1()}</Col>
+          <Col>{renderView1()}</Col>
           <Col span={1}>
             <Divider
               type="vertical"
@@ -127,9 +151,14 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
       </Drawer>
 
       {/* context */}
-      <NewParentItem
-        open={openNewParent}
-        close={() => setOpenNewParent(false)}
+      <NewItem
+        open={openNewItem.open}
+        title={
+          openNewItem.parentId != ""
+            ? `New Category for Item ${getItemName(openNewItem.parentId)}`
+            : "New Item/Category"
+        }
+        close={() => setOpenNewItem({ open: false, parentId: "" })}
         onSave={handleNewParentItem}
       />
     </>

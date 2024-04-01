@@ -16,13 +16,14 @@ class ItemService extends Loader {
     return response;
   }
 
-  public async newParentItem(str: string) {
+  public async newItem(str: string, parentId?: string) {
     this.loaderPush("new-items");
     const response = await this.instance.post<Response>({
       endpoint: "/item/new",
       payload: {
         name: str,
-        isParent: true,
+        isParent: [null, undefined, ""].includes(parentId) ? true : false,
+        parentId,
       },
     });
     this.loaderPop("new-items");
