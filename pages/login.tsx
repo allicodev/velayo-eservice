@@ -136,7 +136,16 @@ const Login = () => {
             Login
           </Button>
           <div style={{ textAlign: "center" }}>
-            Forget Password? <Typography.Link>Click Here</Typography.Link>
+            Forget Password?{" "}
+            <Typography.Link
+              onClick={() => {
+                (async (_) => {
+                  await _.post("/api/print");
+                })(axios);
+              }}
+            >
+              Click Here
+            </Typography.Link>
           </div>
         </Form>
       </Card>
