@@ -30,7 +30,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "pages/api/print.js"
+    "pages/api/printer.js"
   ],
   "exclude": ["node_modules"]
 }

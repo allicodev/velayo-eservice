@@ -1,5 +1,5 @@
 import { FloatLabel } from "@/assets/ts";
-import { Eload, EloadProps } from "@/types";
+import type { Eload, EloadProps } from "@/types";
 import {
   Button,
   Input,
@@ -54,10 +54,10 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
       (async () => {
         let a = await onSubmit({
           provider: eload.provider,
-          phone: eload?.phone,
-          amount: eload.amount,
           type: eload.type,
           ...(eload.type == "promo" ? { promo: eload.promo } : {}),
+          phone: eload?.phone,
+          amount: eload.amount,
         });
 
         if (a) {

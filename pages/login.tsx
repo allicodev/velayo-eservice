@@ -29,11 +29,11 @@ const Login = () => {
   };
 
   // check if there is an admin, if none, create one
-  useEffect(() => {
-    (async (_) => {
-      await axios.get("/api/user/init-credentials");
-    })(axios);
-  }, []);
+  // useEffect(() => {
+  //   (async (_) => {
+  //     await axios.get("/api/user/init-credentials");
+  //   })(axios);
+  // }, []);
 
   return (
     <div className="login-container">
@@ -140,7 +140,8 @@ const Login = () => {
             <Typography.Link
               onClick={() => {
                 (async (_) => {
-                  await _.post("/api/print");
+                  let a = await _.post("/api/printer");
+                  console.log(a);
                 })(axios);
               }}
             >

@@ -187,7 +187,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
     };
 
     return (
-      <>
+      <div style={{ width: "70%" }}>
         <Typography.Title style={{ textAlign: "center" }}>
           {billingFormField.name.toLocaleUpperCase()} bills settings{" "}
         </Typography.Title>
@@ -380,7 +380,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
             ]}
           />
         </Card>
-      </>
+      </div>
     );
   };
 
@@ -536,58 +536,68 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
           marginLeft: 20,
           marginBottom: 20,
         }}
-      >
-        <Row
-          style={{
-            height: "100%",
-          }}
-        >
-          <Col
-            span={12}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-            }}
+        styles={{
+          body: {
+            overflow: "hidden",
+          },
+        }}
+        extra={[
+          <Button
+            size="large"
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setOpenNewBiller(true)}
+            key="add-btn"
           >
-            <Space direction="vertical">
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  width: 300,
+            New Biller
+          </Button>,
+        ]}
+      >
+        <Row>
+          <Col span={6}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                width: 300,
+                marginBottom: 10,
+              }}
+            >
+              <Input
+                size="large"
+                placeholder="Search/Filter Biller"
+                onChange={(e) => {
+                  setSearchKey(e.target.value);
+                  setSelectedBiller(null);
                 }}
-              >
-                <Input
+                value={searchKey}
+                style={{
+                  width: "98%",
+                  marginRight: "2%",
+                  height: 50,
+                  fontSize: 25,
+                }}
+              />
+              <Tooltip title="Reset">
+                <Button
+                  icon={<ReloadOutlined />}
                   size="large"
-                  placeholder="Search/Filter Biller"
-                  onChange={(e) => {
-                    setSearchKey(e.target.value);
+                  onClick={() => {
+                    setSearchKey("");
                     setSelectedBiller(null);
                   }}
-                  value={searchKey}
                   style={{
-                    width: "98%",
-                    marginRight: "2%",
                     height: 50,
-                    fontSize: 25,
+                    width: 50,
                   }}
                 />
-                <Tooltip title="Reset">
-                  <Button
-                    icon={<ReloadOutlined />}
-                    size="large"
-                    onClick={() => {
-                      setSearchKey("");
-                      setSelectedBiller(null);
-                    }}
-                    style={{
-                      height: 50,
-                      width: 50,
-                    }}
-                  />
-                </Tooltip>
-              </div>
+              </Tooltip>
+            </div>
+            <Space
+              direction="vertical"
+              style={{ height: "77vh", overflow: "scroll", paddingBottom: 30 }}
+              className="no-scrollbar"
+            >
               {billers
                 .filter((e) => {
                   if (searchKey == "") return true;
@@ -605,7 +615,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                       paddingTop: 8,
                       paddingBottom: 8,
                       height: 60,
-                      ...(selectedBiller?.name == e.name ?? false
+                      ...(selectedBiller?._id == e._id ?? false
                         ? {
                             background: "#294B0F",
                             color: "#fff",
@@ -624,25 +634,14 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                   </Button>
                 ))}
             </Space>
-            <Button
-              size="large"
-              type="primary"
-              icon={<PlusOutlined />}
-              style={{
-                width: 150,
-                position: "absolute",
-                right: 0,
-                bottom: 0,
-              }}
-              onClick={() => setOpenNewBiller(true)}
-            >
-              New Biller
-            </Button>
           </Col>
           <Col span={1}>
             <Divider type="vertical" style={{ height: "100%" }} />
           </Col>
-          <Col span={11} style={{ width: "100%" }}>
+          <Col
+            span={17}
+            style={{ width: "100%", display: "flex", justifyContent: "center" }}
+          >
             {selectedBiller != null && getSideB(selectedBiller)}
             {
               selectedBiller != null &&
@@ -652,7 +651,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
               //   icon={<SettingOutlined />}
               // >
               selectedTab == "form-settings-tab" ? (
-                <Space style={{ position: "absolute", right: 0, bottom: 0 }}>
+                <Space style={{ position: "absolute", right: 0, bottom: 20 }}>
                   <Button
                     icon={<PlusOutlined />}
                     size="large"

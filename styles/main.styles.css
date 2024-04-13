@@ -271,3 +271,8 @@ label.customCheckbox span span.ant-checkbox-inner {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+.printer-container {
+  margin-left: 25px;
+  margin-bottom: 15px;
+}
