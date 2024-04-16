@@ -3,6 +3,7 @@ const driver = require("printer");
 const express = require("express");
 const find = require("find-process");
 const bodyParser = require("body-parser");
+const dayjs = require("dayjs");
 
 const port = 3001;
 const app = express();
@@ -12,7 +13,6 @@ const {
   CharacterSet,
   BreakLine,
 } = require("node-thermal-printer");
-const dayjs = require("dayjs");
 
 let printer = new ThermalPrinter({
   interface: "printer:STMicroelectronics_POS80_Printer_USB",
@@ -149,7 +149,6 @@ app.post("/print/receipt", async (req, res) => {
   const { type, billerName, receiptNo, refNo, fee, amount } = req.body;
   let { otherDetails } = req.body;
   otherDetails = JSON.parse(otherDetails);
-  // should add other payment other than bills payment
 
   const excludeOtherDetails = ["billerId", "transactionType", "amount", "fee"];
 
