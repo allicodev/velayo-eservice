@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Button, Col, Row, Tooltip, message, notification } from "antd";
+import {
+  Button,
+  Col,
+  Row,
+  Tooltip,
+  Typography,
+  message,
+  notification,
+} from "antd";
 import { WalletOutlined } from "@ant-design/icons";
 import { MdOutlineSendToMobile } from "react-icons/md";
 import { FaMoneyBills } from "react-icons/fa6";
@@ -133,24 +141,6 @@ const Teller = () => {
     return true;
   }
 
-  async function killServer() {
-    let { data } = await axios.get("/api/printer", {
-      params: {
-        mode: "end",
-        pid: printer?.pid,
-      },
-    });
-
-    if (!data?.success && data.message == "kill ESRCH") killServer();
-    if (data?.success ?? false) {
-      message.destroy();
-      message.success("Printer disconnected successfully");
-      updatePid(null);
-      setIsPrinterConnected(false);
-      updateStatus(false);
-    }
-  }
-
   const handleEloadRequest = (eload: EloadProp) => {
     return (async (_) => {
       let res = await bill.requestEload(eload);
@@ -214,40 +204,35 @@ const Teller = () => {
             </Row>
             <div className="printer-container">
               {isPrinterConnected ? (
-                <Tooltip title="Click to disconnect">
-                  <Button
-                    type="primary"
-                    style={{ background: "#28a745" }}
-                    onClick={() => {
-                      message.loading("Disconnecting...");
-                      killServer();
-                    }}
-                  >
-                    CONNECTED TO PRINTER
-                  </Button>
-                </Tooltip>
-              ) : (
-                <Button
-                  onClick={() => {
-                    message.loading("Connecting...");
-                    (async (_) => {
-                      let { data } = await axios.get("/api/printer", {
-                        params: {
-                          mode: "connect",
-                        },
-                      });
-                      if (data?.success ?? false) {
-                        message.destroy();
-                        message.success("Printer Connected successfully");
-                        updatePid(data.pid);
-                        updateStatus(true);
-                        setIsPrinterConnected(true);
-                      }
-                    })(axios);
+                <Typography.Text
+                  style={{
+                    paddingRight: 8,
+                    paddingLeft: 8,
+                    paddingTop: 5,
+                    paddingBottom: 5,
+                    border: "1px solid #a1a1a1",
+                    borderRadius: 5,
+                    cursor: "default",
+                    background: "#28a745",
+                    color: "#fff",
                   }}
                 >
-                  Connect Printer
-                </Button>
+                  CONNECTED TO PRINTER
+                </Typography.Text>
+              ) : (
+                <Typography.Text
+                  style={{
+                    paddingRight: 8,
+                    paddingLeft: 8,
+                    paddingTop: 5,
+                    paddingBottom: 5,
+                    border: "1px solid grey",
+                    borderRadius: 5,
+                    cursor: "default",
+                  }}
+                >
+                  Printer is not connected
+                </Typography.Text>
               )}
             </div>
           </div>
