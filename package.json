@@ -19,8 +19,6 @@
     "js-cookie": "^3.0.5",
     "mongoose": "^6.11.1",
     "next": "^12.1.2",
-    "node-thermal-printer": "^4.4.2",
-    "printer": "^0.4.0",
     "pusher": "^5.2.0",
     "pusher-js": "^8.4.0-rc2",
     "react": "^17.0.2",
