@@ -38,6 +38,7 @@ class API {
         code: request.status,
         message: request.data.message,
         data: request.data.data,
+        meta: request.data.meta,
       };
     else
       return {

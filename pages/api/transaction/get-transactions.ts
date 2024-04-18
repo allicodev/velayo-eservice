@@ -1,6 +1,7 @@
 import dbConnect from "@/database/dbConnect";
 import Transaction from "@/database/models/transaction.schema";
 import { ExtendedResponse, Transaction as TransactionType } from "@/types";
+import dayjs from "dayjs";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -19,11 +20,17 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  let { page, pageSize, status, order } = req.query;
+  let { page, pageSize, status, order, fromDate, toDate } = req.query;
 
   const _page = Number.parseInt(page!.toString()) - 1;
 
-  let query = {};
+  let query = [];
+
+  if (fromDate)
+    query.push({ createdAt: { $gte: dayjs(fromDate as string).toDate() } });
+  if (toDate)
+    query.push({ createdAt: { $lte: dayjs(toDate as string).toDate() } });
+
   if (status) {
     status = JSON.parse(status!.toString());
 
@@ -33,14 +40,18 @@ async function handler(
   }
 
   if ((status && status.length > 0) ?? false) {
-    query = {
+    query.push({
       $expr: {
         $in: [{ $arrayElemAt: ["$history.status", -1] }, status],
       },
-    };
+    });
   }
 
-  return await Transaction.find(query)
+  const total = await Transaction.countDocuments(
+    query.length > 0 ? { $and: query } : {}
+  );
+
+  return await Transaction.find(query.length > 0 ? { $and: query } : {})
     .skip(_page * Number.parseInt(pageSize!.toString()))
     .limit(Number.parseInt(pageSize!.toString()))
     .sort({
@@ -52,6 +63,9 @@ async function handler(
         success: true,
         message: "Successfully fetched",
         data: e,
+        meta: {
+          total,
+        },
       });
     })
     .catch((e) => {
