@@ -1,13 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Button,
-  Col,
-  Row,
-  Tooltip,
-  Typography,
-  message,
-  notification,
-} from "antd";
+import { Button, Col, Row, Typography, notification } from "antd";
 import { WalletOutlined } from "@ant-design/icons";
 import { MdOutlineSendToMobile } from "react-icons/md";
 import { FaMoneyBills } from "react-icons/fa6";
@@ -22,13 +14,12 @@ import {
 } from "@/app/components/teller";
 
 import { Eload as EloadProp, TransactionOptProps } from "@/types";
-import { useUserStore, usePrinterStore } from "@/provider/context";
+import { useUserStore } from "@/provider/context";
 import { PusherFE } from "@/provider/utils/pusher";
 import Eload from "@/app/components/teller/forms/eload_form";
 import ShoppeForm from "@/app/components/teller/shoppe_form";
 
 import BillService from "@/provider/bill.service";
-import axios from "axios";
 
 const pusher = new PusherFE();
 let pusherProvider: PusherFE;
@@ -44,7 +35,6 @@ const Teller = () => {
     });
 
   const { currentUser } = useUserStore();
-  const { printer, updatePid, updateStatus } = usePrinterStore();
 
   const bill = new BillService();
 

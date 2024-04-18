@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { Button, Input, InputNumber, Modal, Typography, message } from "antd";
 
-import { usePrinterStore } from "@/provider/context";
-
 import BillService from "@/provider/bill.service";
 import PrinterService from "@/provider/printer.service";
 
@@ -15,8 +13,6 @@ const ShoppeForm = ({ open, close }: { open: boolean; close: () => void }) => {
   const [amount, setAmount] = useState(0);
   const [name, setName] = useState("");
   const [pins, setPins] = useState<string[]>([]);
-
-  const { printer: printerData } = usePrinterStore();
 
   const bill = new BillService();
   const printer = new PrinterService();
@@ -61,10 +57,6 @@ const ShoppeForm = ({ open, close }: { open: boolean; close: () => void }) => {
   };
 
   const handlePrint = () => {
-    if (!printerData?.connected ?? false) {
-      message.error("Printer is not connected. Cannot print.");
-      return;
-    }
     if (name == "") {
       message.warning("Name is blank. Please Provide.");
       return;
