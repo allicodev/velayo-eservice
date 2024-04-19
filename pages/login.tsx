@@ -29,11 +29,11 @@ const Login = () => {
   };
 
   // check if there is an admin, if none, create one
-  // useEffect(() => {
-  //   (async (_) => {
-  //     await axios.get("/api/user/init-credentials");
-  //   })(axios);
-  // }, []);
+  useEffect(() => {
+    (async (_) => {
+      await axios.get("/api/user/init-credentials");
+    })(axios);
+  }, []);
 
   return (
     <div className="login-container">
@@ -136,17 +136,7 @@ const Login = () => {
             Login
           </Button>
           <div style={{ textAlign: "center" }}>
-            Forget Password?{" "}
-            <Typography.Link
-              onClick={() => {
-                (async (_) => {
-                  let a = await _.post("/api/printer");
-                  console.log(a);
-                })(axios);
-              }}
-            >
-              Click Here
-            </Typography.Link>
+            Forget Password? <Typography.Link>Click Here</Typography.Link>
           </div>
         </Form>
       </Card>

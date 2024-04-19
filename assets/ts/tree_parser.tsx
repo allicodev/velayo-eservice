@@ -1,8 +1,4 @@
-import { Button } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
-
 import { Items } from "@/types";
-import React from "react";
 
 export interface TreeNode {
   parentId: string;
@@ -24,77 +20,6 @@ export function parseTree(
       ...item,
       sub_categories: parseTree(items, item._id),
     }));
-}
-
-export function buildTree(
-  items: Items[],
-  parentId: string | null = null,
-  onClick: (str: string) => void,
-  searchValue: string
-): TreeNode[] {
-  return items
-    .filter((item) => item.parentId === parentId)
-    .map((item, index) =>
-      convertToTreeNode(item, index, [], onClick, searchValue)
-    );
-}
-
-export function convertToTreeNode(
-  item: Items,
-  index: number,
-  parentKeys: string[] = [],
-  onClick: (str: string) => void,
-  searchValue: string
-): TreeNode {
-  const onClickNewSubCategory = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    onClick(item._id);
-  };
-
-  const title = (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        width: "100%",
-      }}
-    >
-      <span style={{ marginRight: 10, fontSize: "1.8em" }}>{item.name}</span>
-      <Button
-        size="large"
-        onClick={onClickNewSubCategory}
-        icon={<PlusOutlined />}
-      />
-    </div>
-  );
-  const rawTitle = item.name;
-  const className = "tree-title";
-  const key =
-    parentKeys.length > 0 ? `${parentKeys.join("-")}-${index}` : `${index}`;
-  const children: TreeNode[] = item.sub_categories
-    ? item.sub_categories.map((subItem, i) =>
-        convertToTreeNode(
-          subItem,
-          i,
-          [...parentKeys, String(index)],
-          onClick,
-          searchValue
-        )
-      )
-    : [];
-  const isLeaf = !item.sub_categories || item.sub_categories.length === 0;
-
-  return {
-    parentId: item._id,
-    title,
-    rawTitle,
-    className,
-    key,
-    children,
-    isLeaf,
-  };
 }
 
 export function findItemNameByKey(
