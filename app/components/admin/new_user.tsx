@@ -4,7 +4,7 @@ import { Button, Input, Modal, Select, message } from "antd";
 import { NewUserProps, NewUser } from "@/types";
 import { FloatLabel } from "@/assets/ts";
 
-const NewUser = ({ open, close, onAdd }: NewUserProps) => {
+const NewUser2 = ({ open, close, onAdd }: NewUserProps) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [formInput, setFormInput] = useState<NewUser>({
     name: "",
@@ -120,4 +120,4 @@ const NewUser = ({ open, close, onAdd }: NewUserProps) => {
   );
 };
 
-export default NewUser;
+export default NewUser2;

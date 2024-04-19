@@ -25,7 +25,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
       return res.json({
         code: 200,
         success: true,
-        message: "Request Sent",
+        message: "Transaction has been sent",
       });
     })
     .catch((e) => {

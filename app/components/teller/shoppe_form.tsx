@@ -1,6 +1,8 @@
-import BillService from "@/provider/bill.service";
-import { Button, Input, InputNumber, Modal, Typography, message } from "antd";
 import React, { useState } from "react";
+import { Button, Input, InputNumber, Modal, Typography, message } from "antd";
+
+import BillService from "@/provider/bill.service";
+import PrinterService from "@/provider/printer.service";
 
 interface Parcels {
   [key: string]: any;
@@ -13,6 +15,7 @@ const ShoppeForm = ({ open, close }: { open: boolean; close: () => void }) => {
   const [pins, setPins] = useState<string[]>([]);
 
   const bill = new BillService();
+  const printer = new PrinterService();
 
   const clearAll = () => {
     setParcelNum(0);
@@ -53,6 +56,27 @@ const ShoppeForm = ({ open, close }: { open: boolean; close: () => void }) => {
     })(bill);
   };
 
+  const handlePrint = () => {
+    if (name == "") {
+      message.warning("Name is blank. Please Provide.");
+      return;
+    }
+    if (pins.filter((e) => e.length < 6).length > 0) {
+      message.warning("Some Collection Pin are invalid.");
+      return;
+    }
+
+    (async (_) => {
+      let res = await _.printShoppeCollect({
+        name,
+        parcelNum,
+        collectionPins: pins,
+      });
+
+      if (res.data?.success) message.success(res.data?.message ?? "Success");
+    })(printer);
+  };
+
   return (
     <Modal
       maskClosable={false}
@@ -69,6 +93,7 @@ const ShoppeForm = ({ open, close }: { open: boolean; close: () => void }) => {
           size="large"
           key="print"
           disabled={parcelNum == 0 || parcelNum == null}
+          onClick={handlePrint}
         >
           PRINT
         </Button>,

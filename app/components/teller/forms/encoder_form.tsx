@@ -70,6 +70,7 @@ const EncoderForm = ({
           if (res.success) {
             message.success(res?.message ?? "Success");
             if (refresh) refresh();
+            setRefNumber(null);
             close();
           }
         }

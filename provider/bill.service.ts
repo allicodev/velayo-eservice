@@ -8,6 +8,7 @@ import {
   UpdateFeeProps,
   TransactionHistoryStatus,
 } from "@/types";
+import { Dayjs } from "dayjs";
 
 class BillService extends Loader {
   private readonly instance = new Api();
@@ -145,7 +146,9 @@ class BillService extends Loader {
     page: number,
     pageSize: number,
     status?: TransactionHistoryStatus[] | null,
-    order?: "descending" | "ascending"
+    order?: "descending" | "ascending",
+    fromDate?: Dayjs | null,
+    toDate?: Dayjs | null
   ) {
     this.loaderPush("get-transaction");
     const response = await this.instance.get<Transaction[]>({
@@ -155,6 +158,8 @@ class BillService extends Loader {
         pageSize,
         status: JSON.stringify(status),
         order,
+        fromDate,
+        toDate,
       },
     });
     this.loaderPop("get-transaction");

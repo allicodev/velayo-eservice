@@ -58,6 +58,9 @@ interface Response {
 
 interface ExtendedResponse<T> extends Response {
   data?: T;
+  meta?: {
+    total: number;
+  };
 }
 
 // pagination props

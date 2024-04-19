@@ -690,58 +690,68 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
           marginLeft: 20,
           marginBottom: 20,
         }}
-      >
-        <Row
-          style={{
-            height: "100%",
-          }}
-        >
-          <Col
-            span={12}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-            }}
+        extra={[
+          <Button
+            size="large"
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setOpenNewWallet(true)}
+            key="add-btn"
           >
-            <Space direction="vertical">
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  width: 300,
+            New Wallet
+          </Button>,
+        ]}
+        styles={{
+          body: {
+            overflow: "hidden",
+          },
+        }}
+      >
+        <Row>
+          <Col span={6}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                width: 300,
+                marginBottom: 10,
+              }}
+            >
+              <Input
+                size="large"
+                placeholder="Search/Filter Biller"
+                onChange={(e) => {
+                  setSearchKey(e.target.value);
+                  setSelectedWallet(null);
                 }}
-              >
-                <Input
+                value={searchKey}
+                style={{
+                  width: "98%",
+                  marginRight: "2%",
+                  height: 50,
+                  fontSize: 25,
+                }}
+              />
+              <Tooltip title="Reset">
+                <Button
+                  icon={<ReloadOutlined />}
                   size="large"
-                  placeholder="Search/Filter Biller"
-                  onChange={(e) => {
-                    setSearchKey(e.target.value);
+                  onClick={() => {
+                    setSearchKey("");
                     setSelectedWallet(null);
                   }}
-                  value={searchKey}
                   style={{
-                    width: "98%",
-                    marginRight: "2%",
                     height: 50,
-                    fontSize: 25,
+                    width: 50,
                   }}
                 />
-                <Tooltip title="Reset">
-                  <Button
-                    icon={<ReloadOutlined />}
-                    size="large"
-                    onClick={() => {
-                      setSearchKey("");
-                      setSelectedWallet(null);
-                    }}
-                    style={{
-                      height: 50,
-                      width: 50,
-                    }}
-                  />
-                </Tooltip>
-              </div>
+              </Tooltip>
+            </div>
+            <Space
+              direction="vertical"
+              style={{ height: "77vh", overflow: "scroll", paddingBottom: 30 }}
+              className="no-scrollbar"
+            >
               {wallets
                 .filter((e) => {
                   if (searchKey == "") return true;
@@ -759,7 +769,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                       paddingTop: 8,
                       paddingBottom: 8,
                       height: 60,
-                      ...(selectedWallet?.name == e.name ?? false
+                      ...(selectedWallet?._id == e._id ?? false
                         ? {
                             background: "#294B0F",
                             color: "#fff",
@@ -778,25 +788,14 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                   </Button>
                 ))}
             </Space>
-            <Button
-              size="large"
-              type="primary"
-              icon={<PlusOutlined />}
-              style={{
-                width: 150,
-                position: "absolute",
-                right: 0,
-                bottom: 0,
-              }}
-              onClick={() => setOpenNewWallet(true)}
-            >
-              New Wallet
-            </Button>
           </Col>
           <Col span={1}>
             <Divider type="vertical" style={{ height: "100%" }} />
           </Col>
-          <Col span={11} style={{ width: "100%" }}>
+          <Col
+            span={17}
+            style={{ width: "100%", display: "flex", justifyContent: "center" }}
+          >
             {selectedWallet != null &&
               renderSettingsForm(selectedWallet, getTabsAsWalletType())}
             {selectedWallet != null && selectedTabs == "fee-settings-tabs" ? (
@@ -804,7 +803,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                 style={{
                   position: "absolute",
                   right: 0,
-                  bottom: 0,
+                  bottom: 20,
                 }}
               >
                 <Button
@@ -834,7 +833,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
             ) : ["cashin-settings-tabs", "cashout-settings-tabs"].includes(
                 selectedTabs
               ) ? (
-              <Space style={{ position: "absolute", right: 0, bottom: 0 }}>
+              <Space style={{ position: "absolute", right: 0, bottom: 20 }}>
                 <Button
                   icon={<PlusOutlined />}
                   size="large"

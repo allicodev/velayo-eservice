@@ -1,10 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { Col, Divider, Modal, Row, Timeline, Typography } from "antd";
+import {
+  Button,
+  Col,
+  Divider,
+  Modal,
+  Row,
+  Space,
+  Timeline,
+  Typography,
+  message,
+} from "antd";
+import dayjs from "dayjs";
+
+import PrinterService from "@/provider/printer.service";
 import {
   TransactionDetailsProps,
   TransactionHistoryDataType_type,
 } from "@/types";
-import dayjs from "dayjs";
+import { transactionToPrinter } from "@/assets/ts";
 
 const TransactionDetails = ({
   open,
@@ -12,6 +25,7 @@ const TransactionDetails = ({
   transaction,
 }: TransactionDetailsProps) => {
   const [textData, setTextData] = useState<[string[], any[]]>([[], []]);
+  const printer = new PrinterService();
 
   const latestHistory = () => transaction?.history?.at(-1);
 
@@ -73,6 +87,18 @@ const TransactionDetails = ({
     />
   );
 
+  const handlePrint = () => {
+    (async (_) => {
+      if (transaction) {
+        let { data } = await _.printReceipt(transactionToPrinter(transaction));
+
+        if (data?.success ?? false) {
+          message.success(data?.message ?? "Success");
+        }
+      }
+    })(printer);
+  };
+
   useEffect(() => {
     if (open && transaction) {
       if (transaction.transactionDetails) {
@@ -117,7 +143,11 @@ const TransactionDetails = ({
       open={open}
       onCancel={close}
       footer={null}
-      title={<Typography.Title level={2}>Transaction Details</Typography.Title>}
+      title={
+        <Typography.Title level={2} style={{ margin: 0 }}>
+          Transaction Details
+        </Typography.Title>
+      }
       width={850}
     >
       <Row gutter={[4, 0]}>
@@ -149,6 +179,15 @@ const TransactionDetails = ({
               </div>
             </div>
           ) : null}
+          {latestHistory()?.status == "completed" && (
+            <Button
+              onClick={handlePrint}
+              style={{ marginTop: 25, paddingLeft: 30, paddingRight: 30 }}
+              size="large"
+            >
+              PRINT
+            </Button>
+          )}
         </Col>
         <Col span={1}>
           <Divider type="vertical" style={{ height: "100%" }} />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Col, Row, notification } from "antd";
+import { Button, Col, Row, Typography, notification } from "antd";
 import { WalletOutlined } from "@ant-design/icons";
 import { MdOutlineSendToMobile } from "react-icons/md";
 import { FaMoneyBills } from "react-icons/fa6";
@@ -27,6 +27,7 @@ let pusherProvider: PusherFE;
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
   const [api, contextHolder] = notification.useNotification();
+  const [isPrinterConnected, setIsPrinterConnected] = useState(false);
   const [transactionDetailsOpt, setTransactionOpt] =
     useState<TransactionOptProps>({
       open: false,
@@ -118,6 +119,18 @@ const Teller = () => {
     });
   };
 
+  async function checkServer() {
+    try {
+      const response = await fetch("http://localhost:3001/");
+      if (!response.ok) {
+        throw new Error("Server is not available");
+      }
+    } catch (error) {
+      return false;
+    }
+    return true;
+  }
+
   const handleEloadRequest = (eload: EloadProp) => {
     return (async (_) => {
       let res = await bill.requestEload(eload);
@@ -131,6 +144,18 @@ const Teller = () => {
     initPusherProvider();
   }, []);
 
+  useEffect(() => {
+    (async () => {
+      if (!(await checkServer())) {
+        setIsPrinterConnected(false);
+        return;
+      } else {
+        setIsPrinterConnected(true);
+        return;
+      }
+    })();
+  }, []);
+
   return (
     <>
       <div className="teller main-content">
@@ -142,26 +167,65 @@ const Teller = () => {
             flexDirection: "column",
           }}
         >
-          <UserBadge
-            name={currentUser?.name ?? ""}
-            title={
-              currentUser
-                ? `${currentUser.role[0].toLocaleUpperCase()}${currentUser.role.slice(
-                    1
-                  )}`
-                : null
-            }
-            style={{
-              margin: 25,
-            }}
-          />
-          <Row gutter={[32, 32]} style={{ padding: 20 }}>
-            {menu.map((e, i) => (
-              <Col span={8} key={`btn-${i}`}>
-                <DashboardBtn key={`btn-child-${i}`} {...e} />
-              </Col>
-            ))}
-          </Row>
+          <div>
+            <UserBadge
+              name={currentUser?.name ?? ""}
+              title={
+                currentUser
+                  ? `${currentUser.role[0].toLocaleUpperCase()}${currentUser.role.slice(
+                      1
+                    )}`
+                  : null
+              }
+              style={{
+                marginTop: 25,
+                marginLeft: 25,
+                marginRight: 25,
+              }}
+            />
+          </div>
+          <div>
+            <Row gutter={[32, 32]} style={{ padding: 20 }}>
+              {menu.map((e, i) => (
+                <Col span={8} key={`btn-${i}`}>
+                  <DashboardBtn key={`btn-child-${i}`} {...e} />
+                </Col>
+              ))}
+            </Row>
+            <div className="printer-container">
+              {isPrinterConnected ? (
+                <Typography.Text
+                  style={{
+                    paddingRight: 8,
+                    paddingLeft: 8,
+                    paddingTop: 5,
+                    paddingBottom: 5,
+                    border: "1px solid #a1a1a1",
+                    borderRadius: 5,
+                    cursor: "default",
+                    background: "#28a745",
+                    color: "#fff",
+                  }}
+                >
+                  CONNECTED TO PRINTER
+                </Typography.Text>
+              ) : (
+                <Typography.Text
+                  style={{
+                    paddingRight: 8,
+                    paddingLeft: 8,
+                    paddingTop: 5,
+                    paddingBottom: 5,
+                    border: "1px solid grey",
+                    borderRadius: 5,
+                    cursor: "default",
+                  }}
+                >
+                  Printer is not connected
+                </Typography.Text>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
