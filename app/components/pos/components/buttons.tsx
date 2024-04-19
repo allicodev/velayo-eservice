@@ -12,10 +12,13 @@ const POSButtons = ({ label, value, icon, onClick }: POSButtonProps) => {
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        padding: 40,
+        paddingTop: 40,
+        paddingBottom: 40,
         cursor: "pointer",
         fontSize: "1.5em",
         borderRadius: 10,
+        maxHeight: 120,
+        minHeight: 120,
       }}
     >
       {icon}

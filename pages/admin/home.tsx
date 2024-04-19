@@ -17,7 +17,10 @@ const Home = () => {
     { title: "Users", onPress: () => setOpenedMenu("user") },
     { title: "Bills", onPress: () => setOpenedMenu("bills") },
     { title: "E-Wallet", onPress: () => setOpenedMenu("wallet") },
-    { title: "MISCELLANEOUS POS", onPress: () => {} },
+    {
+      title: "MISCELLANEOUS POS",
+      onPress: () => (window.location.href = "/pos/settings"),
+    },
     {
       title: "Report",
       onPress: () => setOpenedMenu("transaction"),

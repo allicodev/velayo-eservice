@@ -276,6 +276,14 @@ label.customCheckbox span span.ant-checkbox-inner {
   display: none !important;
 } */
 
+.tree-title {
+  width: 100%;
+}
+
+.tree-title span.ant-tree-node-content-wrapper {
+  width: 100%;
+}
+
 .tree-title span.ant-tree-node-content-wrapper {
   display: flex;
 }
@@ -298,4 +306,12 @@ label.customCheckbox span span.ant-checkbox-inner {
 
 .site-tree-search-value {
   color: #f50;
+}
+
+.ant-tree-switcher-line-icon svg {
+  font-size: 1.5em;
+}
+
+.ant-tree-switcher {
+  display: flex;
 }

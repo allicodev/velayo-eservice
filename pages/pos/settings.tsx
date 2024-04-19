@@ -1,12 +1,22 @@
 import React, { useState } from "react";
-import { Col, Row, Typography } from "antd";
-import { AppstoreOutlined } from "@ant-design/icons";
+import { Button, Col, Row, Typography } from "antd";
+import { AppstoreOutlined, HomeOutlined } from "@ant-design/icons";
 import POSButtons from "@/app/components/pos/components/buttons";
 import ItemsHome from "@/app/components/pos/ItemsHome";
 
 const POSSettings = () => {
   const [openMenu, setOpenMenu] = useState("");
   const items = [
+    {
+      label: "BACK TO HOME",
+      value: "home",
+      icon: (
+        <HomeOutlined
+          className="db-btn"
+          style={{ fontSize: 50, color: "#000" }}
+        />
+      ),
+    },
     {
       label: "Items",
       value: "items",
@@ -31,12 +41,17 @@ const POSSettings = () => {
           <Typography.Title level={2} style={{ margin: 20 }}>
             POS Settings and Configurations
           </Typography.Title>
-          <div>uli balay</div>
         </div>
         <Row gutter={[16, 16]} style={{ marginLeft: 10, marginRight: 10 }}>
           {items.map((e, i) => (
             <Col key={`pos-btn-${i}`} span={3}>
-              <POSButtons {...e} onClick={setOpenMenu} />
+              <POSButtons
+                {...e}
+                onClick={(e) => {
+                  if (e == "home") window.location.href = "/";
+                  setOpenMenu(e);
+                }}
+              />
             </Col>
           ))}
         </Row>
