@@ -44,7 +44,7 @@ const TransactionHistory = ({
   const [toDate, setToDate] = useState<Dayjs | null>(null);
 
   (TransactionHistory as any).openTransaction = async (id: any) => {
-    await getTransaction({ page: 1 }).then((__: any) => {
+    await getTransaction({ page: 1, pageSize: 99999 }).then((__: any) => {
       if (onCellClick) {
         onCellClick(__.filter((e: any) => e._id == id)[0]);
       } else null;

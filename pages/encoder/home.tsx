@@ -35,6 +35,7 @@ const Encoder = () => {
   });
 
   const [trigger, setTrigger] = useState(0);
+  const [total, setTotal] = useState(0);
   const [transactions, setTransaction] = useState<Transaction[]>([]);
   const [selectedStatus, setSelectedStatus] =
     useState<TransactionHistoryStatus | null>("pending");
@@ -144,6 +145,7 @@ const Encoder = () => {
 
       if (res.success) {
         setTransaction(res?.data ?? []);
+        setTotal(res.meta?.total ?? 10);
       }
     })(bill);
   };
@@ -251,6 +253,13 @@ const Encoder = () => {
             }}
             scroll={{
               y: 450,
+            }}
+            pagination={{
+              pageSize: 10,
+              hideOnSinglePage: true,
+              total,
+              onChange: (page, pageSize) =>
+                getTransactions({ page, pageSize, status: [selectedStatus!] }),
             }}
             onRow={(data) => {
               return {
