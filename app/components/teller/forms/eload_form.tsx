@@ -56,7 +56,7 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
           provider: eload.provider,
           type: eload.type,
           ...(eload.type == "promo" ? { promo: eload.promo } : {}),
-          phone: "0" + eload?.phone,
+          phone: eload?.phone,
           amount: eload.amount,
         });
 
