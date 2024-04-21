@@ -18,8 +18,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
     });
 
   return await Transaction.create(req.body)
-    .then(() => {
-      new Pusher2().emit("encoder", "notify", {});
+    .then(async () => {
+      await new Pusher2().emit("encoder", "notify", {});
       return res.json({
         code: 200,
         success: true,
