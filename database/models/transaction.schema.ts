@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import "@/database/models/user.schema";
 
 const TransactionHistorySchema = new mongoose.Schema(
   {
@@ -40,7 +41,7 @@ const TransactionSchema = new mongoose.Schema(
     },
     tellerId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "user",
+      ref: "User",
     },
   },
   {
