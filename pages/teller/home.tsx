@@ -84,7 +84,7 @@ const Teller = () => {
   ];
 
   const initPusherProvider = () => {
-    let channel = new Pusher().subscribe("encoder");
+    let channel = new Pusher().subscribe("teller");
     channel.bind("notify", handleNotify);
 
     return () => {
