@@ -35,7 +35,7 @@ export class Pusher2 {
     });
   }
 
-  public emit(channel: string, event: string, data: Record<any, any>) {
-    this.pusher.trigger(channel, event, data);
+  public async emit(channel: string, event: string, data: Record<any, any>) {
+    await this.pusher.trigger(channel, event, data);
   }
 }
