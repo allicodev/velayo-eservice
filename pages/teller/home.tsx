@@ -86,8 +86,10 @@ const Teller = () => {
     { title: "miscellaneous", onPress: () => {} },
   ];
 
-  const initPusherProvider = () => {
-    pusherProvider.bind("notify", handleNotify);
+  const initPusherProvider = async () => {
+    await pusher
+      .subscribe("teller")
+      .then((e) => e.bind("notify", handleNotify));
   };
 
   const handleNotify = (data: string) => {
@@ -142,8 +144,6 @@ const Teller = () => {
   };
 
   useEffect(() => {
-    if (!pusher.hasSubscribe) pusherProvider = pusher.subscribe("teller");
-
     initPusherProvider();
   }, []);
 

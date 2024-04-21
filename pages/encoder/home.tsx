@@ -151,8 +151,10 @@ const Encoder = () => {
     })(bill);
   };
 
-  const initPusherProvider = () => {
-    pusherProvider.bind("notify", handleNotify);
+  const initPusherProvider = async () => {
+    await pusher
+      .subscribe("encoder")
+      .then((e) => e.bind("notify", handleNotify));
   };
 
   const handleNotify = () => {
@@ -165,10 +167,7 @@ const Encoder = () => {
 
   useEffect(() => {
     getTransactions({ page: 1, status: [selectedStatus!] });
-    if (!pusher.hasSubscribe) {
-      pusherProvider = pusher.subscribe("encoder");
-      initPusherProvider();
-    }
+    initPusherProvider();
   }, [trigger]);
 
   useEffect(() => {

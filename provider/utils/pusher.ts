@@ -1,5 +1,5 @@
 import Pusher from "pusher";
-import Pusher2 from "pusher-js";
+import Pusher2, { Channel } from "pusher-js";
 
 export class PusherBE {
   private pusher;
@@ -22,7 +22,6 @@ export class PusherBE {
 export class PusherFE {
   private pusher;
   private channel: any;
-  public hasSubscribe = false;
 
   constructor() {
     this.pusher = new Pusher2(process.env.PUSHER_APP_KEY!, {
@@ -30,17 +29,16 @@ export class PusherFE {
     });
   }
 
-  public subscribe(str: string) {
-    this.channel = this.pusher.subscribe(str);
-    this.hasSubscribe = true;
-    return this;
+  public async subscribe(str: string): Promise<Channel> {
+    return new Promise((resolve, reject) => {
+      this.channel = this.pusher.subscribe(str);
+      resolve(this.channel);
+    });
   }
 
   public bind(event: string, callback: Function) {
-    if (this.hasSubscribe) {
-      this.channel.bind(event, function (data: any) {
-        return callback(JSON.stringify(data));
-      });
-    } else return callback(JSON.stringify({ message: "not subscribe yet" }));
+    this.channel.bind(event, function (data: any) {
+      return callback(JSON.stringify(data));
+    });
   }
 }
