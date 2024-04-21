@@ -21,8 +21,8 @@ async function handler(
       message: "Incorrect Request Method",
     });
   return await Transaction.findOneAndUpdate({ _id: req.body._id }, req.body)
-    .then((e) => {
-      new Pusher2().emit("teller", "notify", {
+    .then(async (e) => {
+      await new Pusher2().emit("teller", "notify", {
         queue: e.queue,
         id: e._id.toString(),
       });
