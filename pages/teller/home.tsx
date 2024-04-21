@@ -21,8 +21,6 @@ import ShoppeForm from "@/app/components/teller/shoppe_form";
 
 import BillService from "@/provider/bill.service";
 
-const pusher = new Pusher();
-
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
   const [api, contextHolder] = notification.useNotification();
@@ -86,10 +84,11 @@ const Teller = () => {
   ];
 
   const initPusherProvider = () => {
-    pusher.subscribe("teller").bind("notify", handleNotify);
+    let channel = new Pusher().subscribe("encoder");
+    channel.bind("notify", handleNotify);
 
     return () => {
-      pusher.unsubscribe("teller");
+      channel.unsubscribe();
     };
   };
 

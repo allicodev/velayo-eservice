@@ -28,8 +28,6 @@ import { useUserStore } from "@/provider/context";
 import BillService from "@/provider/bill.service";
 import { Pusher } from "@/provider/utils/pusher";
 
-const pusher = new Pusher();
-
 const Encoder = () => {
   const [billsOption, setBillsOption] = useState<TransactionOptProps>({
     open: false,
@@ -155,7 +153,7 @@ const Encoder = () => {
     channel.bind("notify", handleNotify);
 
     return () => {
-      pusher.unsubscribe("encoder");
+      channel.unsubscribe();
     };
   };
 
