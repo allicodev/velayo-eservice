@@ -150,8 +150,13 @@ const Encoder = () => {
     })(bill);
   };
 
-  const initPusherProvider = () =>
+  const initPusherProvider = () => {
     pusher.subscribe("encoder").bind("notify", handleNotify);
+
+    return () => {
+      pusher.unsubscribe("encoder");
+    };
+  };
 
   const handleNotify = () => {
     api.info({

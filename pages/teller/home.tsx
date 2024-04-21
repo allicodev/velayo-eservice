@@ -85,8 +85,13 @@ const Teller = () => {
     { title: "miscellaneous", onPress: () => {} },
   ];
 
-  const initPusherProvider = () =>
+  const initPusherProvider = () => {
     pusher.subscribe("teller").bind("notify", handleNotify);
+
+    return () => {
+      pusher.unsubscribe("teller");
+    };
+  };
 
   const handleNotify = (data: string) => {
     let { queue, id } = JSON.parse(data);

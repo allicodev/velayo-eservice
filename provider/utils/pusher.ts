@@ -13,6 +13,10 @@ export default class MyPusher {
     return this.pusher.subscribe(str);
   }
 
+  public unsubscribe(str: string) {
+    this.pusher.unsubscribe(str);
+  }
+
   public emit(channel: string, event: string, data: Record<any, any>) {
     this.pusher.channel(channel).trigger(event, data);
   }
