@@ -4,8 +4,7 @@ import { ExtendedResponse, Response } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import Pusher from "@/provider/utils/pusher";
-const pusher = new Pusher();
+import { Pusher2 } from "@/provider/utils/pusher";
 
 async function handler(
   req: NextApiRequest,
@@ -23,7 +22,7 @@ async function handler(
     });
   return await Transaction.findOneAndUpdate({ _id: req.body._id }, req.body)
     .then((e) => {
-      pusher.emit("teller", "notify", {
+      new Pusher2().emit("teller", "notify", {
         queue: e.queue,
         id: e._id.toString(),
       });

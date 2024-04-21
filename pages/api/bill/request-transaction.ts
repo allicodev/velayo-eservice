@@ -1,11 +1,9 @@
 import dbConnect from "@/database/dbConnect";
 import Transaction from "@/database/models/transaction.schema";
 import { Response } from "@/types";
-import Pusher from "@/provider/utils/pusher";
+import { Pusher2 } from "@/provider/utils/pusher";
 
 import type { NextApiRequest, NextApiResponse } from "next";
-
-const pusher = new Pusher();
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
   await dbConnect();
@@ -21,7 +19,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
 
   return await Transaction.create(req.body)
     .then(() => {
-      pusher.emit("encoder", "notify", {});
+      new Pusher2().emit("encoder", "notify", {});
       return res.json({
         code: 200,
         success: true,

@@ -1,10 +1,10 @@
-import Pusher from "pusher-js";
-
-export default class MyPusher {
-  private pusher: Pusher;
+import MyPuser from "pusher-js";
+import MyPusher2 from "pusher";
+export class Pusher {
+  private pusher: MyPuser;
 
   constructor() {
-    this.pusher = new Pusher("4944f472e05a5fbb3b6b", {
+    this.pusher = new MyPuser("4944f472e05a5fbb3b6b", {
       cluster: "ap1",
     });
   }
@@ -18,6 +18,24 @@ export default class MyPusher {
   }
 
   public emit(channel: string, event: string, data: Record<any, any>) {
-    this.pusher.channel(channel).trigger(event, data);
+    this.pusher.subscribe(channel).trigger(event, data);
+  }
+}
+
+export class Pusher2 {
+  private pusher: MyPusher2;
+
+  constructor() {
+    this.pusher = new MyPusher2({
+      appId: "1772183",
+      key: "4944f472e05a5fbb3b6b",
+      secret: "359c4f436754d61af987",
+      cluster: "ap1",
+      useTLS: true,
+    });
+  }
+
+  public emit(channel: string, event: string, data: Record<any, any>) {
+    this.pusher.trigger(channel, event, data);
   }
 }

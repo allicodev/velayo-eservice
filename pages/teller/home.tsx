@@ -15,7 +15,7 @@ import {
 
 import { Eload as EloadProp, TransactionOptProps } from "@/types";
 import { useUserStore } from "@/provider/context";
-import Pusher from "@/provider/utils/pusher";
+import { Pusher } from "@/provider/utils/pusher";
 import Eload from "@/app/components/teller/forms/eload_form";
 import ShoppeForm from "@/app/components/teller/shoppe_form";
 

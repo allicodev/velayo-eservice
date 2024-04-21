@@ -26,7 +26,7 @@ import { UserBadge } from "@/app/components";
 import { EncoderForm } from "@/app/components/teller";
 import { useUserStore } from "@/provider/context";
 import BillService from "@/provider/bill.service";
-import Pusher from "@/provider/utils/pusher";
+import { Pusher } from "@/provider/utils/pusher";
 
 const pusher = new Pusher();
 
@@ -151,7 +151,8 @@ const Encoder = () => {
   };
 
   const initPusherProvider = () => {
-    pusher.subscribe("encoder").bind("notify", handleNotify);
+    let channel = new Pusher().subscribe("encoder");
+    channel.bind("notify", handleNotify);
 
     return () => {
       pusher.unsubscribe("encoder");
