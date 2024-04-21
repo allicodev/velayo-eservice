@@ -92,8 +92,8 @@ const Teller = () => {
     };
   };
 
-  const handleNotify = (data: string) => {
-    let { queue, id } = JSON.parse(data);
+  const handleNotify = (data: any) => {
+    let { queue, id } = data;
 
     api.info({
       message: `Transaction ID #${queue} has been updated`,
