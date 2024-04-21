@@ -4,8 +4,8 @@ import { ExtendedResponse, Response } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { PusherBE } from "@/provider/utils/pusher";
-const pusher = new PusherBE();
+import Pusher from "@/provider/utils/pusher";
+const pusher = new Pusher();
 
 async function handler(
   req: NextApiRequest,
