@@ -40,7 +40,7 @@ const TransactionSchema = new mongoose.Schema(
     },
     tellerId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "users",
+      ref: "user",
     },
   },
   {
