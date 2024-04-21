@@ -15,14 +15,13 @@ import {
 
 import { Eload as EloadProp, TransactionOptProps } from "@/types";
 import { useUserStore } from "@/provider/context";
-import { PusherFE } from "@/provider/utils/pusher";
+import Pusher from "@/provider/utils/pusher";
 import Eload from "@/app/components/teller/forms/eload_form";
 import ShoppeForm from "@/app/components/teller/shoppe_form";
 
 import BillService from "@/provider/bill.service";
 
-const pusher = new PusherFE();
-let pusherProvider: PusherFE;
+const pusher = new Pusher();
 
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
@@ -86,11 +85,8 @@ const Teller = () => {
     { title: "miscellaneous", onPress: () => {} },
   ];
 
-  const initPusherProvider = async () => {
-    await pusher
-      .subscribe("teller")
-      .then((e) => e.bind("notify", handleNotify));
-  };
+  const initPusherProvider = () =>
+    pusher.subscribe("teller").bind("notify", handleNotify);
 
   const handleNotify = (data: string) => {
     let { queue, id } = JSON.parse(data);

@@ -1,11 +1,11 @@
 import dbConnect from "@/database/dbConnect";
 import Transaction from "@/database/models/transaction.schema";
 import { Response } from "@/types";
-import { PusherBE } from "@/provider/utils/pusher";
+import Pusher from "@/provider/utils/pusher";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
-const pusher = new PusherBE();
+const pusher = new Pusher();
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
   await dbConnect();

@@ -26,10 +26,9 @@ import { UserBadge } from "@/app/components";
 import { EncoderForm } from "@/app/components/teller";
 import { useUserStore } from "@/provider/context";
 import BillService from "@/provider/bill.service";
-import { PusherFE } from "@/provider/utils/pusher";
+import Pusher from "@/provider/utils/pusher";
 
-const pusher = new PusherFE();
-let pusherProvider: PusherFE;
+const pusher = new Pusher();
 
 const Encoder = () => {
   const [billsOption, setBillsOption] = useState<TransactionOptProps>({
@@ -151,11 +150,8 @@ const Encoder = () => {
     })(bill);
   };
 
-  const initPusherProvider = async () => {
-    await pusher
-      .subscribe("encoder")
-      .then((e) => e.bind("notify", handleNotify));
-  };
+  const initPusherProvider = () =>
+    pusher.subscribe("encoder").bind("notify", handleNotify);
 
   const handleNotify = () => {
     api.info({
