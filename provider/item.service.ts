@@ -2,8 +2,6 @@ import Loader from "./utils/loader";
 import Api from "./api.service";
 import { Items } from "@/types";
 
-// TODO: if new subcategory is added to an item, item should should set isParent to "true"
-
 class ItemService extends Loader {
   private readonly instance = new Api();
 

@@ -27,8 +27,11 @@ import {
 } from "@/types";
 import BillService from "@/provider/bill.service";
 import { FloatLabel } from "@/assets/ts";
+import { useUserStore } from "@/provider/context";
 
 // TODO: validation on confirm
+// TODO: auto disabled billing if disabled by encoder
+// TODO: auto disabled wallet if disabled by encoder
 
 //* component helper
 const BillButton = ({
@@ -43,26 +46,34 @@ const BillButton = ({
         size="large"
         style={{
           width: 300,
-          fontSize: 35,
           paddingTop: 10,
           paddingBottom: 10,
           height: 70,
           ...(isSelected
             ? {
                 background: "#294B0F",
-                color: "#fff",
               }
             : {
                 background: "#fff",
-                color: "#000",
               }),
-          ...(disabled ? { color: "#CCCCCC" } : {}),
         }}
         onClick={() => onSelected(bill)}
         disabled={disabled}
         block
       >
-        {bill.name}
+        <Tooltip title={bill.name.length > 20 ? bill.name : ""}>
+          <Typography.Text
+            style={{
+              fontSize: 35,
+              ...(isSelected ? { color: "#fff" } : { color: "#000" }),
+              ...(disabled ? { color: "#CCCCCC" } : {}),
+              maxWidth: 270,
+            }}
+            ellipsis
+          >
+            {bill.name}
+          </Typography.Text>
+        </Tooltip>
       </Button>
     </Tooltip>
   );
@@ -80,6 +91,8 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
   const [error, setError] = useState({});
 
   const bill = new BillService();
+
+  const { currentUser } = useUserStore();
 
   const getFee = () => {
     if (selectedBill) {
@@ -115,7 +128,8 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             transactionType: "biller",
           }),
           amount,
-          getFee()
+          getFee(),
+          currentUser?._id ?? ""
         );
 
         if (res.success) {
@@ -416,7 +430,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
     return bill?.formField && bill?.formField?.length > 0 ? (
       <Card
         style={{
-          width: 500,
+          minWidth: 500,
           height: "80vh",
         }}
         styles={{
@@ -425,6 +439,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             flexDirection: "column",
             height: "77vh",
             overflow: "scroll",
+            padding: 0,
           },
         }}
         classNames={{
@@ -433,7 +448,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
       >
         <div
           style={{
-            position: "absolute",
+            position: "sticky",
             width: "100%",
             top: 0,
             left: 0,
@@ -444,7 +459,13 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
         >
           <Typography.Title
             level={1}
-            style={{ marginTop: 20, textAlign: "center" }}
+            style={{
+              marginTop: 20,
+              textAlign: "center",
+              whiteSpace: "nowrap",
+              marginLeft: 10,
+              marginRight: 10,
+            }}
           >
             {bill?.name} Bills Payment
           </Typography.Title>
@@ -452,7 +473,12 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
         {Object.values(error).length > 0 && (
           <Alert
             type="error"
-            style={{ marginBottom: 25, fontSize: "1.4em", marginTop: 80 }}
+            style={{
+              marginBottom: 25,
+              fontSize: "1.4em",
+              padding: 24,
+              margin: 24,
+            }}
             message={
               <Space direction="vertical" size={[0, 1]}>
                 {Object.values(error).map((e: any) => (
@@ -463,7 +489,11 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
           />
         )}
 
-        <React.Fragment>
+        <div
+          style={{
+            padding: 24,
+          }}
+        >
           <Form
             form={form}
             labelCol={{
@@ -476,9 +506,6 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             }}
             colon={false}
             requiredMark={"optional"}
-            style={{
-              marginTop: Object.values(error).length > 0 ? 0 : 70,
-            }}
             onFinish={handleFinish}
           >
             {bill?.formField?.map((e) => renderFormFieldSpecific(e))}
@@ -505,7 +532,6 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
           </span>
           <Button
             style={{
-              display: "block",
               fontSize: 35,
               color: "#fff",
               background: "#1777FF",
@@ -513,10 +539,11 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
               marginTop: 25,
             }}
             onClick={form.submit}
+            block
           >
             CONFIRM
           </Button>
-        </React.Fragment>
+        </div>
       </Card>
     ) : (
       <Typography.Text type="secondary" style={{ fontSize: "2em" }}>

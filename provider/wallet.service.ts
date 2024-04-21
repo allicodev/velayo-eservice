@@ -161,7 +161,8 @@ class WalletService extends Loader {
     biller_name: string,
     bill: string,
     amount: number,
-    fee: number
+    fee: number,
+    tellerId: string
   ) {
     let transaction: Transaction = {
       type: "wallet",
@@ -169,6 +170,7 @@ class WalletService extends Loader {
       transactionDetails: bill,
       amount,
       fee,
+      tellerId,
       history: [
         {
           description: "First  Transaction requested",

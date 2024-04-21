@@ -133,7 +133,10 @@ const Teller = () => {
 
   const handleEloadRequest = (eload: EloadProp) => {
     return (async (_) => {
-      let res = await bill.requestEload(eload);
+      let res = await bill.requestEload({
+        ...eload,
+        tellerId: currentUser?._id ?? "",
+      });
       if (res.success) return true;
     })(bill);
   };

@@ -117,7 +117,8 @@ class BillService extends Loader {
     biller_name: string,
     bill: string,
     amount: number,
-    fee: number
+    fee: number,
+    tellerId: string
   ) {
     let transaction: Transaction = {
       type: "bills",
@@ -125,6 +126,7 @@ class BillService extends Loader {
       transactionDetails: bill,
       fee,
       amount,
+      tellerId,
       history: [
         {
           description: "First  Transaction requested",
@@ -212,6 +214,7 @@ class BillService extends Loader {
       transactionDetails: JSON.stringify(eload),
       amount,
       fee: 2,
+      tellerId: eload.tellerId,
       history: [
         {
           description: "First  Transaction requested",
@@ -229,13 +232,18 @@ class BillService extends Loader {
     return response;
   }
 
-  public async requestShoppeCollect(details: string, amount: number | null) {
+  public async requestShoppeCollect(
+    details: string,
+    amount: number | null,
+    tellerId: string
+  ) {
     let transaction: Transaction = {
       type: "shopee",
       sub_type: "shopee self collect",
       transactionDetails: details,
       ...(amount != null ? { amount } : { amount: 0 }),
       fee: 0,
+      tellerId,
       history: [
         {
           description: "Transaction Completed",

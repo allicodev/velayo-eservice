@@ -57,7 +57,8 @@ async function handler(
     .sort({
       createdAt: typeof order == "string" && order == "descending" ? -1 : 1,
     })
-    .then((e) => {
+    .populate("tellerId")
+    .then((e: any[]) => {
       return res.json({
         code: 200,
         success: true,

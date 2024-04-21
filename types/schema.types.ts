@@ -3,6 +3,7 @@ import { BillingsFormField } from "./billings.types";
 export type RoleType = "teller" | "encoder";
 
 export interface User {
+  _id: string;
   name: string;
   email: string;
   username: string;
@@ -42,6 +43,7 @@ export interface TransactionHistory {
 export interface Transaction {
   _id?: string;
   type: TransactionType;
+  tellerId: User | string;
   sub_type: string;
   transactionDetails: string;
   reference?: string;

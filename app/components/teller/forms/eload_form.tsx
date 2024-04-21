@@ -44,11 +44,11 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
     }
 
     if (eload?.phone) {
-      if (!/^09/.test(eload.phone)) {
-        message.warning("Number should start 09*****");
+      if (!/^9/.test(eload.phone)) {
+        message.warning("Number should start 9*****");
         return;
-      } else if (eload.phone.length < 11) {
-        message.warning("Number should have a length of 11");
+      } else if (eload.phone.length < 10) {
+        message.warning("Invalid number");
       }
 
       (async () => {
@@ -56,7 +56,7 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
           provider: eload.provider,
           type: eload.type,
           ...(eload.type == "promo" ? { promo: eload.promo } : {}),
-          phone: eload?.phone,
+          phone: "0" + eload?.phone,
           amount: eload.amount,
         });
 
@@ -103,10 +103,11 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
       <FloatLabel bool={!_(eload.phone)} label="Phone Number">
         <Input
           size="large"
-          className="customInput"
+          className="customInput with-prefix"
           onChange={(e) => update("phone", e.target.value)}
-          maxLength={11}
-          minLength={11}
+          maxLength={10}
+          minLength={10}
+          prefix="+63"
         />
       </FloatLabel>
       <FloatLabel bool={!_(eload.amount)} label="Amount">

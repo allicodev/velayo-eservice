@@ -44,7 +44,6 @@ export function findItemNameByKey(
   return searchNode(tree);
 }
 
-// TODO: flatten a tree node
 export function mergeTreeNodes(nodes: TreeNode[]): TreeNode[] {
   let _nodes: TreeNode[] = [];
 

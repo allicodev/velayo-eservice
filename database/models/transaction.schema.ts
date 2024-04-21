@@ -38,6 +38,10 @@ const TransactionSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    tellerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   {
     timestamps: true,

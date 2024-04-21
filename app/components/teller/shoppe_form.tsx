@@ -3,6 +3,7 @@ import { Button, Input, InputNumber, Modal, Typography, message } from "antd";
 
 import BillService from "@/provider/bill.service";
 import PrinterService from "@/provider/printer.service";
+import { useUserStore } from "@/provider/context";
 
 interface Parcels {
   [key: string]: any;
@@ -16,6 +17,8 @@ const ShoppeForm = ({ open, close }: { open: boolean; close: () => void }) => {
 
   const bill = new BillService();
   const printer = new PrinterService();
+
+  const { currentUser } = useUserStore();
 
   const clearAll = () => {
     setParcelNum(0);
@@ -46,7 +49,11 @@ const ShoppeForm = ({ open, close }: { open: boolean; close: () => void }) => {
     obj.amount = `${amount == null ? 0 : amount}_money`;
 
     (async (_) => {
-      let res = await _.requestShoppeCollect(JSON.stringify(obj), amount);
+      let res = await _.requestShoppeCollect(
+        JSON.stringify(obj),
+        amount,
+        currentUser?._id ?? ""
+      );
 
       if (res.success) {
         message.success("Transaction Completed");

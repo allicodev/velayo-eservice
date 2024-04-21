@@ -29,10 +29,9 @@ import {
   WalletType,
 } from "@/types";
 
-// TODO: validation on confirm
-
 import WalletService from "@/provider/wallet.service";
 import { FloatLabel } from "@/assets/ts";
+import { useUserStore } from "@/provider/context";
 
 const WalletForm = ({ open, close }: DrawerBasicProps) => {
   const wallet = new WalletService();
@@ -46,6 +45,8 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
   const [includeFee, setIncludeFee] = useState(false);
   const [searchKey, setSearchKey] = useState("");
   const [error, setError] = useState({});
+
+  const { currentUser } = useUserStore();
 
   // for dynamic formfields
   const selectedFormFields = () =>
@@ -92,7 +93,8 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
           transactionType: "wallet",
         }),
         includeFee ? amount - getFee() : amount,
-        getFee()
+        getFee(),
+        currentUser?._id ?? ""
       );
 
       if (res?.success ?? false) {
@@ -117,11 +119,19 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
       key: wallet._id,
       id: wallet.name,
       label: (
-        <Tooltip title={wallet.isDisabled ? "This Wallet is unavailable" : ""}>
+        <Tooltip
+          title={
+            wallet.isDisabled
+              ? "This Wallet is unavailable"
+              : wallet.name.length > 20
+              ? wallet.name
+              : ""
+          }
+        >
           <Button
             style={{
               width: 300,
-              fontSize: 35,
+
               paddingTop: 10,
               paddingBottom: 10,
               height: 70,
@@ -147,7 +157,23 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
             }}
             disabled={wallet.isDisabled}
           >
-            {wallet.name.toLocaleUpperCase()}
+            <Typography.Text
+              style={{
+                fontSize: 35,
+                maxWidth: 270,
+                ...(selectedWallet?._id == wallet._id
+                  ? {
+                      color: "#fff",
+                    }
+                  : {
+                      color: "#000",
+                    }),
+                ...(wallet.isDisabled ? { color: "#CCCCCC" } : {}),
+              }}
+              ellipsis
+            >
+              {wallet.name.toLocaleUpperCase()}
+            </Typography.Text>
           </Button>
         </Tooltip>
       ),
@@ -350,7 +376,8 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                   onBlur={() => {
                     if (ff.inputNumberOption?.minLength ?? false) {
                       const min = ff.inputNumberOption?.minLength ?? 0;
-                      const value = form.getFieldValue(ff.slug_name).toString();
+                      const value =
+                        form.getFieldValue(ff.slug_name)?.toString() ?? "";
 
                       if (value.length < min) {
                         setError({
@@ -636,7 +663,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
             selectedFormFields()!.length > 0 ? (
             <Card
               style={{
-                width: 700,
+                minWidth: 700,
                 height: "80vh",
               }}
               styles={{
@@ -645,6 +672,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                   flexDirection: "column",
                   height: "77vh",
                   overflow: "scroll",
+                  padding: 0,
                 },
               }}
               classNames={{
@@ -653,7 +681,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
             >
               <div
                 style={{
-                  position: "absolute",
+                  position: "sticky",
                   width: "100%",
                   top: 0,
                   left: 0,
@@ -667,6 +695,9 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                     fontSize: 45,
                     display: "block",
                     textAlign: "center",
+                    textWrap: "nowrap",
+                    marginLeft: 10,
+                    marginRight: 10,
                   }}
                 >
                   {getTitle()}
@@ -676,7 +707,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
               {Object.values(error).length > 0 && (
                 <Alert
                   type="error"
-                  style={{ marginBottom: 25, fontSize: "1.4em", marginTop: 70 }}
+                  style={{ marginBottom: 25, fontSize: "1.4em", margin: 24 }}
                   message={
                     <Space direction="vertical" size={[0, 1]}>
                       {Object.values(error).map((e: any) => (
@@ -697,7 +728,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                   flex: 1,
                 }}
                 style={{
-                  marginTop: Object.values(error).length > 0 ? 0 : 70,
+                  padding: 24,
                 }}
                 colon={false}
                 requiredMark={"optional"}
@@ -718,6 +749,8 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                   marginBottom: 5,
                   display: "flex",
                   justifyContent: "space-between",
+                  paddingLeft: 24,
+                  paddingRight: 24,
                 }}
               >
                 <div
@@ -754,6 +787,8 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                   background: "#1777FF",
                   height: 70,
                   marginTop: 25,
+                  marginLeft: 24,
+                  marginRight: 24,
                 }}
                 onClick={form.submit}
               >

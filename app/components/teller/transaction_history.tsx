@@ -161,15 +161,9 @@ const TransactionHistory = ({
       "Branch Name",
       "Date/Time",
       "Transaction Type",
-      "Delivery Type",
       "Biller Name / Product Code",
-      "Account Details",
-      "Account Name",
       "Amount",
       "Service Fee",
-      "Branch Commision",
-      "Running Balance",
-      "Remarks",
       "User",
       "Status",
     ];
@@ -209,40 +203,16 @@ const TransactionHistory = ({
         width: 20,
       },
       {
-        key: "deliveryType",
-        width: 15,
-      },
-      {
         key: "billerName",
         width: 30,
       },
       {
-        key: "accountDetails",
-        width: 20,
-      },
-      {
-        key: "accountName",
-        width: 15,
-      },
-      {
         key: "amount",
-        width: 10,
+        width: 15,
       },
       {
         key: "serviceFee",
         width: 15,
-      },
-      {
-        key: "branchCommision",
-        width: 20,
-      },
-      {
-        key: "runningBalance",
-        width: 20,
-      },
-      {
-        key: "remarks",
-        width: 30,
       },
       {
         key: "user",
@@ -260,38 +230,39 @@ const TransactionHistory = ({
         branchName: "VELAYO BILLS PAYMENT AND REMITTANCE SERVICES",
         dateTime: dayjs(e.createdAt).format("MM/DD/YYYY HH:mm"),
         transactionType: getTransactionLabel(e.type),
-        deliveryType: "",
         billerName: e.sub_type.toLocaleUpperCase(),
-        accountDetails: "",
-        accountName: "",
         amount: e.amount,
         serviceFee: e.fee,
-        branchCommision: "",
-        runningBalance: "",
-        remarks: "",
-        user: "",
+        user: typeof e.tellerId == "object" ? e.tellerId.name : "",
         status: (e.history.at(-1)?.status ?? "").toLocaleUpperCase(),
       });
     });
 
+    let s = (str: string) =>
+      sheet.getCell(`${str.toLocaleUpperCase()}${trans.length + 3}`);
+    s("e").font = {
+      family: 4,
+      size: 14,
+      bold: true,
+    };
+    s("e").value = "TOTAL";
+    s("f").alignment = {
+      horizontal: "right",
+    };
+    s("g").alignment = {
+      horizontal: "right",
+    };
+    s("f").value = trans
+      .reduce((p, n) => p + (n?.amount ?? 0), 0)
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    s("g").value = trans
+      .reduce((p, n) => p + (n?.fee ?? 0), 0)
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
     // * styles the headers
-    [
-      "A",
-      "B",
-      "C",
-      "D",
-      "E",
-      "F",
-      "G",
-      "H",
-      "I",
-      "J",
-      "K",
-      "L",
-      "M",
-      "N",
-      "O",
-    ].map((c) => {
+    ["A", "B", "C", "D", "E", "F", "G", "H", "I"].map((c) => {
       sheet.getCell(`${c}2`).alignment = {
         horizontal: "center",
         vertical: "middle",
@@ -313,6 +284,8 @@ const TransactionHistory = ({
       a.download = `REPORT-${dayjs().format("MM/DD/YYYY")}.xlsx`;
       a.click();
       window.URL.revokeObjectURL(url);
+
+      message.success("Exported to Excel successfully");
     });
   };
 
