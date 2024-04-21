@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Button, Card, Form, Input, Typography, message } from "antd";
+import { Button, Card, Form, Image, Input, Typography, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import Cookies from "js-cookie";
 import axios from "axios";
@@ -54,24 +54,32 @@ const Login = () => {
         <div
           style={{
             display: "flex",
-            alignItems: "end",
+            alignItems: "center",
           }}
         >
           <div>
-            <UserOutlined
+            <Image
+              src="/logo-1.png"
+              preview={false}
+              width={140}
               style={{
-                fontSize: 170,
-                color: "#00000065",
+                margin: 10,
+                border: "1px solid #eee",
+                padding: 5,
+                borderRadius: 10,
               }}
             />
           </div>
-          <div>
+          <div
+            style={{
+              marginLeft: 20,
+            }}
+          >
             <span
               style={{
                 display: "block",
                 fontSize: 50,
                 lineHeight: 1,
-                marginLeft: -5,
               }}
             >
               Velayo

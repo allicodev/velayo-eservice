@@ -16,7 +16,7 @@ export default function App({ Component, pageProps }: AppProps) {
       }}
     >
       <Head>
-        <link rel="shortcut icon" href="/favicon.png" />
+        <link rel="shortcut icon" href="/logo-2.png" />
         <title>VELAYO E-Service</title>
         <meta
           name="description"
