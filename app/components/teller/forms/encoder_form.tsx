@@ -108,7 +108,10 @@ const EncoderForm = ({
             "Biller",
             ...Object.keys(_)
               .filter(
-                (e: any) => !["billerId", "transactionType", "fee"].includes(e)
+                (e: any) =>
+                  !["billerId", "transactionType", "fee", "tellerId"].includes(
+                    e
+                  )
               )
               .map((e) =>
                 e
@@ -222,7 +225,13 @@ const EncoderForm = ({
             style={{
               width: 150,
               fontSize: isMobile ? 18 : 20,
-              flex: i < 2 ? 3 : 2,
+              flex:
+                i < 2
+                  ? 3
+                  : transaction &&
+                    transaction.history.at(-1)?.status == "pending"
+                  ? 2
+                  : 3,
             }}
           >
             {textData[1][i]}
@@ -359,10 +368,10 @@ const EncoderForm = ({
       ) : (
         <>
           <div style={{ display: "flex" }}>
-            <div style={{ width: 140, fontSize: isMobile ? 18 : 20 }}>
+            <div style={{ flex: 2, fontSize: isMobile ? 18 : 20 }}>
               Current Status:
             </div>
-            <div style={{ width: 80, fontSize: isMobile ? 18 : 20 }}>
+            <div style={{ flex: 3, fontSize: isMobile ? 18 : 20 }}>
               <Tag
                 color={
                   transaction?.history.at(-1)?.status == "failed"
