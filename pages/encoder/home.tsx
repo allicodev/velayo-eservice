@@ -160,11 +160,11 @@ const Encoder = () => {
   };
 
   const handleNotify = () => {
-    api.info({
-      message: "There is a new request transaction",
-      duration: 0,
-    });
-    getTransactions({ page: 1, status: [selectedStatus!] });
+    // api.info({
+    //   message: "There is a new request transaction",
+    //   duration: 0,
+    // });
+    // getTransactions({ page: 1, status: [selectedStatus!] });
   };
 
   useEffect(() => {
@@ -250,9 +250,6 @@ const Encoder = () => {
             style={{
               marginLeft: 10,
               marginRight: 10,
-            }}
-            scroll={{
-              y: 450,
             }}
             pagination={{
               pageSize: 10,

@@ -226,7 +226,9 @@ const EncoderForm = ({
               width: 150,
               fontSize: isMobile ? 18 : 20,
               flex:
-                i < 2
+                transaction?.type == "eload" && i < 4
+                  ? 3
+                  : i < 2
                   ? 3
                   : transaction &&
                     transaction.history.at(-1)?.status == "pending"
@@ -238,7 +240,9 @@ const EncoderForm = ({
           </div>
           {i > 1 &&
           transaction &&
-          transaction.history.at(-1)?.status == "pending" ? (
+          transaction.history.at(-1)?.status == "pending" &&
+          i > 1 &&
+          !["Type", "Promo"].includes(_) ? (
             <div
               style={{
                 flex: 1,
