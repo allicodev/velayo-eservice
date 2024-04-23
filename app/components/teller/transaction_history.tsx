@@ -267,6 +267,7 @@ const TransactionHistory = ({
             : n?.amount ?? 0),
         0
       )
+      .toFixed(2)
       .toString()
       .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     s("g").value = trans
