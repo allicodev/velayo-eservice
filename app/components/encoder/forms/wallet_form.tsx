@@ -56,9 +56,11 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
 
   const getFee = () => {
     if (walletType == "cash-in") {
-      return selectedWallet?.cashinType == "fixed"
-        ? selectedWallet?.cashinFeeValue!
-        : Math.round(amount * (selectedWallet?.cashinFeeValue! / 100));
+      return Math.ceil(
+        selectedWallet?.cashinType == "fixed"
+          ? selectedWallet?.cashinFeeValue!
+          : amount * (selectedWallet?.cashinFeeValue! / 100)
+      );
     } else {
       return selectedWallet?.cashoutType == "fixed"
         ? selectedWallet?.cashoutFeeValue!

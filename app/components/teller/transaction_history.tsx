@@ -17,6 +17,9 @@ import Excel from "exceljs";
 
 import BillService from "@/provider/bill.service";
 
+// TODO: "to date" filter not working on same day
+// TODO: "status" filter dont respect "date" filter when updated
+
 import {
   DrawerBasicProps,
   Transaction,
@@ -231,7 +234,10 @@ const TransactionHistory = ({
         dateTime: dayjs(e.createdAt).format("MM/DD/YYYY HH:mm"),
         transactionType: getTransactionLabel(e.type),
         billerName: e.sub_type.toLocaleUpperCase(),
-        amount: e.amount,
+        amount:
+          e.type == "wallet" && e.sub_type.split(" ")[1] == "cash-out"
+            ? -e.amount!
+            : e.amount,
         serviceFee: e.fee,
         user: typeof e.tellerId == "object" ? e.tellerId.name : "",
         status: (e.history.at(-1)?.status ?? "").toLocaleUpperCase(),
@@ -253,7 +259,14 @@ const TransactionHistory = ({
       horizontal: "right",
     };
     s("f").value = trans
-      .reduce((p, n) => p + (n?.amount ?? 0), 0)
+      .reduce(
+        (p, n) =>
+          p +
+          (n.type == "wallet" && n.sub_type.split(" ")[1] == "cash-out"
+            ? -n.amount!
+            : n?.amount ?? 0),
+        0
+      )
       .toString()
       .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     s("g").value = trans
