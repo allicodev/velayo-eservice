@@ -595,7 +595,12 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
             </div>
             <Space
               direction="vertical"
-              style={{ height: "77vh", overflow: "scroll", paddingBottom: 30 }}
+              style={{
+                height: "77vh",
+                overflowY: "scroll",
+                overflowX: "hidden",
+                paddingBottom: 30,
+              }}
               className="no-scrollbar"
             >
               {billers
@@ -607,31 +612,49 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                       .includes(searchKey.toLocaleLowerCase());
                 })
                 .map((e, i) => (
-                  <Button
-                    key={`billing-btn-${i}`}
-                    style={{
-                      width: 300,
-                      fontSize: 30,
-                      paddingTop: 8,
-                      paddingBottom: 8,
-                      height: 60,
-                      ...(selectedBiller?._id == e._id ?? false
-                        ? {
-                            background: "#294B0F",
-                            color: "#fff",
-                          }
-                        : {
-                            background: "#fff",
-                            color: "#000",
-                          }),
-                    }}
-                    onClick={() => {
-                      setSelectedBiller(e);
-                      setSelectedTab("form-settings-tab");
-                    }}
-                  >
-                    {e.name.toLocaleUpperCase()}
-                  </Button>
+                  <Tooltip title={e.name.length > 20 ? e.name : ""}>
+                    <Button
+                      key={`billing-btn-${i}`}
+                      style={{
+                        width: 300,
+                        paddingTop: 8,
+                        paddingBottom: 8,
+                        height: 60,
+                        ...(selectedBiller?._id == e._id ?? false
+                          ? {
+                              background: "#294B0F",
+                              color: "#fff",
+                            }
+                          : {
+                              background: "#fff",
+                              color: "#000",
+                            }),
+                      }}
+                      onClick={() => {
+                        setSelectedBiller(e);
+                        setSelectedTab("form-settings-tab");
+                      }}
+                    >
+                      <Typography.Text
+                        style={{
+                          fontSize: 30,
+                          ...(selectedBiller?._id == e._id ?? false
+                            ? {
+                                background: "#294B0F",
+                                color: "#fff",
+                              }
+                            : {
+                                background: "#fff",
+                                color: "#000",
+                              }),
+                          maxWidth: 270,
+                        }}
+                        ellipsis
+                      >
+                        {e.name.toLocaleUpperCase()}
+                      </Typography.Text>
+                    </Button>
+                  </Tooltip>
                 ))}
             </Space>
           </Col>

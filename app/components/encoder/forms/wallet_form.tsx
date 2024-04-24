@@ -29,6 +29,8 @@ import {
   WalletType,
 } from "@/types";
 
+// todo: auto disable wallet buttons when disabled by encoder (pusher)
+
 import WalletService from "@/provider/wallet.service";
 import { FloatLabel } from "@/assets/ts";
 import { useUserStore } from "@/provider/context";
@@ -46,7 +48,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
   const [searchKey, setSearchKey] = useState("");
   const [error, setError] = useState({});
 
-  const { currentUser } = useUserStore();
+  const { currentUser, currentBranch } = useUserStore();
 
   // for dynamic formfields
   const selectedFormFields = () =>
@@ -96,7 +98,8 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
         }),
         includeFee ? amount - getFee() : amount,
         getFee(),
-        currentUser?._id ?? ""
+        currentUser?._id ?? "",
+        currentBranch
       );
 
       if (res?.success ?? false) {

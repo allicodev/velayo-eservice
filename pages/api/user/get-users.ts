@@ -19,10 +19,37 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  const { page, pageSize, id } = req.query;
+  const { page, pageSize, id, role, searchKey } = req.query;
+  var re;
+
+  if (searchKey && searchKey != "") {
+    re = new RegExp(searchKey!.toString().trim(), "i");
+  }
 
   if (id) {
-    return await User.findOne({ _id: id })
+    return await User.findOne(
+      searchKey ? { _id: id, name: { $regex: re } } : { _id: id }
+    )
+      .then((e) => {
+        return res.json({
+          code: 200,
+          success: true,
+          message: "Fetched Successfully",
+          data: e,
+        });
+      })
+      .catch((e) => {
+        console.log(e);
+        return res.json({
+          code: 500,
+          success: false,
+          message: "Error in the Server",
+        });
+      });
+  } else if (role) {
+    return await User.find(
+      searchKey ? { role, name: { $regex: re } } : { role }
+    )
       .then((e) => {
         return res.json({
           code: 200,
@@ -42,7 +69,11 @@ async function handler(
   } else {
     const _page = Number.parseInt(page!.toString()) - 1;
 
-    return await User.find({ role: { $ne: "admin" } })
+    return await User.find(
+      searchKey
+        ? { role: { $ne: "admin" }, name: { $regex: re } }
+        : { role: { $ne: "admin" } }
+    )
       .skip(_page * Number.parseInt(pageSize!.toString()))
       .limit(Number.parseInt(pageSize!.toString()))
       .then((doc) => {

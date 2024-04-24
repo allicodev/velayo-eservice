@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import "@/database/models/user.schema";
+import "@/database/models/branch.schema";
 
 const TransactionHistorySchema = new mongoose.Schema(
   {
@@ -42,6 +43,10 @@ const TransactionSchema = new mongoose.Schema(
     tellerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+    },
+    branchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Branch",
     },
   },
   {

@@ -45,6 +45,7 @@ export interface UserBadgeProps {
   style?: CSSProperties;
   role?: RoleType;
   isMobile?: boolean;
+  extra?: ReactNode;
 }
 export interface BillsPaymentProps {
   open: boolean;

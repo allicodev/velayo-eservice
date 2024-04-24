@@ -1,28 +1,55 @@
-import React, { useEffect } from "react";
-import { Button, Card, Form, Image, Input, Typography, message } from "antd";
+import React, { useEffect, useState } from "react";
+import {
+  Button,
+  Card,
+  Form,
+  Image,
+  Input,
+  Modal,
+  Space,
+  Typography,
+  message,
+} from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import Cookies from "js-cookie";
 import axios from "axios";
 
-import { UserLoginProps } from "@/types";
+import { BranchData, UserLoginProps } from "@/types";
 import UserService from "@/provider/user.service";
 import { useUserStore, useAuthStore } from "@/provider/context";
 
 const Login = () => {
   const [form] = Form.useForm();
   const user = new UserService();
-  const { setUser } = useUserStore();
+  const { setUser, setBranch } = useUserStore();
   const { setAccessToken } = useAuthStore();
+
+  const [openChoiceBranch, setOpenChoiceBranch] = useState(false);
+  const [branches, setBranches] = useState<BranchData[]>([]);
+
+  const [token, setToken] = useState("");
 
   const handleFinish = async (val: UserLoginProps) => {
     const response = await user.login(val);
 
     if (response.success) {
-      message.success("Logged in successfully");
-      setUser(response.data);
-      setAccessToken(response.data!.token);
-      Cookies.set("token", response.data!.token);
-      window.location.reload();
+      if (response.data && response.data.role == "teller") {
+        setUser(response.data);
+        setToken(response.data!.token);
+        new Promise(async (resolve) => {
+          let res = await axios.get("/api/branch");
+          if (res.data?.success ?? false) {
+            setBranches(res.data?.data ?? []);
+            resolve("success");
+          }
+        }).then(() => setOpenChoiceBranch(true));
+      } else {
+        message.success("Logged in successfully");
+        setUser(response.data);
+        setAccessToken(response.data!.token);
+        Cookies.set("token", response.data!.token);
+        window.location.reload();
+      }
     } else {
       message.error(response.message);
     }
@@ -36,118 +63,225 @@ const Login = () => {
   }, []);
 
   return (
-    <div className="login-container">
-      <Card
-        style={{
-          width: 400,
-        }}
-        styles={{
-          body: {
-            paddingLeft: 35,
-            paddingRight: 35,
-            paddingTop: 20,
-            paddingBottom: 10,
-          },
-        }}
-        hoverable
-      >
-        <div
+    <>
+      <div className="login-container">
+        <Card
           style={{
-            display: "flex",
-            alignItems: "center",
+            width: 400,
           }}
+          styles={{
+            body: {
+              paddingLeft: 35,
+              paddingRight: 35,
+              paddingTop: 20,
+              paddingBottom: 10,
+            },
+          }}
+          hoverable
         >
-          <div>
-            <Image
-              src="/logo-1.png"
-              preview={false}
-              width={140}
-              style={{
-                margin: 10,
-                border: "1px solid #eee",
-                padding: 5,
-                borderRadius: 10,
-              }}
-            />
-          </div>
           <div
             style={{
-              marginLeft: 20,
+              display: "flex",
+              alignItems: "center",
             }}
           >
-            <span
+            <div>
+              <Image
+                src="/logo-1.png"
+                preview={false}
+                width={140}
+                style={{
+                  margin: 10,
+                  border: "1px solid #eee",
+                  padding: 5,
+                  borderRadius: 10,
+                }}
+              />
+            </div>
+            <div
               style={{
-                display: "block",
-                fontSize: 50,
-                lineHeight: 1,
+                marginLeft: 20,
               }}
             >
-              Velayo
-            </span>
-            <span
+              <span
+                style={{
+                  display: "block",
+                  fontSize: 50,
+                  lineHeight: 1,
+                }}
+              >
+                Velayo
+              </span>
+              <span
+                style={{
+                  fontSize: 30,
+                  lineHeight: 1,
+                  letterSpacing: 3,
+                }}
+              >
+                E-Services
+              </span>
+            </div>
+          </div>
+          <Form form={form} onFinish={handleFinish}>
+            <Form.Item
+              name="username"
               style={{
-                fontSize: 30,
-                lineHeight: 1,
-                letterSpacing: 3,
+                marginBottom: 0,
               }}
+              rules={[
+                {
+                  required: true,
+                  message: "Username is empty. Please Provide.",
+                },
+              ]}
             >
-              E-Services
-            </span>
-          </div>
-        </div>
-        <Form form={form} onFinish={handleFinish}>
-          <Form.Item
-            name="username"
-            style={{
-              marginBottom: 0,
-            }}
-            rules={[
-              { required: true, message: "Username is empty. Please Provide." },
-            ]}
-          >
-            <Input
-              size="large"
-              className="customInput"
-              prefix={<UserOutlined />}
-              placeholder="Username"
+              <Input
+                size="large"
+                className="customInput"
+                prefix={<UserOutlined />}
+                placeholder="Username"
+                style={{
+                  marginBottom: 5,
+                }}
+              />
+            </Form.Item>
+            <Form.Item
+              name="password"
               style={{
-                marginBottom: 5,
+                marginBottom: 0,
               }}
-            />
-          </Form.Item>
-          <Form.Item
-            name="password"
-            style={{
-              marginBottom: 0,
-            }}
-            rules={[
-              { required: true, message: "Password is empty. Please Provide." },
-            ]}
-          >
-            <Input.Password
+              rules={[
+                {
+                  required: true,
+                  message: "Password is empty. Please Provide.",
+                },
+              ]}
+            >
+              <Input.Password
+                size="large"
+                className="customInput"
+                prefix={<LockOutlined />}
+                placeholder="Password"
+                style={{
+                  marginBottom: 5,
+                }}
+              />
+            </Form.Item>
+            <Button
+              type="primary"
               size="large"
-              className="customInput"
-              prefix={<LockOutlined />}
-              placeholder="Password"
-              style={{
-                marginBottom: 5,
-              }}
-            />
-          </Form.Item>
-          <Button
-            type="primary"
-            size="large"
-            loading={user.loaderHas("logging-in")}
-            htmlType="submit"
-            block
-          >
-            Login
-          </Button>
-          <div style={{ textAlign: "center" }}>
-            Forget Password? <Typography.Link>Click Here</Typography.Link>
-          </div>
-        </Form>
-      </Card>
+              loading={user.loaderHas("logging-in")}
+              htmlType="submit"
+              block
+            >
+              Login
+            </Button>
+            <div style={{ textAlign: "center" }}>
+              Forget Password? <Typography.Link>Click Here</Typography.Link>
+            </div>
+          </Form>
+        </Card>
+      </div>
+
+      {/* context */}
+      <BranchChoicer
+        open={openChoiceBranch}
+        branches={branches}
+        onSelectedBranch={(e) => {
+          message.success("Logged in successfully");
+          setBranch(e?._id ?? "");
+          setAccessToken(token);
+          Cookies.set("token", token);
+          window.location.reload();
+        }}
+      />
+    </>
+  );
+};
+
+const BranchChoicer = ({
+  open,
+  branches,
+  onSelectedBranch,
+}: {
+  open: boolean;
+  branches: BranchData[];
+  onSelectedBranch: (obj: BranchData) => void;
+}) => {
+  return (
+    <Modal
+      footer={null}
+      closable={false}
+      open={open}
+      title={<Typography.Title level={3}>Select a Branch</Typography.Title>}
+    >
+      <Space
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        {branches.map((e, i) => (
+          <BranchButton
+            branch={e}
+            onClick={onSelectedBranch}
+            key={`branch-btn-${i}`}
+            index={i}
+          />
+        ))}
+      </Space>
+    </Modal>
+  );
+};
+
+const BranchButton = ({
+  branch,
+  onClick,
+  index,
+}: {
+  branch: BranchData;
+  onClick: (obj: BranchData) => void;
+  index: number;
+}) => {
+  const [onHover, setOnHover] = useState(false);
+  return (
+    <div
+      style={{
+        width: 200,
+        height: 150,
+        border: "1px solid #aaa",
+        borderRadius: 10,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "column",
+        cursor: "pointer",
+        background: onHover ? "#d9d9d9" : "#fff",
+      }}
+      onMouseEnter={() => setOnHover(true)}
+      onMouseLeave={() => setOnHover(false)}
+      onClick={() => onClick(branch)}
+    >
+      <Typography.Text
+        style={{
+          fontSize: "1.7em",
+        }}
+        underline={onHover}
+      >
+        Branch {index + 1}
+      </Typography.Text>
+      <Typography.Text
+        style={{
+          fontSize: "1.2em",
+          textAlign: "center",
+          textDecoration: onHover ? "underline" : "",
+        }}
+        type="secondary"
+      >
+        {branch.address}
+      </Typography.Text>
     </div>
   );
 };

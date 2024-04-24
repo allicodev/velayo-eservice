@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Drawer,
   Typography,
@@ -10,6 +10,7 @@ import {
   message,
   Select,
   DatePicker,
+  AutoComplete,
 } from "antd";
 import { DownOutlined, CopyOutlined } from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
@@ -19,13 +20,16 @@ import BillService from "@/provider/bill.service";
 
 // TODO: "to date" filter not working on same day
 // TODO: "status" filter dont respect "date" filter when updated
+// TODO: date pocker "today" not working
 
 import {
   DrawerBasicProps,
+  ProtectedUser,
   Transaction,
   TransactionHistoryStatus,
   TransactionType,
 } from "@/types";
+import UserService from "@/provider/user.service";
 
 const TransactionHistory = ({
   open,
@@ -36,15 +40,31 @@ const TransactionHistory = ({
   refresh,
 }: DrawerBasicProps) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [tellers, setTellers] = useState<ProtectedUser[]>([]);
+  const [selectedTeller, setSelectedTeller] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
+  const [searchName, setSearchName] = useState("");
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
   const bill = new BillService();
+  const user = new UserService();
 
   // * FILTER
   const [selectedStatus, setSelectedStatus] = useState<
     TransactionHistoryStatus[]
   >(["pending", "failed"]);
-  const [fromDate, setFromDate] = useState<Dayjs | null>(null);
+  const [fromDate, setFromDate] = useState<Dayjs | null>(dayjs());
   const [toDate, setToDate] = useState<Dayjs | null>(null);
+
+  const runTimer = (key: string) => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    timerRef.current = setTimeout(function () {
+      setSearchName(key);
+    }, 500);
+  };
 
   (TransactionHistory as any).openTransaction = async (id: any) => {
     await getTransaction({ page: 1, pageSize: 99999 }).then((__: any) => {
@@ -311,6 +331,7 @@ const TransactionHistory = ({
     fromDate,
     toDate,
     updateTransaction = true,
+    tellerId,
   }: {
     page: number;
     pageSize?: number;
@@ -318,6 +339,7 @@ const TransactionHistory = ({
     fromDate?: Dayjs | null;
     toDate?: Dayjs | null;
     updateTransaction?: boolean;
+    tellerId?: string;
   }): Promise<Transaction[] | void> => {
     return new Promise(async (resolve, reject) => {
       // setTotal
@@ -329,7 +351,8 @@ const TransactionHistory = ({
         status ? status : null,
         "descending",
         fromDate,
-        toDate
+        toDate,
+        tellerId
       );
 
       if (res?.success ?? false) {
@@ -344,15 +367,34 @@ const TransactionHistory = ({
   };
 
   useEffect(() => {
-    if (open) getTransaction({ page: 1, status: selectedStatus });
-  }, [open, refresh]);
+    if (open)
+      getTransaction({
+        page: 1,
+        status: selectedStatus,
+        fromDate,
+        toDate,
+      });
+  }, [fromDate, toDate, selectedStatus, open]);
+
+  useEffect(() => {
+    if (open)
+      (async (_) => {
+        let res = await _.getUsers({
+          pageSize: 10,
+          page: 1,
+          role: "teller",
+          searchKey: searchName,
+        });
+        if (res?.success ?? false) setTellers(res?.data ?? []);
+      })(user);
+  }, [searchName, open]);
 
   return (
     <Drawer
       open={open}
       onClose={() => {
         setSelectedStatus(["pending", "failed"]);
-        setFromDate(null);
+        setFromDate(dayjs());
         setToDate(null);
         close();
       }}
@@ -361,67 +403,127 @@ const TransactionHistory = ({
       closeIcon={<DownOutlined />}
       extra={[
         <Space key="extra-container">
-          <div key="fromDate">
-            <label htmlFor="fromDate">From: </label>
-            <DatePicker
-              id="fromDate"
-              format="MMMM DD, YYYY"
-              onChange={(e: Dayjs) => {
-                setFromDate(e);
-                if (e) {
-                  getTransaction({
-                    page: 1,
-                    pageSize: 10,
-                    status: selectedStatus,
-                    toDate,
-                    fromDate: e,
-                  });
-                } else {
-                  setFromDate(null);
-                  getTransaction({
-                    page: 1,
-                    pageSize: 10,
-                    status: selectedStatus,
-                    toDate,
-                  });
-                }
-              }}
-            />
-          </div>
-          <div key="toDate">
-            <label htmlFor="toDate">To: </label>
-            <DatePicker
-              id="toDate"
-              format="MMMM DD, YYYY"
-              value={toDate}
-              onChange={(e: Dayjs) => {
-                if (e) {
-                  if (e.isBefore(fromDate)) {
-                    message.error("To Date should be after from Date");
+          <div style={{ display: "flex", flexDirection: "row" }}>
+            <div key="fromDate" style={{ marginRight: 10 }}>
+              <label htmlFor="fromDate" style={{ marginRight: 5 }}>
+                From
+              </label>
+              <DatePicker
+                id="fromDate"
+                format="MMMM DD, YYYY"
+                value={fromDate}
+                onChange={(e: Dayjs) => {
+                  if (e) setFromDate(e);
+                  else setFromDate(null);
+                }}
+              />
+            </div>
+            <div key="toDate">
+              <label htmlFor="toDate" style={{ marginRight: 5 }}>
+                To
+              </label>
+              <DatePicker
+                id="toDate"
+                format="MMMM DD, YYYY"
+                value={toDate}
+                onChange={(e: Dayjs) => {
+                  if (e) {
+                    if (e.isBefore(fromDate)) {
+                      message.error("To Date should be after from Date");
+                      setToDate(null);
+                      return;
+                    }
+                    setToDate(e);
+                  } else {
                     setToDate(null);
-                    return;
                   }
-
-                  setToDate(e);
-                  getTransaction({
-                    page: 1,
-                    pageSize: 10,
-                    status: selectedStatus,
-                    fromDate,
-                    toDate: e,
-                  });
-                } else {
-                  setToDate(null);
-                  getTransaction({
-                    page: 1,
-                    pageSize: 10,
-                    status: selectedStatus,
-                    fromDate,
-                  });
-                }
-              }}
-            />
+                }}
+              />
+            </div>
           </div>
+
+          <Button
+            type="primary"
+            onClick={() => {
+              (async () => {
+                await getTransaction({
+                  page: 1,
+                  pageSize: 9999,
+                  updateTransaction: false,
+                  status: selectedStatus,
+                  fromDate,
+                  toDate,
+                  tellerId: selectedTeller ?? undefined,
+                }).then((e) => {
+                  if (typeof e == "object" && e.length > 0) exportExcel(e);
+                });
+              })();
+            }}
+          >
+            EXPORT
+          </Button>
+        </Space>,
+      ]}
+      placement="bottom"
+      title={
+        <Typography.Text style={{ fontSize: 25 }}>
+          {title ?? "Transaction History"}
+        </Typography.Text>
+      }
+      style={{
+        borderTopLeftRadius: 25,
+        borderBottomLeftRadius: 25,
+      }}
+      rootStyle={{
+        marginTop: 20,
+        marginLeft: 20,
+        marginBottom: 20,
+      }}
+      destroyOnClose
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "end",
+          marginBottom: 10,
+        }}
+      >
+        <div style={{ marginRight: 10 }}>
+          <label style={{ marginRight: 5 }}>Teller</label>
+          <AutoComplete
+            style={{
+              width: 300,
+            }}
+            filterOption={(inputValue, option) =>
+              option!
+                .value!.toString()
+                .toUpperCase()
+                .indexOf(inputValue.toUpperCase()) !== -1
+            }
+            onChange={(_) => {
+              runTimer(_);
+            }}
+            options={tellers.map((e) => ({
+              label: e.name,
+              value: e.name,
+              key: e._id,
+            }))}
+            onSelect={(_, e) => {
+              setSelectedTeller(e.key!.toString());
+              getTransaction({
+                page: 1,
+                status: selectedStatus,
+                fromDate,
+                toDate,
+                tellerId: e.key,
+              });
+            }}
+            autoFocus
+            allowClear
+          />
+        </div>
+        <div>
+          <label style={{ marginRight: 5 }}>Status</label>
           <Select
             key="status-filter"
             mode="tags"
@@ -458,11 +560,7 @@ const TransactionHistory = ({
                 </Tag>
               );
             }}
-            onChange={(e: any) => {
-              setSelectedStatus(e);
-              if (e) getTransaction({ page: 1, status: e });
-              else getTransaction({ page: 1 });
-            }}
+            onChange={(e: any) => setSelectedStatus(e)}
             style={{
               minWidth: 120,
             }}
@@ -486,43 +584,8 @@ const TransactionHistory = ({
             ]}
             allowClear
           />
-          <Button
-            type="primary"
-            onClick={() => {
-              (async () => {
-                await getTransaction({
-                  page: 1,
-                  pageSize: 9999,
-                  updateTransaction: false,
-                  status: selectedStatus,
-                  fromDate,
-                  toDate,
-                }).then((e) => {
-                  if (typeof e == "object" && e.length > 0) exportExcel(e);
-                });
-              })();
-            }}
-          >
-            EXPORT
-          </Button>
-        </Space>,
-      ]}
-      placement="bottom"
-      title={
-        <Typography.Text style={{ fontSize: 25 }}>
-          {title ?? "Transaction History"}
-        </Typography.Text>
-      }
-      style={{
-        borderTopLeftRadius: 25,
-        borderBottomLeftRadius: 25,
-      }}
-      rootStyle={{
-        marginTop: 20,
-        marginLeft: 20,
-        marginBottom: 20,
-      }}
-    >
+        </div>
+      </div>
       <Table
         dataSource={transactions}
         columns={columns}
@@ -533,7 +596,13 @@ const TransactionHistory = ({
           hideOnSinglePage: true,
           total,
           onChange: (page, pageSize) =>
-            getTransaction({ page, pageSize, status: selectedStatus }),
+            getTransaction({
+              page,
+              pageSize,
+              status: selectedStatus,
+              fromDate,
+              toDate,
+            }),
         }}
         onRow={(data) => {
           return {

@@ -162,7 +162,8 @@ class WalletService extends Loader {
     bill: string,
     amount: number,
     fee: number,
-    tellerId: string
+    tellerId: string,
+    branchId: string
   ) {
     let transaction: Transaction = {
       type: "wallet",
@@ -182,7 +183,7 @@ class WalletService extends Loader {
     this.loaderPush("request-bill");
     const response = await this.instance.post<Response>({
       endpoint: "/bill/request-transaction",
-      payload: transaction,
+      payload: { ...transaction, branchId },
     });
     this.loaderPop("request-bill");
     return response;

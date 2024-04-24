@@ -69,6 +69,8 @@ interface PageProps {
   pageSize: number;
   page: number;
   total?: number;
+  role?: string;
+  searchKey?: string;
 }
 
 export type {

@@ -14,6 +14,7 @@ export interface User {
 }
 
 export interface ProtectedUser {
+  _id?: string;
   name: string;
   email: string;
   username: string;
@@ -74,7 +75,6 @@ export interface Fee {
 }
 
 //* Items
-
 export interface Items {
   _id: string;
   name: string;
@@ -83,4 +83,27 @@ export interface Items {
   amount: Number;
   quantity: Number;
   sub_categories?: Items[];
+}
+
+// * Branch
+export interface Branch {
+  name?: string;
+  address: string;
+  device: string;
+  spm: string;
+}
+
+export interface BranchData extends Branch {
+  _id?: string;
+  createdAt?: Date;
+}
+
+// * Log
+export interface Log {
+  user: User;
+  branch: Branch | BranchData;
+}
+
+export interface LogData extends Log {
+  _id?: string;
 }

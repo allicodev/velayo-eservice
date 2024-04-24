@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Col, Row, Typography, notification } from "antd";
+import { Button, Col, Row, Tag, Typography, notification } from "antd";
 import { WalletOutlined } from "@ant-design/icons";
 import { MdOutlineSendToMobile } from "react-icons/md";
 import { FaMoneyBills } from "react-icons/fa6";
@@ -13,27 +13,30 @@ import {
   BillsPayment,
 } from "@/app/components/teller";
 
-import { Eload as EloadProp, TransactionOptProps } from "@/types";
+import { BranchData, Eload as EloadProp, TransactionOptProps } from "@/types";
 import { useUserStore } from "@/provider/context";
 import { Pusher } from "@/provider/utils/pusher";
 import Eload from "@/app/components/teller/forms/eload_form";
 import ShoppeForm from "@/app/components/teller/shoppe_form";
 
 import BillService from "@/provider/bill.service";
+import BranchService from "@/provider/branch.service";
 
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
   const [api, contextHolder] = notification.useNotification();
   const [isPrinterConnected, setIsPrinterConnected] = useState(false);
+  const [brans, setBrans] = useState<BranchData | null>(null);
   const [transactionDetailsOpt, setTransactionOpt] =
     useState<TransactionOptProps>({
       open: false,
       transaction: null,
     });
 
-  const { currentUser } = useUserStore();
+  const { currentUser, currentBranch } = useUserStore();
 
   const bill = new BillService();
+  const branch = new BranchService();
 
   const menu = [
     {
@@ -135,10 +138,13 @@ const Teller = () => {
 
   const handleEloadRequest = (eload: EloadProp) => {
     return (async (_) => {
-      let res = await bill.requestEload({
-        ...eload,
-        tellerId: currentUser?._id ?? "",
-      });
+      let res = await bill.requestEload(
+        {
+          ...eload,
+          tellerId: currentUser?._id ?? "",
+        },
+        currentBranch
+      );
       if (res.success) return true;
     })(bill);
   };
@@ -157,6 +163,14 @@ const Teller = () => {
         return;
       }
     })();
+  }, []);
+
+  useEffect(() => {
+    (async (_) => {
+      let res = await _.getBranchSpecific(currentBranch);
+
+      if (res?.success ?? false) setBrans(res?.data ?? null);
+    })(branch);
   }, []);
 
   return (
@@ -195,38 +209,59 @@ const Teller = () => {
                 </Col>
               ))}
             </Row>
-            <div className="printer-container">
-              {isPrinterConnected ? (
-                <Typography.Text
+            <div
+              style={{
+                display: "flex",
+                marginBottom: 15,
+                marginLeft: 20,
+                alignItems: "center",
+              }}
+            >
+              <div style={{ fontFamily: "abel", fontSize: "1em" }}>
+                Selected Branch:{" "}
+                <Tag
+                  color="success"
                   style={{
-                    paddingRight: 8,
-                    paddingLeft: 8,
-                    paddingTop: 5,
-                    paddingBottom: 5,
-                    border: "1px solid #a1a1a1",
-                    borderRadius: 5,
-                    cursor: "default",
-                    background: "#28a745",
-                    color: "#fff",
+                    fontSize: "1em",
+                    padding: 5,
                   }}
                 >
-                  CONNECTED TO PRINTER
-                </Typography.Text>
-              ) : (
-                <Typography.Text
-                  style={{
-                    paddingRight: 8,
-                    paddingLeft: 8,
-                    paddingTop: 5,
-                    paddingBottom: 5,
-                    border: "1px solid grey",
-                    borderRadius: 5,
-                    cursor: "default",
-                  }}
-                >
-                  Printer is not connected
-                </Typography.Text>
-              )}
+                  {brans?.name}
+                </Tag>
+              </div>
+              <div className="printer-container">
+                {isPrinterConnected ? (
+                  <Typography.Text
+                    style={{
+                      paddingRight: 8,
+                      paddingLeft: 8,
+                      paddingTop: 5,
+                      paddingBottom: 5,
+                      border: "1px solid #a1a1a1",
+                      borderRadius: 5,
+                      cursor: "default",
+                      background: "#28a745",
+                      color: "#fff",
+                    }}
+                  >
+                    CONNECTED TO PRINTER
+                  </Typography.Text>
+                ) : (
+                  <Typography.Text
+                    style={{
+                      paddingRight: 8,
+                      paddingLeft: 8,
+                      paddingTop: 5,
+                      paddingBottom: 5,
+                      border: "1px solid grey",
+                      borderRadius: 5,
+                      cursor: "default",
+                    }}
+                  >
+                    Printer is not connected
+                  </Typography.Text>
+                )}
+              </div>
             </div>
           </div>
         </div>

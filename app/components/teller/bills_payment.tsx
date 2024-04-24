@@ -92,7 +92,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
 
   const bill = new BillService();
 
-  const { currentUser } = useUserStore();
+  const { currentUser, currentBranch } = useUserStore();
 
   const getFee = () => {
     if (selectedBill) {
@@ -129,7 +129,8 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
           }),
           amount,
           getFee(),
-          currentUser?._id ?? ""
+          currentUser?._id ?? "",
+          currentBranch
         );
 
         if (res.success) {

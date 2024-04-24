@@ -18,7 +18,7 @@ const ShoppeForm = ({ open, close }: { open: boolean; close: () => void }) => {
   const bill = new BillService();
   const printer = new PrinterService();
 
-  const { currentUser } = useUserStore();
+  const { currentUser, currentBranch } = useUserStore();
 
   const clearAll = () => {
     setParcelNum(0);
@@ -52,7 +52,8 @@ const ShoppeForm = ({ open, close }: { open: boolean; close: () => void }) => {
       let res = await _.requestShoppeCollect(
         JSON.stringify(obj),
         amount,
-        currentUser?._id ?? ""
+        currentUser?._id ?? "",
+        currentBranch
       );
 
       if (res.success) {

@@ -118,7 +118,8 @@ class BillService extends Loader {
     bill: string,
     amount: number,
     fee: number,
-    tellerId: string
+    tellerId: string,
+    branchId: string
   ) {
     let transaction: Transaction = {
       type: "bills",
@@ -138,7 +139,7 @@ class BillService extends Loader {
     this.loaderPush("request-bill");
     const response = await this.instance.post<Response>({
       endpoint: "/bill/request-transaction",
-      payload: transaction,
+      payload: { ...transaction, branchId },
     });
     this.loaderPop("request-bill");
     return response;
@@ -150,7 +151,8 @@ class BillService extends Loader {
     status?: TransactionHistoryStatus[] | null,
     order?: "descending" | "ascending",
     fromDate?: Dayjs | null,
-    toDate?: Dayjs | null
+    toDate?: Dayjs | null,
+    tellerId?: string
   ) {
     this.loaderPush("get-transaction");
     const response = await this.instance.get<Transaction[]>({
@@ -162,6 +164,7 @@ class BillService extends Loader {
         order,
         fromDate,
         toDate,
+        tellerId,
       },
     });
     this.loaderPop("get-transaction");
@@ -201,7 +204,7 @@ class BillService extends Loader {
     return response;
   }
 
-  public async requestEload(eload: any) {
+  public async requestEload(eload: any, branchId: string) {
     const amount = eload.amount;
     eload.amount = `${amount}_money`;
     const provider = eload.provider;
@@ -226,7 +229,7 @@ class BillService extends Loader {
     this.loaderPush("request-bill");
     const response = await this.instance.post<Response>({
       endpoint: "/bill/request-transaction",
-      payload: transaction,
+      payload: { ...transaction, branchId },
     });
     this.loaderPop("request-bill");
     return response;
@@ -235,7 +238,8 @@ class BillService extends Loader {
   public async requestShoppeCollect(
     details: string,
     amount: number | null,
-    tellerId: string
+    tellerId: string,
+    branchId: string
   ) {
     let transaction: Transaction = {
       type: "shopee",
@@ -255,7 +259,7 @@ class BillService extends Loader {
     this.loaderPush("request-shoppe");
     const response = await this.instance.post<Response>({
       endpoint: "/bill/request-transaction",
-      payload: transaction,
+      payload: { ...transaction, branchId },
     });
     this.loaderPop("request-shoppe");
     return response;

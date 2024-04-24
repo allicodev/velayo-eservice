@@ -14,8 +14,6 @@ import {
 import { CopyOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
-// TODO: fix pusher connection
-
 import {
   TransactionOptProps,
   Transaction,
@@ -81,7 +79,7 @@ const Encoder = () => {
               ? "#297BFA"
               : type == "bills"
               ? "#28a745"
-              : "#EFB40D"
+              : "#ff7f0e"
           }
         >
           {type.toLocaleUpperCase()}

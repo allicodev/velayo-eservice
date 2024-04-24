@@ -6,6 +6,9 @@ type UserStore = {
   currentUser: User | null;
   setUser: (user: any) => void;
   removeUser: () => void;
+  currentBranch: string;
+  setBranch: (string: string) => void;
+  removeBranch: () => void;
 };
 
 type MyPersist = (
@@ -19,6 +22,9 @@ const useUserStore = create<UserStore, []>(
       currentUser: null,
       setUser: (user: User) => set(() => ({ currentUser: user })),
       removeUser: () => set({ currentUser: null }),
+      currentBranch: "",
+      setBranch: (branch: string) => set(() => ({ currentBranch: branch })),
+      removeBranch: () => set({ currentBranch: "" }),
     }),
     {
       name: "user",

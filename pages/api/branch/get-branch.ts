@@ -1,30 +1,30 @@
 import dbConnect from "@/database/dbConnect";
-import Transaction from "@/database/models/transaction.schema";
-import { Response } from "@/types";
-import { Pusher2 } from "@/provider/utils/pusher";
+import Branch from "@/database/models/branch.schema";
+import { BranchData, ExtendedResponse } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
-import { useUserStore } from "@/provider/context";
 
-async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
+async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<ExtendedResponse<BranchData>>
+) {
   await dbConnect();
 
   const { method } = req;
 
-  if (method != "POST")
+  if (method != "GET")
     res.json({
       code: 405,
       success: false,
       message: "Incorrect Request Method",
     });
 
-  return await Transaction.create(req.body)
-    .then(async () => {
-      await new Pusher2().emit("encoder", "notify", {});
+  return await Branch.findOne({ _id: req.query._id })
+    .then((e) => {
       return res.json({
         code: 200,
         success: true,
-        message: "Transaction has been sent",
+        data: e,
       });
     })
     .catch((e) => {

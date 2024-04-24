@@ -1,3 +1,4 @@
+import { ApiMiddleware } from "@/assets/ts";
 import dbConnect from "@/database/dbConnect";
 import Transaction from "@/database/models/transaction.schema";
 import { ExtendedResponse, Transaction as TransactionType } from "@/types";
@@ -20,16 +21,31 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  let { page, pageSize, status, order, fromDate, toDate } = req.query;
+  let { page, pageSize, status, order, fromDate, toDate, tellerId } = req.query;
 
   const _page = Number.parseInt(page!.toString()) - 1;
 
   let query = [];
 
   if (fromDate)
-    query.push({ createdAt: { $gte: dayjs(fromDate as string).toDate() } });
+    query.push({
+      createdAt: {
+        $gte: dayjs(fromDate as string)
+          .startOf("day")
+          .toDate(),
+      },
+    });
   if (toDate)
-    query.push({ createdAt: { $lte: dayjs(toDate as string).toDate() } });
+    query.push({
+      createdAt: {
+        $gte: dayjs(toDate as string)
+          .startOf("day")
+          .toDate(),
+        $lte: dayjs(toDate as string)
+          .endOf("day")
+          .toDate(),
+      },
+    });
 
   if (status) {
     status = JSON.parse(status!.toString());
@@ -46,6 +62,8 @@ async function handler(
       },
     });
   }
+
+  if (tellerId) query.push({ tellerId });
 
   const total = await Transaction.countDocuments(
     query.length > 0 ? { $and: query } : {}
@@ -79,4 +97,4 @@ async function handler(
     });
 }
 
-export default handler;
+export default ApiMiddleware(handler);

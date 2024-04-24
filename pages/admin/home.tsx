@@ -18,11 +18,11 @@ const Home = () => {
     { title: "Bills", onPress: () => setOpenedMenu("bills") },
     { title: "E-Wallet", onPress: () => setOpenedMenu("wallet") },
     {
-      title: "MISCELLANEOUS POS",
+      title: "POS",
       onPress: () => (window.location.href = "/pos/settings"),
     },
     {
-      title: "Report",
+      title: "Admin Miscellaneous",
       onPress: () => setOpenedMenu("transaction"),
     },
     { title: "Receipt Format", onPress: () => {} },

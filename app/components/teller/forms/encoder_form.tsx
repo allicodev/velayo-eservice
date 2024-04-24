@@ -49,6 +49,39 @@ const EncoderForm = ({
     } else null;
   };
 
+  const lastStatus = () => transaction && transaction.history.at(-1)?.status;
+
+  const getFlex = (_: string, i: number) => {
+    if (transaction?.type == "eload") {
+      return ["Phone", "Amount"].includes(_)
+        ? lastStatus() == "completed"
+          ? 3
+          : 2
+        : 3;
+    } else if (transaction?.type == "wallet") {
+      return ["Type", "Biller", "Name"].includes(_) ? 3 : 2;
+    } else {
+      return ["Type", "Biller"].includes(_)
+        ? 3
+        : lastStatus() == "completed"
+        ? 3
+        : 2;
+    }
+  };
+
+  const checkFlagMark = (_: string, i: number) => {
+    if (transaction?.type == "wallet") {
+      return !["Type", "Biller", "Name"].includes(_);
+    } else
+      return (
+        i > 1 &&
+        transaction &&
+        lastStatus() == "pending" &&
+        !["Type", "Promo"].includes(_) &&
+        textData[0][i] != "Name"
+      );
+  };
+
   const handleUpdate = () => {
     if (!isFailed) {
       if (refNumber == "") {
@@ -108,7 +141,7 @@ const EncoderForm = ({
             "Biller",
             ...Object.keys(_)
               .filter(
-                (e: any) =>
+                (e: string) =>
                   !["billerId", "transactionType", "fee", "tellerId"].includes(
                     e
                   )
@@ -225,24 +258,12 @@ const EncoderForm = ({
             style={{
               width: 150,
               fontSize: isMobile ? 18 : 20,
-              flex:
-                transaction?.type == "eload" && i < 4
-                  ? 3
-                  : i < 2
-                  ? 3
-                  : transaction &&
-                    transaction.history.at(-1)?.status == "pending"
-                  ? 2
-                  : 3,
+              flex: getFlex(_, i),
             }}
           >
             {textData[1][i]}
           </div>
-          {i > 1 &&
-          transaction &&
-          transaction.history.at(-1)?.status == "pending" &&
-          i > 1 &&
-          !["Type", "Promo"].includes(_) ? (
+          {checkFlagMark(_, i) ? (
             <div
               style={{
                 flex: 1,
