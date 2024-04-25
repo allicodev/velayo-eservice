@@ -222,7 +222,7 @@ const BranchChoicer = ({
       <Row gutter={[16, 16]}>
         {branches.map((e, i) => (
           <Col key={`branch-btn-${i}`} span={8}>
-            <BranchButton branch={e} onClick={onSelectedBranch} index={i} />
+            <BranchButton branch={e} onClick={onSelectedBranch} />
           </Col>
         ))}
       </Row>
@@ -233,11 +233,9 @@ const BranchChoicer = ({
 const BranchButton = ({
   branch,
   onClick,
-  index,
 }: {
   branch: BranchData;
   onClick: (obj: BranchData) => void;
-  index: number;
 }) => {
   const [onHover, setOnHover] = useState(false);
   return (
@@ -264,7 +262,7 @@ const BranchButton = ({
         }}
         underline={onHover}
       >
-        Branch {index + 1}
+        {branch.name}
       </Typography.Text>
       <Typography.Text
         style={{

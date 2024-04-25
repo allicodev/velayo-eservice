@@ -17,9 +17,18 @@ class PrinterService extends Loader {
     return response;
   }
 
-  public async printReceipt({ ...p }: TransactionPrinter) {
+  public async printReceipt({
+    printData,
+    branchId,
+  }: {
+    printData: TransactionPrinter;
+    branchId: string;
+  }) {
     this.loaderPush("printing-receipt");
-    const response = await this.instance.post("/print/receipt", p);
+    const response = await this.instance.post("/print/receipt", {
+      ...printData,
+      branchId,
+    });
     this.loaderPop("printing-receipt");
     return response;
   }

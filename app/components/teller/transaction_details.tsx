@@ -18,6 +18,7 @@ import {
   TransactionHistoryDataType_type,
 } from "@/types";
 import { transactionToPrinter } from "@/assets/ts";
+import { useUserStore } from "@/provider/context";
 
 const TransactionDetails = ({
   open,
@@ -28,6 +29,7 @@ const TransactionDetails = ({
   const printer = new PrinterService();
 
   const latestHistory = () => transaction?.history?.at(-1);
+  const { currentBranch } = useUserStore();
 
   const getStatusColor = (status: TransactionHistoryDataType_type): string => {
     if (status == "completed") return "#29A645";
@@ -90,7 +92,10 @@ const TransactionDetails = ({
   const handlePrint = () => {
     (async (_) => {
       if (transaction) {
-        let { data } = await _.printReceipt(transactionToPrinter(transaction));
+        let { data } = await _.printReceipt({
+          printData: transactionToPrinter(transaction),
+          branchId: currentBranch,
+        });
 
         if (data?.success ?? false) {
           message.success(data?.message ?? "Success");
