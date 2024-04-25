@@ -146,13 +146,14 @@ const EncoderForm = ({
                     e
                   )
               )
-              .map((e) =>
-                e
+              .map((e) => {
+                console.log(e);
+                return e
                   .replaceAll("_", " ")
                   .split(" ")
                   .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
-                  .join(" ")
-              ),
+                  .join(" ");
+              }),
           ],
           [
             transaction.type.toLocaleUpperCase(),

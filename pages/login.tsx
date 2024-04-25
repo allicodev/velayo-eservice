@@ -2,11 +2,12 @@ import React, { useEffect, useState } from "react";
 import {
   Button,
   Card,
+  Col,
   Form,
   Image,
   Input,
   Modal,
-  Space,
+  Row,
   Typography,
   message,
 } from "antd";
@@ -215,23 +216,16 @@ const BranchChoicer = ({
       closable={false}
       open={open}
       title={<Typography.Title level={3}>Select a Branch</Typography.Title>}
+      width={700}
+      centered
     >
-      <Space
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
+      <Row gutter={[16, 16]}>
         {branches.map((e, i) => (
-          <BranchButton
-            branch={e}
-            onClick={onSelectedBranch}
-            key={`branch-btn-${i}`}
-            index={i}
-          />
+          <Col key={`branch-btn-${i}`} span={8}>
+            <BranchButton branch={e} onClick={onSelectedBranch} index={i} />
+          </Col>
         ))}
-      </Space>
+      </Row>
     </Modal>
   );
 };

@@ -1,17 +1,25 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Col, Row } from "antd";
 
-import { UserBadge, DashboardBtn } from "@/app/components";
-import UserList from "@/app/components/admin/user_list";
-import BillingSettings from "@/app/components/admin/billing_settings";
-import EWalletSettings from "@/app/components/admin/ewallet_settings";
 import Report from "@/app/components/admin/report";
+import BranchService from "@/provider/branch.service";
+import UserList from "@/app/components/admin/user_list";
+import Branch from "@/app/components/admin/components/branch";
+import EWalletSettings from "@/app/components/admin/ewallet_settings";
+import BillingSettings from "@/app/components/admin/billing_settings";
+
 import { useUserStore } from "@/provider/context";
+import { UserBadge, DashboardBtn } from "@/app/components";
+import { BranchData } from "@/types";
 
 const Home = () => {
   const [openedMenu, setOpenedMenu] = useState("");
+  const [trigger, setTrigger] = useState(0);
+  const [branches, setBranches] = useState<BranchData[]>([]);
 
   const { currentUser } = useUserStore();
+
+  const branch = new BranchService();
 
   const menu = [
     { title: "Users", onPress: () => setOpenedMenu("user") },
@@ -25,8 +33,15 @@ const Home = () => {
       title: "Admin Miscellaneous",
       onPress: () => setOpenedMenu("transaction"),
     },
-    { title: "Receipt Format", onPress: () => {} },
+    { title: "Receipt Format", onPress: () => setOpenedMenu("branch") },
   ];
+
+  useEffect(() => {
+    (async (_) => {
+      let res2 = await _.getBranch({});
+      if (res2?.success ?? false) setBranches(res2?.data ?? []);
+    })(branch);
+  }, [trigger]);
 
   return (
     <>
@@ -88,8 +103,20 @@ const Home = () => {
         open={openedMenu == "transaction"}
         close={() => setOpenedMenu("")}
       />
+      <Branch
+        open={openedMenu == "branch"}
+        close={() => setOpenedMenu("")}
+        branches={branches}
+        refresh={() => setTrigger(trigger + 1)}
+      />
     </>
   );
 };
 
 export default Home;
+
+{
+  /* <Typography.Text type="secondary" style={{ marginLeft: 10 }}>
+{activeKey == "branch" ? "Manage Branch(es)" : ""}
+</Typography.Text> */
+}
