@@ -4,7 +4,6 @@ import { Response } from "@/types";
 import { Pusher2 } from "@/provider/utils/pusher";
 
 import type { NextApiRequest, NextApiResponse } from "next";
-import { useUserStore } from "@/provider/context";
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
   await dbConnect();

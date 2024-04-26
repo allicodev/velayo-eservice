@@ -401,6 +401,7 @@ const TransactionHistory = ({
       width="100%"
       height="100%"
       closeIcon={<DownOutlined />}
+      zIndex={1}
       extra={[
         <Space key="extra-container">
           <div style={{ display: "flex", flexDirection: "row" }}>

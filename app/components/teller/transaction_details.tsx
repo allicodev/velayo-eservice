@@ -154,6 +154,7 @@ const TransactionDetails = ({
         </Typography.Title>
       }
       width={850}
+      zIndex={2}
     >
       <Row gutter={[4, 0]}>
         <Col span={14}>
