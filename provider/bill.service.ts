@@ -128,6 +128,7 @@ class BillService extends Loader {
       fee,
       amount,
       tellerId,
+      branchId,
       history: [
         {
           description: "First  Transaction requested",
@@ -152,7 +153,8 @@ class BillService extends Loader {
     order?: "descending" | "ascending",
     fromDate?: Dayjs | null,
     toDate?: Dayjs | null,
-    tellerId?: string
+    tellerId?: string,
+    branchId?: string
   ) {
     this.loaderPush("get-transaction");
     const response = await this.instance.get<Transaction[]>({
@@ -165,6 +167,7 @@ class BillService extends Loader {
         fromDate,
         toDate,
         tellerId,
+        branchId,
       },
     });
     this.loaderPop("get-transaction");
@@ -218,6 +221,7 @@ class BillService extends Loader {
       amount,
       fee: 2,
       tellerId: eload.tellerId,
+      branchId,
       history: [
         {
           description: "First  Transaction requested",
@@ -248,6 +252,7 @@ class BillService extends Loader {
       ...(amount != null ? { amount } : { amount: 0 }),
       fee: 0,
       tellerId,
+      branchId,
       history: [
         {
           description: "Transaction Completed",
@@ -262,6 +267,16 @@ class BillService extends Loader {
       payload: { ...transaction, branchId },
     });
     this.loaderPop("request-shoppe");
+    return response;
+  }
+
+  public async deleteBiller(_id: string): Promise<Response> {
+    this.loaderPush("delete-biller");
+    const response = await this.instance.get<Response>({
+      endpoint: "/bill/delete-biller",
+      query: { _id },
+    });
+    this.loaderPop("delete-biller");
     return response;
   }
 }

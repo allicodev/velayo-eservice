@@ -9,6 +9,14 @@ const nextConfig = {
       tls: false,
     };
 
+    config.module.rules.push({
+      test: /\.(mp3)$/,
+      type: "asset/resource",
+      generator: {
+        filename: "static/chunks/[path][name].[hash][ext]",
+      },
+    });
+
     return config;
   },
   env: {
@@ -17,6 +25,23 @@ const nextConfig = {
     PUSHER_APP_ID: process.env.PUSHER_APP_ID,
     PUSHER_APP_KEY: process.env.PUSHER_APP_KEY,
     PUSHER_APP_SECRET: process.env.PUSHER_APP_SECRET,
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Cross-Origin-Embedder-Policy",
+            value: "require-corp",
+          },
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin",
+          },
+        ],
+      },
+    ];
   },
 };
 

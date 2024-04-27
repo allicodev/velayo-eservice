@@ -87,7 +87,9 @@ const Teller = () => {
   ];
 
   const initPusherProvider = () => {
-    let channel = new Pusher().subscribe("teller");
+    let channel = new Pusher().subscribe(
+      `teller-${currentUser?._id.slice(-5)}`
+    );
     channel.bind("notify", handleNotify);
 
     return () => {
@@ -150,7 +152,7 @@ const Teller = () => {
   };
 
   useEffect(() => {
-    initPusherProvider();
+    return initPusherProvider();
   }, []);
 
   useEffect(() => {

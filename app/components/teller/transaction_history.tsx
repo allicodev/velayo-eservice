@@ -18,10 +18,6 @@ import Excel from "exceljs";
 
 import BillService from "@/provider/bill.service";
 
-// TODO: "to date" filter not working on same day
-// TODO: "status" filter dont respect "date" filter when updated
-// TODO: date pocker "today" not working
-
 import {
   DrawerBasicProps,
   ProtectedUser,
@@ -30,6 +26,7 @@ import {
   TransactionType,
 } from "@/types";
 import UserService from "@/provider/user.service";
+import { useUserStore } from "@/provider/context";
 
 const TransactionHistory = ({
   open,
@@ -48,6 +45,8 @@ const TransactionHistory = ({
 
   const bill = new BillService();
   const user = new UserService();
+
+  const { currentBranch } = useUserStore();
 
   // * FILTER
   const [selectedStatus, setSelectedStatus] = useState<
@@ -352,7 +351,8 @@ const TransactionHistory = ({
         "descending",
         fromDate,
         toDate,
-        tellerId
+        tellerId,
+        currentBranch
       );
 
       if (res?.success ?? false) {
@@ -398,9 +398,8 @@ const TransactionHistory = ({
         setToDate(null);
         close();
       }}
-      width="100%"
-      height="100%"
       closeIcon={<DownOutlined />}
+      height="100%"
       zIndex={1}
       extra={[
         <Space key="extra-container">
@@ -472,13 +471,10 @@ const TransactionHistory = ({
         </Typography.Text>
       }
       style={{
-        borderTopLeftRadius: 25,
-        borderBottomLeftRadius: 25,
+        borderRadius: 10,
       }}
       rootStyle={{
-        marginTop: 20,
-        marginLeft: 20,
-        marginBottom: 20,
+        margin: 20,
       }}
       destroyOnClose
     >
@@ -489,7 +485,7 @@ const TransactionHistory = ({
           marginBottom: 10,
         }}
       >
-        <div style={{ marginRight: 10 }}>
+        {/* <div style={{ marginRight: 10 }}>
           <label style={{ marginRight: 5 }}>Teller</label>
           <AutoComplete
             style={{
@@ -522,7 +518,7 @@ const TransactionHistory = ({
             autoFocus
             allowClear
           />
-        </div>
+        </div> */}
         <div>
           <label style={{ marginRight: 5 }}>Status</label>
           <Select
@@ -591,10 +587,12 @@ const TransactionHistory = ({
         dataSource={transactions}
         columns={columns}
         style={style}
+        scroll={{
+          y: "60vh",
+        }}
         rowKey={(e) => e._id ?? e.type}
         pagination={{
-          pageSize: 10,
-          hideOnSinglePage: true,
+          defaultPageSize: 10,
           total,
           onChange: (page, pageSize) =>
             getTransaction({

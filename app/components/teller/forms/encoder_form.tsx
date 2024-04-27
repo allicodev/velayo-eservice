@@ -15,7 +15,7 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 
-import { BillsPaymentProps } from "@/types";
+import { BillsPaymentProps, Branch, BranchData, User } from "@/types";
 import { FloatLabel } from "@/assets/ts";
 import BillService from "@/provider/bill.service";
 import EtcService from "@/provider/etc.service";
@@ -56,12 +56,16 @@ const EncoderForm = ({
       return ["Phone", "Amount"].includes(_)
         ? lastStatus() == "completed"
           ? 3
+          : ["Teller", "Branch Name"].includes(_)
+          ? 3
           : 2
         : 3;
     } else if (transaction?.type == "wallet") {
-      return ["Type", "Biller", "Name"].includes(_) ? 3 : 2;
+      return ["Type", "Biller", "Name", "Teller", "Branch Name"].includes(_)
+        ? 3
+        : 2;
     } else {
-      return ["Type", "Biller"].includes(_)
+      return ["Type", "Biller", "Teller", "Branch Name"].includes(_)
         ? 3
         : lastStatus() == "completed"
         ? 3
@@ -71,13 +75,13 @@ const EncoderForm = ({
 
   const checkFlagMark = (_: string, i: number) => {
     if (transaction?.type == "wallet") {
-      return !["Type", "Biller", "Name"].includes(_);
+      return !["Type", "Biller", "Name", "Teller", "Branch Name"].includes(_);
     } else
       return (
         i > 1 &&
         transaction &&
         lastStatus() == "pending" &&
-        !["Type", "Promo"].includes(_) &&
+        !["Type", "Promo", "Teller", "Branch Name"].includes(_) &&
         textData[0][i] != "Name"
       );
   };
@@ -139,6 +143,7 @@ const EncoderForm = ({
           [
             "Type",
             "Biller",
+            "Teller",
             ...Object.keys(_)
               .filter(
                 (e: string) =>
@@ -147,7 +152,6 @@ const EncoderForm = ({
                   )
               )
               .map((e) => {
-                console.log(e);
                 return e
                   .replaceAll("_", " ")
                   .split(" ")
@@ -158,6 +162,9 @@ const EncoderForm = ({
           [
             transaction.type.toLocaleUpperCase(),
             transaction.sub_type.toLocaleUpperCase(),
+            `${(transaction.tellerId as User)?.name ?? "No Teller"} (${
+              (transaction.branchId as Branch)?.name ?? "No Branch"
+            })` ?? "No Teller",
             ...Object.keys(_)
               .filter(
                 (e: any) => !["billerId", "transactionType", "fee"].includes(e)

@@ -105,3 +105,10 @@ a {
     color-scheme: dark;
   }
 }
+
+/* antd globals */
+.ant-select-selector:focus,
+.ant-select-selector:focus-within {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}

@@ -20,12 +20,18 @@ async function handler(
       success: false,
       message: "Incorrect Request Method",
     });
-  return await Transaction.findOneAndUpdate({ _id: req.body._id }, req.body)
+  return await Transaction.findOneAndUpdate({ _id: req.body._id }, req.body, {
+    returnOriginal: false,
+  })
     .then(async (e) => {
-      await new Pusher2().emit("teller", "notify", {
-        queue: e.queue,
-        id: e._id.toString(),
-      });
+      await new Pusher2().emit(
+        `teller-${e.tellerId.toString().slice(-5)}`,
+        "notify",
+        {
+          queue: e.queue,
+          id: e._id.toString(),
+        }
+      );
       return res.json({
         code: 200,
         success: true,

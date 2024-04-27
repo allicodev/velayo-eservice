@@ -21,7 +21,8 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  let { page, pageSize, status, order, fromDate, toDate, tellerId } = req.query;
+  let { page, pageSize, status, order, fromDate, toDate, tellerId, branchId } =
+    req.query;
 
   const _page = Number.parseInt(page!.toString()) - 1;
 
@@ -64,6 +65,7 @@ async function handler(
   }
 
   if (tellerId) query.push({ tellerId });
+  if (branchId) query.push({ branchId });
 
   const total = await Transaction.countDocuments(
     query.length > 0 ? { $and: query } : {}
@@ -75,7 +77,7 @@ async function handler(
     .sort({
       createdAt: typeof order == "string" && order == "descending" ? -1 : 1,
     })
-    .populate("tellerId")
+    .populate("tellerId branchId")
     .then((e: any[]) => {
       return res.json({
         code: 200,

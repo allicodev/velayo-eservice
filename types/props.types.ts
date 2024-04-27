@@ -130,10 +130,9 @@ export interface EloadProps {
   onSubmit: (eload: Eload) => Promise<boolean | void>;
 }
 
-export type EloadProvider = "TM" | "GLOBE" | "SMART" | "TNT" | "DITO";
 export type ELoadType = "regular" | "promo";
 export interface Eload {
-  provider: EloadProvider | null;
+  provider?: string | null;
   phone: string | null;
   amount: number | null;
   type: ELoadType | null;

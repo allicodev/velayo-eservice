@@ -14,8 +14,10 @@ import dayjs from "dayjs";
 
 import PrinterService from "@/provider/printer.service";
 import {
+  Branch,
   TransactionDetailsProps,
   TransactionHistoryDataType_type,
+  User,
 } from "@/types";
 import { transactionToPrinter } from "@/assets/ts";
 import { useUserStore } from "@/provider/context";
@@ -112,8 +114,12 @@ const TransactionDetails = ({
           [
             "Type",
             "Biller",
+            "Teller",
             ...Object.keys(_)
-              .filter((e: any) => !["billerId", "transactionType"].includes(e))
+              .filter(
+                (e: any) =>
+                  !["billerId", "transactionType", "tellerId"].includes(e)
+              )
               .map((e) =>
                 e
                   .replaceAll("_", " ")
@@ -127,8 +133,14 @@ const TransactionDetails = ({
           [
             transaction.type.toLocaleUpperCase(),
             transaction.sub_type.toLocaleUpperCase(),
+            `${(transaction.tellerId as User)?.name ?? "No Teller"} (${
+              (transaction.branchId as Branch)?.name ?? "No Branch"
+            })` ?? "No Teller",
             ...Object.keys(_)
-              .filter((e: any) => !["billerId", "transactionType"].includes(e))
+              .filter(
+                (e: any) =>
+                  !["billerId", "transactionType", "tellerId"].includes(e)
+              )
               .map((e: any) => {
                 if (typeof _[e] == "string" && _[e].includes("_money"))
                   return `₱${parseInt(_[e].split("_")[0]).toLocaleString()}`;

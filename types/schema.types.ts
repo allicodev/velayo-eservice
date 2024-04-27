@@ -45,6 +45,7 @@ export interface Transaction {
   _id?: string;
   type: TransactionType;
   tellerId: User | string;
+  branchId: Branch | string;
   sub_type: string;
   transactionDetails: string;
   reference?: string;

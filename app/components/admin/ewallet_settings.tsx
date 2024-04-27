@@ -16,12 +16,14 @@ import {
   Card,
   Tooltip,
   Alert,
+  Popconfirm,
 } from "antd";
 import {
   DownOutlined,
   SaveOutlined,
   PlusOutlined,
   ReloadOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 
 import {
@@ -659,6 +661,16 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
       }
     })(wallet);
   };
+  const handleDeleteWallet = () => {
+    (async (_) => {
+      let res = await _.deleteWallet(selectedWallet?._id ?? "");
+      if (res?.success ?? false) {
+        setTrigger(trigger + 1);
+        setSelectedWallet(null);
+        message.success(res?.message ?? "Success");
+      }
+    })(wallet);
+  };
 
   useEffect(() => {
     getWallets();
@@ -774,6 +786,13 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                         paddingTop: 8,
                         paddingBottom: 8,
                         height: 60,
+                        ...(selectedWallet?._id == e._id ?? false
+                          ? {
+                              background: "#294B0F",
+                            }
+                          : {
+                              background: "#fff",
+                            }),
                       }}
                       onClick={() => {
                         setSelectedTabs("cashin-settings-tabs");
@@ -785,11 +804,9 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                           fontSize: 30,
                           ...(selectedWallet?._id == e._id ?? false
                             ? {
-                                background: "#294B0F",
                                 color: "#fff",
                               }
                             : {
-                                background: "#fff",
                                 color: "#000",
                               }),
                           maxWidth: 270,
@@ -812,58 +829,72 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
           >
             {selectedWallet != null &&
               renderSettingsForm(selectedWallet, getTabsAsWalletType())}
-            {selectedWallet != null && selectedTabs == "fee-settings-tabs" ? (
+            {selectedWallet != null && (
               <Space
                 style={{
                   position: "absolute",
                   right: 0,
-                  bottom: 20,
+                  bottom: 25,
                 }}
               >
-                <Button
-                  size="large"
-                  type="primary"
-                  ghost
-                  style={{
-                    width: 150,
-                  }}
-                  onClick={() => setOpenUpdateName(true)}
+                <Popconfirm
+                  title="Are you sure you want to delete this wallet ?"
+                  okType="primary"
+                  okText="DELETE"
+                  okButtonProps={{ danger: true }}
+                  onConfirm={handleDeleteWallet}
                 >
-                  Update Name
-                </Button>
-                <Button
-                  size="large"
-                  type="primary"
-                  icon={<SaveOutlined />}
-                  disabled={!updated}
-                  style={{
-                    width: 150,
-                  }}
-                  onClick={handleSave}
-                >
-                  Save
-                </Button>
+                  <Button icon={<DeleteOutlined />} size="large" danger>
+                    Delete Biller
+                  </Button>
+                </Popconfirm>
+                {selectedTabs == "fee-settings-tabs" && (
+                  <>
+                    <Button
+                      size="large"
+                      type="primary"
+                      ghost
+                      style={{
+                        width: 150,
+                      }}
+                      onClick={() => setOpenUpdateName(true)}
+                    >
+                      Update Name
+                    </Button>
+                    <Button
+                      size="large"
+                      type="primary"
+                      icon={<SaveOutlined />}
+                      disabled={!updated}
+                      style={{
+                        width: 150,
+                      }}
+                      onClick={handleSave}
+                    >
+                      Save
+                    </Button>
+                  </>
+                )}
+                {["cashin-settings-tabs", "cashout-settings-tabs"].includes(
+                  selectedTabs
+                ) && (
+                  <Button
+                    icon={<PlusOutlined />}
+                    size="large"
+                    onClick={() => {
+                      setWalletOptions({
+                        open: true,
+                        options: null,
+                        index: -1,
+                        id: null,
+                      });
+                    }}
+                  >
+                    Add New Option
+                  </Button>
+                )}
               </Space>
-            ) : ["cashin-settings-tabs", "cashout-settings-tabs"].includes(
-                selectedTabs
-              ) ? (
-              <Space style={{ position: "absolute", right: 0, bottom: 20 }}>
-                <Button
-                  icon={<PlusOutlined />}
-                  size="large"
-                  onClick={() => {
-                    setWalletOptions({
-                      open: true,
-                      options: null,
-                      index: -1,
-                      id: null,
-                    });
-                  }}
-                >
-                  Add New Option
-                </Button>
-              </Space>
-            ) : null}
+            )}
           </Col>
         </Row>
       </Drawer>

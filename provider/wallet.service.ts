@@ -6,6 +6,7 @@ import {
   Transaction,
   Wallet,
   WalletType,
+  Response,
 } from "@/types";
 
 class WalletService extends Loader {
@@ -172,6 +173,7 @@ class WalletService extends Loader {
       amount,
       fee,
       tellerId,
+      branchId,
       history: [
         {
           description: "First  Transaction requested",
@@ -186,6 +188,16 @@ class WalletService extends Loader {
       payload: { ...transaction, branchId },
     });
     this.loaderPop("request-bill");
+    return response;
+  }
+
+  public async deleteWallet(_id: string): Promise<Response> {
+    this.loaderPush("delete-biller");
+    const response = await this.instance.get<Response>({
+      endpoint: "/wallet/delete-wallet",
+      query: { _id },
+    });
+    this.loaderPop("delete-biller");
     return response;
   }
 }

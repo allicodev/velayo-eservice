@@ -8,6 +8,7 @@ import {
   Drawer,
   Input,
   InputNumber,
+  Popconfirm,
   Row,
   Space,
   Tabs,
@@ -21,6 +22,7 @@ import {
   SettingOutlined,
   SaveOutlined,
   ReloadOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import {
   DragDropContext,
@@ -494,6 +496,17 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
     })(bill);
   };
 
+  const handleDeleteBiller = () => {
+    (async (_) => {
+      let res = await _.deleteBiller(selectedBiller?._id ?? "");
+      if (res?.success ?? false) {
+        setTrigger(trigger + 1);
+        setSelectedBiller(null);
+        message.success(res?.message ?? "Success");
+      }
+    })(bill);
+  };
+
   useEffect(() => {
     if (open) getBillers();
   }, [open, trigger]);
@@ -623,11 +636,9 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                         ...(selectedBiller?._id == e._id ?? false
                           ? {
                               background: "#294B0F",
-                              color: "#fff",
                             }
                           : {
                               background: "#fff",
-                              color: "#000",
                             }),
                       }}
                       onClick={() => {
@@ -640,11 +651,9 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                           fontSize: 30,
                           ...(selectedBiller?._id == e._id ?? false
                             ? {
-                                background: "#294B0F",
                                 color: "#fff",
                               }
                             : {
-                                background: "#fff",
                                 color: "#000",
                               }),
                           maxWidth: 270,
@@ -667,47 +676,62 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
           >
             {selectedBiller != null && getSideB(selectedBiller)}
             {
-              selectedBiller != null &&
-              // <FloatButton.Group
-              //   trigger="hover"
-              //   type="primary"
-              //   icon={<SettingOutlined />}
-              // >
-              selectedTab == "form-settings-tab" ? (
-                <Space style={{ position: "absolute", right: 0, bottom: 20 }}>
-                  <Button
-                    icon={<PlusOutlined />}
-                    size="large"
-                    onClick={() =>
-                      setBillsOptions({
-                        open: true,
-                        options: null,
-                        index: -1,
-                        id: null,
-                      })
-                    }
+              selectedBiller != null ? (
+                // <FloatButton.Group
+                //   trigger="hover"
+                //   type="primary"
+                //   icon={<SettingOutlined />}
+                // >
+                <Space style={{ position: "absolute", right: 0, bottom: 25 }}>
+                  <Popconfirm
+                    title="Are you sure you want to delete this biller ?"
+                    okType="primary"
+                    okText="DELETE"
+                    okButtonProps={{ danger: true }}
+                    onConfirm={handleDeleteBiller}
                   >
-                    Add New Option
-                  </Button>
-                  <Button
-                    icon={<SettingOutlined />}
-                    type="primary"
-                    onClick={() => setOpenUpdatedBiller(true)}
-                    size="large"
-                  >
-                    Update Biller Name
-                  </Button>
-                </Space>
-              ) : selectedTab == "fee-settings-tab" ? (
-                <Space style={{ position: "absolute", right: 0, bottom: 0 }}>
-                  <Button
-                    icon={<SaveOutlined />}
-                    type="primary"
-                    onClick={handleSaveFee}
-                    size="large"
-                  >
-                    Update Fee
-                  </Button>
+                    <Button icon={<DeleteOutlined />} size="large" danger>
+                      Delete Biller
+                    </Button>
+                  </Popconfirm>
+                  {selectedTab == "form-settings-tab" && (
+                    <>
+                      <Button
+                        icon={<PlusOutlined />}
+                        size="large"
+                        onClick={() =>
+                          setBillsOptions({
+                            open: true,
+                            options: null,
+                            index: -1,
+                            id: null,
+                          })
+                        }
+                      >
+                        Add New Option
+                      </Button>
+                      <Button
+                        icon={<SettingOutlined />}
+                        type="primary"
+                        onClick={() => setOpenUpdatedBiller(true)}
+                        size="large"
+                      >
+                        Update Biller Name
+                      </Button>
+                    </>
+                  )}
+                  {selectedTab == "fee-settings-tab" && (
+                    <>
+                      <Button
+                        icon={<SaveOutlined />}
+                        type="primary"
+                        onClick={handleSaveFee}
+                        size="large"
+                      >
+                        Update Fee
+                      </Button>
+                    </>
+                  )}
                 </Space>
               ) : null
               // </FloatButton.Group>

@@ -1,30 +1,29 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import {
-  Button,
+  Modal,
   Select,
-  Space,
   Table,
   TableProps,
   Tag,
   Typography,
   message,
-  notification,
 } from "antd";
-import { CopyOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { CopyOutlined } from "@ant-design/icons";
 
 import {
   TransactionOptProps,
   Transaction,
   TransactionHistoryStatus,
 } from "@/types";
+import notifSound from "../../public/notif.mp3";
 
 import { UserBadge } from "@/app/components";
 import { EncoderForm } from "@/app/components/teller";
 import { useUserStore } from "@/provider/context";
-import BillService from "@/provider/bill.service";
 import { Pusher } from "@/provider/utils/pusher";
+import BillService from "@/provider/bill.service";
 
 const Encoder = () => {
   const [billsOption, setBillsOption] = useState<TransactionOptProps>({
@@ -39,11 +38,13 @@ const Encoder = () => {
     useState<TransactionHistoryStatus | null>("pending");
   const [isMobile, setIsMobile] = useState<any>();
 
-  const [api, contextHolder] = notification.useNotification();
-
   const { currentUser } = useUserStore();
 
   const bill = new BillService();
+
+  // const [play] = useSound(notifSound);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [api, contextHolder] = Modal.useModal();
 
   const getStatusBadge = (str: TransactionHistoryStatus | null) => {
     switch (str) {
@@ -162,16 +163,24 @@ const Encoder = () => {
     //   message: "There is a new request transaction",
     //   duration: 0,
     // });
-    // getTransactions({ page: 1, status: [selectedStatus!] });
+
+    audioRef.current?.play();
+    getTransactions({ page: 1, status: [selectedStatus!] });
   };
 
   useEffect(() => {
     getTransactions({ page: 1, status: [selectedStatus!] });
-    initPusherProvider();
+    setIsMobile(typeof window !== "undefined" ? window.innerWidth < 768 : null);
+    return initPusherProvider();
   }, [trigger]);
 
   useEffect(() => {
-    setIsMobile(typeof window !== "undefined" ? window.innerWidth < 768 : null);
+    // api.confirm({
+    //   title: "Turn on notification sound?",
+    //   okText: "YES",
+    //   onOk: () => Modal.destroyAll(),
+    //   onCancel: () => Modal.destroyAll(),
+    // });
   }, []);
 
   return (
@@ -206,7 +215,10 @@ const Encoder = () => {
               justifyContent: "space-between",
             }}
           >
-            <Typography.Text style={{ fontSize: 25, marginLeft: 10 }}>
+            <Typography.Text
+              style={{ fontSize: 25, marginLeft: 10 }}
+              onClick={() => handleNotify()}
+            >
               Transactions
             </Typography.Text>
             <Select
@@ -250,8 +262,6 @@ const Encoder = () => {
               marginRight: 10,
             }}
             pagination={{
-              pageSize: 10,
-              hideOnSinglePage: true,
               total,
               onChange: (page, pageSize) =>
                 getTransactions({ page, pageSize, status: [selectedStatus!] }),
@@ -265,8 +275,10 @@ const Encoder = () => {
           />
         </div>
       </div>
+
       {/* context */}
       {contextHolder}
+      <audio ref={audioRef} src={notifSound} />
       <EncoderForm
         close={() => setBillsOption({ open: false, transaction: null })}
         refresh={() => setTrigger(trigger + 1)}
