@@ -32,6 +32,7 @@ const EncoderForm = ({
   const [textData, setTextData] = useState<string[][]>([[], []]);
   const [copiedIndex, setCopiedIndex] = useState(-1);
   const [isFailed, setIsFailed] = useState(false);
+  const [isReceived, setIsReceived] = useState(true);
   const [reason, setReason] = useState("");
   const [refNumber, setRefNumber] = useState<string | null>("");
   const [isDisabled, setIsDisabled] = useState(false);
@@ -94,10 +95,11 @@ const EncoderForm = ({
 
   const handleUpdate = () => {
     if (!isFailed) {
-      if (refNumber == "") {
+      if (!transaction?.sub_type.includes("cash-out") && refNumber == "") {
         message.warning("Reference number is empty. Cannot update.");
         return;
       }
+
       (async (_) => {
         if (transaction) {
           transaction.history.push({
@@ -107,7 +109,9 @@ const EncoderForm = ({
           let res = await _.updateTransaction({
             ...transaction,
             type: transaction.type,
-            reference: refNumber!,
+            reference: transaction?.sub_type.includes("cash-out")
+              ? "RECEIVED"
+              : refNumber!,
           });
 
           if (res.success) {
@@ -128,7 +132,6 @@ const EncoderForm = ({
           let res = await _.updateTransaction({
             ...transaction,
             type: transaction.type,
-            reference: refNumber!,
           });
 
           if (res.success) {
@@ -338,11 +341,30 @@ const EncoderForm = ({
             style={{
               marginTop: 10,
               cursor: "pointer",
-              display: "inline-block",
+              display: "flex",
             }}
-            onClick={() => setIsFailed(!isFailed)}
           >
-            <Checkbox checked={isFailed} /> Set Status Failed
+            <div
+              style={{ marginRight: 20 }}
+              onClick={() => {
+                setIsFailed(true);
+                setIsReceived(false);
+              }}
+            >
+              <Checkbox checked={isFailed} style={{ marginRight: 5 }} /> Set
+              Status Failed
+            </div>
+            {transaction.sub_type.includes("cash-out") && (
+              <div
+                onClick={() => {
+                  setIsFailed(false);
+                  setIsReceived(true);
+                }}
+              >
+                <Checkbox checked={isReceived} style={{ marginRight: 5 }} />{" "}
+                Received
+              </div>
+            )}
           </div>
           {isFailed ? (
             <FloatLabel label="Reason" value={reason}>
@@ -358,26 +380,28 @@ const EncoderForm = ({
               />
             </FloatLabel>
           ) : (
-            <div style={{ marginTop: 20 }}>
-              <FloatLabel label="Reference Number" value={refNumber!}>
-                <Input
-                  size="large"
-                  value={refNumber!}
-                  onChange={(e) => setRefNumber(e.target.value)}
-                  suffix={
-                    <Button
-                      onClick={() =>
-                        navigator.clipboard
-                          .readText()
-                          .then((e) => setRefNumber(e))
-                      }
-                    >
-                      paste
-                    </Button>
-                  }
-                />
-              </FloatLabel>
-            </div>
+            !transaction.sub_type.includes("cash-out") && (
+              <div style={{ marginTop: 20 }}>
+                <FloatLabel label="Reference Number" value={refNumber!}>
+                  <Input
+                    size="large"
+                    value={refNumber!}
+                    onChange={(e) => setRefNumber(e.target.value)}
+                    suffix={
+                      <Button
+                        onClick={() =>
+                          navigator.clipboard
+                            .readText()
+                            .then((e) => setRefNumber(e))
+                        }
+                      >
+                        paste
+                      </Button>
+                    }
+                  />
+                </FloatLabel>
+              </div>
+            )
           )}
           <Button
             type="primary"
@@ -385,6 +409,7 @@ const EncoderForm = ({
             block
             onClick={handleUpdate}
             disabled={isDisabled}
+            style={{ marginTop: 10 }}
           >
             Update Transaction
           </Button>
