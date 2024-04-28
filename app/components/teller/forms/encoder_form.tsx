@@ -20,6 +20,8 @@ import { FloatLabel } from "@/assets/ts";
 import BillService from "@/provider/bill.service";
 import EtcService from "@/provider/etc.service";
 
+// TODO: refactor the other details rendering, same as the billing form
+
 const EncoderForm = ({
   open,
   close,
@@ -63,11 +65,11 @@ const EncoderForm = ({
     } else if (transaction?.type == "wallet") {
       return transaction.sub_type.includes("cash-out")
         ? 3
-        : ["Type", "Biller", "Name", "Teller", "Branch Name"].includes(_)
+        : ["Type", "Biller", "Name", "Teller", "Branch"].includes(_)
         ? 3
         : 2;
     } else {
-      return ["Type", "Biller", "Teller", "Branch Name"].includes(_)
+      return ["Type", "Biller", "Teller", "Branch"].includes(_)
         ? 3
         : lastStatus() == "completed"
         ? 3
@@ -79,7 +81,7 @@ const EncoderForm = ({
     if (transaction?.type == "wallet") {
       return transaction.sub_type.includes("cash-out")
         ? false
-        : !["Type", "Biller", "Name", "Teller", "Branch Name"].includes(_);
+        : !["Type", "Biller", "Name", "Teller", "Branch"].includes(_);
     } else
       return (
         i > 1 &&
@@ -147,7 +149,6 @@ const EncoderForm = ({
           [
             "Type",
             "Biller",
-            "Teller",
             ...Object.keys(_)
               .filter(
                 (e: string) =>
@@ -162,12 +163,12 @@ const EncoderForm = ({
                   .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
                   .join(" ");
               }),
+            "Teller",
             "Branch",
           ],
           [
             transaction.type.toLocaleUpperCase(),
             transaction.sub_type.toLocaleUpperCase(),
-            `${(transaction.tellerId as User)?.name ?? "No Teller"}`,
             ...Object.keys(_)
               .filter(
                 (e: any) =>
@@ -182,6 +183,7 @@ const EncoderForm = ({
                   ).toLocaleString()}`;
                 return _[e];
               }),
+            (transaction.tellerId as User)?.name ?? "No Teller",
             (transaction.branchId as Branch)?.name ?? "No Branch",
           ],
         ]);
