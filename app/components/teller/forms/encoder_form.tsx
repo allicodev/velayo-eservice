@@ -53,15 +53,17 @@ const EncoderForm = ({
 
   const getFlex = (_: string, i: number) => {
     if (transaction?.type == "eload") {
-      return ["Phone", "Amount"].includes(_)
+      return ["Phone", "Amount", "Teller"].includes(_)
         ? lastStatus() == "completed"
           ? 3
-          : ["Teller", "Branch Name"].includes(_)
+          : ["Teller", "Branch"].includes(_)
           ? 3
           : 2
         : 3;
     } else if (transaction?.type == "wallet") {
-      return ["Type", "Biller", "Name", "Teller", "Branch Name"].includes(_)
+      return transaction.sub_type.includes("cash-out")
+        ? 3
+        : ["Type", "Biller", "Name", "Teller", "Branch Name"].includes(_)
         ? 3
         : 2;
     } else {
@@ -75,13 +77,15 @@ const EncoderForm = ({
 
   const checkFlagMark = (_: string, i: number) => {
     if (transaction?.type == "wallet") {
-      return !["Type", "Biller", "Name", "Teller", "Branch Name"].includes(_);
+      return transaction.sub_type.includes("cash-out")
+        ? false
+        : !["Type", "Biller", "Name", "Teller", "Branch Name"].includes(_);
     } else
       return (
         i > 1 &&
         transaction &&
         lastStatus() == "pending" &&
-        !["Type", "Promo", "Teller", "Branch Name"].includes(_) &&
+        !["Type", "Promo", "Teller", "Branch"].includes(_) &&
         textData[0][i] != "Name"
       );
   };
@@ -158,16 +162,18 @@ const EncoderForm = ({
                   .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
                   .join(" ");
               }),
+            "Branch",
           ],
           [
             transaction.type.toLocaleUpperCase(),
             transaction.sub_type.toLocaleUpperCase(),
-            `${(transaction.tellerId as User)?.name ?? "No Teller"} (${
-              (transaction.branchId as Branch)?.name ?? "No Branch"
-            })` ?? "No Teller",
+            `${(transaction.tellerId as User)?.name ?? "No Teller"}`,
             ...Object.keys(_)
               .filter(
-                (e: any) => !["billerId", "transactionType", "fee"].includes(e)
+                (e: any) =>
+                  !["billerId", "transactionType", "fee", "tellerId"].includes(
+                    e
+                  )
               )
               .map((e: any) => {
                 if (typeof _[e] == "string" && _[e].includes("_money"))
@@ -176,6 +182,7 @@ const EncoderForm = ({
                   ).toLocaleString()}`;
                 return _[e];
               }),
+            (transaction.branchId as Branch)?.name ?? "No Branch",
           ],
         ]);
       }

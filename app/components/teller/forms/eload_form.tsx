@@ -65,7 +65,7 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
 
     (async () => {
       let a = await onSubmit({
-        provider: checkProvider(eload.phone!),
+        provider: eload.provider,
         type: eload.type,
         ...(eload.type == "promo" ? { promo: eload.promo } : {}),
         phone: eload?.phone,
@@ -104,21 +104,24 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
       footer={null}
       destroyOnClose
     >
-      {/* <FloatLabel bool={!_(eload.provider)} label="Provider">
-        <Select
-          className="customInput"
-          size="large"
-          style={{ display: "block" }}
-          options={["TM", "GLOBE", "SMART", "TNT", "DITO"].map((e) => {
-            return {
-              label: e,
-              value: e,
-            };
-          })}
-          onChange={(e) => update("provider", e)}
-        />
-      </FloatLabel> */}
-      {/* <span>YAMETE</span> */}
+      <Select
+        className="customSelect"
+        placeholder="Provider"
+        size="large"
+        style={{
+          display: "block",
+          height: 70,
+          marginBottom: 10,
+          fontSize: "2em",
+        }}
+        options={["TM", "GLOBE", "SMART", "TNT", "DITO", "GOMO"].map((e) => {
+          return {
+            label: e,
+            value: e,
+          };
+        })}
+        onChange={(e) => update("provider", e)}
+      />
 
       <Input
         size="large"
@@ -132,10 +135,11 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
           height: 70,
           fontSize: "2em",
           letterSpacing: 1,
+          marginBottom: 10,
         }}
       />
 
-      <span
+      {/* <span
         style={{
           marginBottom: 10,
           float: "right",
@@ -143,7 +147,7 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
         }}
       >
         {checkProvider(eload.phone ?? "")}
-      </span>
+      </span> */}
 
       <InputNumber
         size="large"

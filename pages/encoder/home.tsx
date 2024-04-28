@@ -80,7 +80,11 @@ const Encoder = () => {
               ? "#297BFA"
               : type == "bills"
               ? "#28a745"
-              : "#ff7f0e"
+              : type == "shopee"
+              ? "#ee4d2d"
+              : type == "eload"
+              ? "#4c772d"
+              : "#EFB40D"
           }
         >
           {type.toLocaleUpperCase()}

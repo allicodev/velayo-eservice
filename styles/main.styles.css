@@ -429,3 +429,7 @@ label.customCheckbox span span.ant-checkbox-inner {
 .ant-drawer-content-wrapper {
   border-radius: 10px;
 }
+
+.customSelect .ant-select-selector {
+  font-size: 1em !important;
+}

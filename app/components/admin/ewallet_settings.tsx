@@ -691,16 +691,13 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
           </Typography.Text>
         }
         style={{
-          borderTopLeftRadius: 25,
-          borderBottomLeftRadius: 25,
+          border: 25,
           display: "flex",
           justifyContent: "center",
           background: "#eee",
         }}
         rootStyle={{
-          marginTop: 20,
-          marginLeft: 20,
-          marginBottom: 20,
+          margin: 20,
         }}
         extra={[
           <Button
