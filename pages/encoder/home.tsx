@@ -148,7 +148,7 @@ const Encoder = () => {
         page,
         pageSize,
         status,
-        status && ["pending", "failed"].includes(status[0])
+        status && ["completed", "failed"].includes(status[0])
           ? "descending"
           : "ascending"
       );
