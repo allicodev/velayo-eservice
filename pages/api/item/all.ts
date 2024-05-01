@@ -1,12 +1,13 @@
+import authMiddleware from "@/assets/ts/apiMiddleware";
 import dbConnect from "@/database/dbConnect";
 import Item from "@/database/models/item.schema";
-import { ExtendedResponse, Items } from "@/types";
+import { ExtendedResponse, ItemData } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ExtendedResponse<Items[]>>
+  res: NextApiResponse<ExtendedResponse<ItemData[]>>
 ) {
   await dbConnect();
 
@@ -26,4 +27,4 @@ async function handler(
     );
 }
 
-export default handler;
+export default authMiddleware(handler);

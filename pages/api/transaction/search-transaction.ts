@@ -1,42 +1,31 @@
+import authMiddleware from "@/assets/ts/apiMiddleware";
 import dbConnect from "@/database/dbConnect";
 import Transaction from "@/database/models/transaction.schema";
-import { ExtendedResponse, Response } from "@/types";
-
+import { ExtendedResponse, Transaction as TransactionProp } from "@/types";
 import type { NextApiRequest, NextApiResponse } from "next";
-
-import { Pusher2 } from "@/provider/utils/pusher";
-import authMiddleware from "@/assets/ts/apiMiddleware";
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ExtendedResponse<Response>>
+  res: NextApiResponse<ExtendedResponse<TransactionProp>>
 ) {
   await dbConnect();
 
   const { method } = req;
 
-  if (method != "POST")
+  if (method != "GET")
     res.json({
       code: 405,
       success: false,
       message: "Incorrect Request Method",
     });
-  return await Transaction.findOneAndUpdate({ _id: req.body._id }, req.body, {
-    returnOriginal: false,
-  })
+
+  return await Transaction.findOne(req.query)
     .then(async (e) => {
-      await new Pusher2().emit(
-        `teller-${e.tellerId.toString().slice(-5)}`,
-        "notify",
-        {
-          queue: e.queue,
-          id: e._id.toString(),
-        }
-      );
       return res.json({
         code: 200,
         success: true,
-        message: "Successfully updated",
+        message: "Found a Transaction!",
+        data: e,
       });
     })
     .catch((e) => {

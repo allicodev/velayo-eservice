@@ -1,30 +1,46 @@
-import React, { useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import {
   Button,
   Col,
   Divider,
   Drawer,
   Input,
+  InputNumber,
+  Popconfirm,
   Row,
-  Space,
+  Select,
   Tooltip,
   Tree,
-  TreeDataNode,
   Typography,
   message,
 } from "antd";
-import { DownOutlined, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
+import {
+  DownOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  CloseOutlined,
+  SaveOutlined,
+} from "@ant-design/icons";
 
 // TODO: remove white space, connect them into 1 or add smart search (smart via word and not a whole sentence)
 
-import { DrawerBasicProps, Items } from "@/types";
+import { DrawerBasicProps, InputProps, Item, ItemData } from "@/types";
 import NewItem from "./components/new_item";
 import ItemService from "@/provider/item.service";
-import { parseTree, TreeNode, findAllIndicesOfSubstring } from "@/assets/ts";
+import {
+  parseTree,
+  TreeNode,
+  findAllIndicesOfSubstring,
+  parseKeyToTree,
+} from "@/assets/ts";
 
 const ItemsHome = ({ open, close }: DrawerBasicProps) => {
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
-  const [items, setItems] = useState<Items[]>([]);
+  const [items, setItems] = useState<ItemData[]>([]);
+  const [selectedNode, setSelectedNode] = useState<TreeNode | null>(null);
+  const [selectedItem, setSelectedItem] = useState<ItemData | null>(null);
   const [openNewItem, setOpenNewItem] = useState({
     open: false,
     parentId: "",
@@ -37,28 +53,67 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
 
   // * utils
   const [_window, setWindow] = useState({ innerHeight: 0 });
-  const item = new ItemService();
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isUpdate, setIsUpdate] = useState(false);
+  const [input, setInput] = useState<InputProps>({
+    name: "",
+    unit: undefined,
+    price: 0,
+    quantity: 0,
+  });
+  const itemService = new ItemService();
 
   // * onclick utils variables
   const [selectedKey, setSelectedKey] = useState<React.Key | null>(null);
 
   const getItemName = (id: string) => items.filter((e) => e._id == id)[0].name;
 
+  const clearAll = () => {
+    setAutoExpandParent(false);
+    setSelectedItem(null);
+    setSelectedNode(null);
+    setExpandedKeys([]);
+    close();
+  };
+
+  const handleSaveItem = () => {
+    console.log("called");
+    (async (_) => {
+      let res = await _.updateItem(selectedItem?._id ?? "", input);
+
+      if (res?.success ?? false) {
+        message.success(res?.message ?? "Success");
+        setSelectedItem(res?.data ?? null);
+
+        let { name, unit, price, quantity } = res?.data ?? {};
+        if (!name) name = "";
+        if (!unit) unit = undefined;
+        if (!price) price = 0;
+        if (!quantity) quantity = 0;
+        setInput({ name, unit, price, quantity });
+        fetchItems();
+        setIsUpdating(false);
+        setIsUpdate(false);
+      }
+    })(itemService);
+  };
+
   const handleItemOnAddClick = (id: string) =>
     setOpenNewItem({ open: true, parentId: id });
 
-  const handleNewParentItem = (str: string) => {
-    (async (_) => {
+  const handleNewParentItem = (items: any) => {
+    return (async (_) => {
       let res = await _.newItem(
-        str,
+        items,
         openNewItem.parentId != "" ? openNewItem.parentId : undefined
       );
 
       if (res.success) {
         message.success(res?.message ?? "Success");
         fetchItems();
-      }
-    })(item);
+        return true;
+      } else return false;
+    })(itemService);
   };
 
   const fetchItems = () => {
@@ -67,18 +122,28 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
       if (res.success) {
         if (res?.data) {
           setItems(res?.data ?? []);
-
           setTreeNodes(
-            buildTree(
-              parseTree(res.data, null),
-              null,
-              handleItemOnAddClick,
-              searchValue
-            )
+            buildTree(parseTree(res.data, null), null, handleItemOnAddClick)
           );
         }
       }
-    })(item);
+    })(itemService);
+  };
+
+  const updateSelectedItem = (id: string) => {
+    (async (_) => {
+      let res = await _.getItemSpecific(id);
+
+      if (res?.success ?? false) {
+        setSelectedItem(res?.data ?? null);
+        let { name, unit, price, quantity } = res?.data ?? {};
+        if (!name) name = "";
+        if (!unit) unit = undefined;
+        if (!price) price = 0;
+        if (!quantity) quantity = 0;
+        setInput({ name, unit, price, quantity });
+      }
+    })(itemService);
   };
 
   const highlightSearchItems = (search: string) => {
@@ -97,6 +162,7 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
               justifyContent: "space-between",
               alignItems: "center",
               width: "100%",
+              margin: _node.isParent ? 0 : 10,
             }}
           >
             {startIndex > -1 ? (
@@ -120,25 +186,35 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                 {_node.rawTitle}
               </span>
             )}
-            <Button
-              size="large"
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                handleItemOnAddClick(_node.parentId!);
-              }}
-              icon={<PlusOutlined />}
-            />
+            {_node.isParent && (
+              <Tooltip title="New Subcategory">
+                <Button
+                  size="large"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleItemOnAddClick(_node.parentId!);
+                  }}
+                  icon={<PlusOutlined />}
+                  style={{ margin: 5 }}
+                />
+              </Tooltip>
+            )}
           </div>
         );
 
         if (startIndex > -1) {
-          if (!keys.includes(_node.key)) {
-            keys.push(_node.key);
-          }
+          Array(_node.key.split("-").length)
+            .fill(0)
+            .map((e, i) => {
+              let key = _node.key
+                .split("-")
+                .slice(0, _node.key.split("-").length - i)
+                .join("-");
+
+              if (!keys.includes(key)) keys.push(key);
+            });
           setAutoExpandParent(true);
-        } else {
-          keys = keys.filter((e) => e != _node.key);
         }
 
         return { ..._node, title };
@@ -150,8 +226,285 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
       });
       return nodes;
     };
+
     setTreeNodes(nodeUpdater(treeNodes));
+    // console.log(keys);
     setExpandedKeys(keys);
+  };
+
+  const renderSelectedItem = (item: ItemData) => {
+    const renderUpdatingCell = (index: number, e: any): ReactNode => {
+      let _ = <></>;
+      if (index == 0)
+        _ = (
+          <strong
+            key={`value-${e}`}
+            style={{
+              fontSize: "2em",
+              borderBottom: "1px solid #aaa",
+              padding: 5,
+              background: "#eee",
+            }}
+          >
+            {e.toLocaleUpperCase()}
+          </strong>
+        );
+
+      if (index == 1)
+        _ = (
+          <Input
+            style={{
+              height: 47,
+              border: "none",
+              borderBottom: "1px solid #aaa",
+              borderRadius: 0,
+              fontSize: "2em",
+              paddingLeft: 5,
+            }}
+            value={input.name}
+            onChange={(e) => {
+              setIsUpdate(true);
+              setInput({ ...input, name: e.target.value });
+            }}
+          />
+        );
+
+      if (index == 2)
+        _ = (
+          <Select
+            size="large"
+            className="custom-item-select"
+            defaultValue={item.unit}
+            options={["pc(s)", "bot(s)", "kit(s)"].map((e) => ({
+              label: e,
+              value: e,
+            }))}
+            onChange={(e) => {
+              setIsUpdate(true);
+              setInput({ ...input, unit: e });
+            }}
+          />
+        );
+
+      if (index == 3)
+        _ = (
+          <InputNumber
+            size="large"
+            defaultValue={item.price}
+            style={{
+              height: 47,
+              border: "none",
+              borderBottom: "1px solid #aaa",
+              borderRadius: 0,
+              fontSize: "2em",
+              width: "100%",
+              padding: 5,
+            }}
+            controls={false}
+            min={0}
+            onChange={(e) => {
+              setIsUpdate(true);
+              setInput({ ...input, price: e ?? 0 });
+            }}
+          />
+        );
+
+      if (index == 4)
+        _ = (
+          <InputNumber
+            size="large"
+            defaultValue={item.quantity}
+            style={{
+              height: 47,
+              border: "none",
+              borderBottom: "1px solid #aaa",
+              borderRadius: 0,
+              fontSize: "2em",
+              width: "100%",
+              padding: 5,
+            }}
+            controls={false}
+            min={0}
+            onChange={(e) => {
+              setIsUpdate(true);
+              setInput({ ...input, quantity: e ?? 0 });
+            }}
+          />
+        );
+      return _;
+    };
+    return (
+      <>
+        <Row style={{ border: "1px solid #aaa", marginTop: 45 }}>
+          <Col span={24}>
+            <Typography.Title
+              level={2}
+              style={{
+                textAlign: "center",
+                padding: 5,
+                margin: 0,
+              }}
+            >
+              {item.name.toLocaleUpperCase()}{" "}
+            </Typography.Title>
+          </Col>
+          {isUpdating && (
+            <Col span={24}>
+              <div
+                style={{
+                  height: 30,
+                  backgroundColor: "#1675fc",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  paddingLeft: 20,
+                }}
+              >
+                Editing...
+              </div>
+            </Col>
+          )}
+          <Col
+            span={8}
+            style={{
+              border: "1px solid #aaa",
+              borderLeft: "none",
+              borderBottom: "none",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {["Item Code", "Name", "Unit", "Price", "Quantity"].map(
+                (e, i) => (
+                  <strong
+                    key={e}
+                    style={{
+                      fontSize: "2em",
+                      borderBottom: i == 4 ? "" : "1px solid #aaa",
+                      padding: 5,
+                    }}
+                  >
+                    {e.toLocaleUpperCase()}
+                  </strong>
+                )
+              )}
+            </div>
+          </Col>
+          <Col
+            span={16}
+            style={{
+              border: "1px solid #aaa",
+              borderRight: "none",
+              borderBottom: "none",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {[
+                `${"00000".slice(item.itemCode.toString().length)}${
+                  item.itemCode
+                }`,
+                item.name,
+                item.unit,
+                item.price,
+                item.quantity,
+              ].map((e, i) =>
+                isUpdating ? (
+                  renderUpdatingCell(i, e)
+                ) : (
+                  <p
+                    key={`value-${i}`}
+                    style={{
+                      fontSize: "2em",
+                      borderBottom: i == 4 ? "" : "1px solid #aaa",
+                      padding: 5,
+                      background: i == 0 ? "#eee" : "",
+                    }}
+                  >
+                    {e ? e.toString() : ""}
+                  </p>
+                )
+              )}
+            </div>
+          </Col>
+        </Row>
+        <Row style={{ marginTop: 10 }}>
+          <Col span={16} offset={8}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                gap: 10,
+              }}
+            >
+              <Popconfirm
+                title="Are you sure you want to delete this item?"
+                okType="danger"
+                okText="DELETE"
+                onConfirm={() => {
+                  (async (_) => {
+                    let res = await _.deleteItem(item._id);
+
+                    if (res?.success ?? false) {
+                      message.success(res?.message ?? "Success");
+                      setSelectedItem(null);
+                      fetchItems();
+                    }
+                  })(itemService);
+                }}
+              >
+                <Button
+                  size="large"
+                  icon={<DeleteOutlined />}
+                  type="primary"
+                  danger
+                >
+                  DELETE
+                </Button>
+              </Popconfirm>
+              <Button
+                size="large"
+                icon={isUpdating ? <CloseOutlined /> : <EditOutlined />}
+                type="primary"
+                onClick={() => {
+                  if (isUpdating) {
+                    let { name, unit, price, quantity } = selectedItem ?? {};
+                    if (!name) name = "";
+                    if (!unit) unit = undefined;
+                    if (!price) price = 0;
+                    if (!quantity) quantity = 0;
+                    setInput({ name, unit, price, quantity });
+                    setIsUpdate(false);
+                  }
+                  setIsUpdating(!isUpdating);
+                }}
+              >
+                {isUpdating ? "CANCEL EDIT" : "EDIT"}
+              </Button>
+              {isUpdate && (
+                <Button
+                  size="large"
+                  icon={<SaveOutlined />}
+                  type="primary"
+                  onClick={handleSaveItem}
+                >
+                  SAVE
+                </Button>
+              )}
+            </div>
+          </Col>
+        </Row>
+      </>
+    );
   };
 
   useEffect(() => {
@@ -163,7 +516,7 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
     <>
       <Drawer
         open={open}
-        onClose={close}
+        onClose={clearAll}
         placement="bottom"
         width="100%"
         height="100%"
@@ -185,6 +538,9 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
             size="large"
             style={{
               fontWeight: "bolder",
+              width: 100,
+              fontSize: "1.4em",
+              padding: 0,
             }}
             onClick={() => setOpenNewItem({ open: true, parentId: "" })}
           >
@@ -201,6 +557,8 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                 value={searchValue}
                 style={{
                   width: "90%",
+                  height: 55,
+                  fontSize: "1.5em",
                 }}
                 onChange={(e) => {
                   setSearchValue(e.target.value);
@@ -213,12 +571,13 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                 <Button
                   size="large"
                   icon={<ReloadOutlined />}
-                  style={{ marginLeft: 10 }}
+                  style={{ marginLeft: 10, width: 55, height: 55 }}
                   onClick={() => {
                     setSelectedKey(null);
                     setExpandedKeys([]);
                     setAutoExpandParent(false);
                     setSearchValue("");
+                    setSelectedNode(null);
                   }}
                 />
               </Tooltip>
@@ -230,10 +589,6 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                 className="no-leaf-icon"
                 expandedKeys={expandedKeys}
                 autoExpandParent={autoExpandParent}
-                onExpand={(keys: React.Key[]) => {
-                  setExpandedKeys(keys.map((e) => e.toString()));
-                  setAutoExpandParent(false);
-                }}
                 rootStyle={{
                   overflow: "scroll",
                   height: "80vh",
@@ -242,10 +597,13 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                   let e = f.node.key;
                   if (
                     expandedKeys
-                      .map((e) => e.toString())
+                      .map((q) => q.toString())
                       .filter((p) =>
                         new RegExp(`^${e}(-.*)?$`).test(p.toString())
-                      ).length > 0
+                      ).length > 0 &&
+                    selectedNode &&
+                    selectedNode.id != f.node.id &&
+                    !f.node.isLeaf
                   ) {
                     setExpandedKeys(
                       expandedKeys.filter(
@@ -256,6 +614,12 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                   } else {
                     setExpandedKeys([...expandedKeys, e]);
                     setSelectedKey(e);
+
+                    if (!f.node.isParent) {
+                      setSelectedNode(f.node);
+                      updateSelectedItem(f.node.id);
+                      // parseKeyToTree(treeNodes, f.node.key);
+                    }
                   }
                 }}
                 selectedKeys={[selectedKey ? selectedKey : ""]}
@@ -271,7 +635,9 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
               }}
             />
           </Col>
-          <Col span={11}></Col>
+          <Col span={11}>
+            {selectedItem && renderSelectedItem(selectedItem)}
+          </Col>
         </Row>
       </Drawer>
 
@@ -293,26 +659,24 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
 export default ItemsHome;
 
 // * UTILS
-
 export function buildTree(
-  items: Items[],
+  items: ItemData[],
   parentId: string | null = null,
-  onClick: (str: string) => void,
-  searchValue: string
+  onClick: (str: string) => void
 ): TreeNode[] {
   return items
     .filter((item) => item.parentId === parentId)
     .map((item, index) =>
-      convertToTreeNode(item, index, [], onClick, searchValue)
+      convertToTreeNode(item, parentId ?? "", index, [], onClick)
     );
 }
 
 export function convertToTreeNode(
-  item: Items,
+  item: ItemData,
+  parentId: string,
   index: number,
   parentKeys: string[] = [],
-  onClick: (str: string) => void,
-  searchValue: string
+  onClick: (str: string) => void
 ): TreeNode {
   const onClickNewSubCategory = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -327,14 +691,20 @@ export function convertToTreeNode(
         justifyContent: "space-between",
         alignItems: "center",
         width: "100%",
+        margin: item.isParent ? 0 : 10,
       }}
     >
       <span style={{ marginRight: 10, fontSize: "1.8em" }}>{item.name}</span>
-      <Button
-        size="large"
-        onClick={onClickNewSubCategory}
-        icon={<PlusOutlined />}
-      />
+      {item.isParent && (
+        <Tooltip title="New Subcategory">
+          <Button
+            size="large"
+            onClick={onClickNewSubCategory}
+            icon={<PlusOutlined />}
+            style={{ margin: 5 }}
+          />
+        </Tooltip>
+      )}
     </div>
   );
   const rawTitle = item.name;
@@ -344,18 +714,20 @@ export function convertToTreeNode(
   const children: TreeNode[] = item.sub_categories
     ? item.sub_categories.map((subItem, i) =>
         convertToTreeNode(
-          subItem,
+          subItem as ItemData,
+          item._id,
           i,
           [...parentKeys, String(index)],
-          onClick,
-          searchValue
+          onClick
         )
       )
     : [];
   const isLeaf = !item.sub_categories || item.sub_categories.length === 0;
 
   return {
-    parentId: item._id,
+    id: item._id,
+    isParent: item.isParent,
+    parentId,
     title,
     rawTitle,
     className,

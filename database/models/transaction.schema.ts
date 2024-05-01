@@ -48,6 +48,8 @@ const TransactionSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Branch",
     },
+    // for only ewallet cashout
+    traceId: String,
   },
   {
     timestamps: true,

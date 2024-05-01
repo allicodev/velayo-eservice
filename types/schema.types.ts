@@ -53,6 +53,7 @@ export interface Transaction {
   createdAt?: Date;
   amount?: number;
   fee?: number;
+  traceId?: string; // for ewallet cashout
 }
 
 export type WalletType = "cash-in" | "cash-out";
@@ -75,15 +76,22 @@ export interface Fee {
   fee: number | null;
 }
 
+export type ItemUnit = "pc(s)" | "bot(s)" | "kit(s)";
+
 //* Items
-export interface Items {
-  _id: string;
+export interface Item {
   name: string;
   isParent: boolean;
   parentId: string;
-  amount: Number;
-  quantity: Number;
-  sub_categories?: Items[];
+  sub_categories?: Item[] | ItemData[];
+  itemCode: number;
+  unit: ItemUnit | undefined;
+  price: number;
+  quantity: number;
+}
+
+export interface ItemData extends Item {
+  _id: string;
 }
 
 // * Branch

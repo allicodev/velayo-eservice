@@ -1,6 +1,8 @@
-import { Items } from "@/types";
+import { ItemData } from "@/types";
 
 export interface TreeNode {
+  id: string;
+  isParent: boolean;
   parentId: string;
   title: JSX.Element;
   rawTitle: string;
@@ -11,9 +13,9 @@ export interface TreeNode {
 }
 
 export function parseTree(
-  items: Items[],
+  items: ItemData[],
   parentId: string | null = null
-): Items[] {
+): ItemData[] {
   return items
     .filter((item) => item.parentId === parentId)
     .map((item) => ({
@@ -70,3 +72,25 @@ export function findAllIndicesOfSubstring(
   }
   return indices;
 }
+
+// * tree utils
+export const parseKeyToTree = (nodes: TreeNode[], keys: string): string => {
+  const _keys = keys.split("-");
+  const len = _keys.length;
+  if (len < 1) return "Error key name";
+  let title = "";
+
+  return title;
+};
+
+export const getNameById = (nodes: TreeNode[], id: string): string => {
+  for (let i = 0; i < nodes.length; i++) {
+    let e = nodes[i];
+    if (e.id == id) {
+      return e.rawTitle;
+    } else {
+      if (e.children.length > 0) return getNameById(e.children, id);
+    }
+  }
+  return "";
+};

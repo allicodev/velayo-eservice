@@ -39,9 +39,13 @@ async function handler(
   if (toDate)
     query.push({
       createdAt: {
-        $gte: dayjs(toDate as string)
-          .startOf("day")
-          .toDate(),
+        ...(!fromDate
+          ? {
+              $gte: dayjs(toDate as string)
+                .startOf("day")
+                .toDate(),
+            }
+          : {}),
         $lte: dayjs(toDate as string)
           .endOf("day")
           .toDate(),

@@ -164,7 +164,8 @@ class WalletService extends Loader {
     amount: number,
     fee: number,
     tellerId: string,
-    branchId: string
+    branchId: string,
+    traceId: string | null
   ) {
     let transaction: Transaction = {
       type: "wallet",
@@ -181,6 +182,8 @@ class WalletService extends Loader {
         },
       ],
     };
+
+    if (traceId) transaction.traceId = traceId;
 
     this.loaderPush("request-bill");
     const response = await this.instance.post<Response>({

@@ -11,14 +11,16 @@ import {
   Select,
   DatePicker,
   AutoComplete,
+  Tooltip,
 } from "antd";
-import { DownOutlined, CopyOutlined } from "@ant-design/icons";
+import { DownOutlined, CopyOutlined, ReloadOutlined } from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
 import Excel from "exceljs";
 
 import BillService from "@/provider/bill.service";
 
 import {
+  Branch,
   DrawerBasicProps,
   ProtectedUser,
   Transaction,
@@ -249,7 +251,7 @@ const TransactionHistory = ({
     trans.map((e) => {
       sheet.addRow({
         refCode: e.reference,
-        branchName: "VELAYO BILLS PAYMENT AND REMITTANCE SERVICES",
+        branchName: (e.branchId as Branch).name,
         dateTime: dayjs(e.createdAt).format("MM/DD/YYYY HH:mm"),
         transactionType: getTransactionLabel(e.type),
         billerName: e.sub_type.toLocaleUpperCase(),
@@ -441,7 +443,15 @@ const TransactionHistory = ({
               />
             </div>
           </div>
-
+          <Tooltip title="RESET">
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={() => {
+                setToDate(null);
+                setFromDate(null);
+              }}
+            />
+          </Tooltip>
           <Button
             type="primary"
             onClick={() => {

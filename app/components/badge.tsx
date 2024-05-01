@@ -13,13 +13,18 @@ import {
   message,
   Space,
 } from "antd";
-import { LogoutOutlined, SettingOutlined } from "@ant-design/icons";
+import {
+  LogoutOutlined,
+  SettingOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
 
 import { BillingSettingsType, UserBadgeProps, Wallet } from "@/types";
 import Cookies from "js-cookie";
 import BillService from "@/provider/bill.service";
 import WalletService from "@/provider/wallet.service";
 import EtcService from "@/provider/etc.service";
+import COTracker from "./teller/cashout_tracker";
 
 const UserBadge = ({
   name,
@@ -28,6 +33,7 @@ const UserBadge = ({
   role,
   isMobile,
   extra,
+  setOpenedMenu,
 }: UserBadgeProps) => {
   const [currentTime, setCurrentTime] = useState(dayjs());
   const [openDisableBill, setOpenDisbaleBill] = useState(false);
@@ -38,6 +44,9 @@ const UserBadge = ({
   const [bills, setBills] = useState<BillingSettingsType[]>([]);
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [isUpdated, setIsUpdated] = useState(false);
+
+  // for teller
+  const [openCOTracker, setOpenCOTracker] = useState(false);
 
   const bill = new BillService();
   const wallet = new WalletService();
@@ -84,6 +93,7 @@ const UserBadge = ({
 
   return (
     <>
+      {console.log(role)}
       <div style={style}>
         <div
           style={{
@@ -116,14 +126,23 @@ const UserBadge = ({
                       onClick: () => setOpenDisbaleBill(true),
                     }
                   : null,
+                role == "teller"
+                  ? {
+                      key: "1",
+                      label: (
+                        <Tooltip title="Track CASH-OUT Transaction">
+                          <SearchOutlined /> Track
+                        </Tooltip>
+                      ),
+                      onClick: () => setOpenCOTracker(true),
+                    }
+                  : null,
                 {
                   key: "2",
                   label: (
                     <Tooltip title="Logout">
-                      <div>
-                        <LogoutOutlined style={{ color: "#f00" }} />{" "}
-                        <span style={{ color: "#f00" }}>Logout</span>
-                      </div>
+                      <LogoutOutlined style={{ color: "#f00" }} />{" "}
+                      <span style={{ color: "#f00" }}>Logout</span>
                     </Tooltip>
                   ),
                   onClick: () =>
@@ -256,6 +275,11 @@ const UserBadge = ({
           </Col>
         </Row>
       </Modal>
+      <COTracker
+        open={openCOTracker}
+        close={() => setOpenCOTracker(false)}
+        setOpenedMenu={setOpenedMenu!}
+      />
     </>
   );
 };

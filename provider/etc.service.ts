@@ -1,6 +1,11 @@
 import Loader from "./utils/loader";
 import Api from "./api.service";
-import { BillingSettingsType, UpdateBillWallet, Wallet } from "@/types";
+import {
+  BillingSettingsType,
+  Transaction,
+  UpdateBillWallet,
+  Wallet,
+} from "@/types";
 
 class EtcService extends Loader {
   private readonly instance = new Api();
@@ -44,6 +49,18 @@ class EtcService extends Loader {
       },
     });
     this.loaderPop("check-disabled");
+    return response;
+  }
+
+  public async getTransactionFromTraceId(traceId: string) {
+    this.loaderPush("get-trans");
+    const response = await this.instance.get<Transaction>({
+      endpoint: "/transaction/search-transaction",
+      query: {
+        traceId,
+      },
+    });
+    this.loaderPop("get-trans");
     return response;
   }
 }

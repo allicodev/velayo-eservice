@@ -201,6 +201,8 @@ const Teller = () => {
                 marginLeft: 25,
                 marginRight: 25,
               }}
+              role={currentUser?.role}
+              setOpenedMenu={setOpenedMenu}
             />
           </div>
           <div>

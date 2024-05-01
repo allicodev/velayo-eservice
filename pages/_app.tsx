@@ -13,6 +13,12 @@ export default function App({ Component, pageProps }: AppProps) {
         token: {
           fontFamily: "abel",
         },
+        components: {
+          Tree: {
+            titleHeight: 25,
+            nodeSelectedBg: "#98c04b",
+          },
+        },
       }}
     >
       <Head>

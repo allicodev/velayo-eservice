@@ -93,8 +93,11 @@ export * from "./props.types";
 export * from "./service.types";
 
 // utils
-
 export interface TransactionOptProps {
   open: boolean;
   transaction: Transaction | null;
+}
+
+export interface ItemCode {
+  value: number;
 }

@@ -8,7 +8,9 @@ import {
   Transaction,
   RoleType,
   TransactionType,
+  ItemUnit,
 } from ".";
+import { Dayjs } from "dayjs";
 
 export interface DashboardBtnProps {
   icon?: any;
@@ -46,6 +48,7 @@ export interface UserBadgeProps {
   role?: RoleType;
   isMobile?: boolean;
   extra?: ReactNode;
+  setOpenedMenu?: (str: string) => void;
 }
 export interface BillsPaymentProps {
   open: boolean;
@@ -189,5 +192,23 @@ export interface NewItemProps {
   open: boolean;
   close: () => void;
   parentId?: string;
-  onSave: (str: string) => void;
+  onSave: (str: any) => Promise<boolean>;
+}
+
+export interface InputProps {
+  name: string;
+  unit: ItemUnit | undefined;
+  price: number;
+  quantity: number;
+}
+
+export interface COProps {
+  open: boolean;
+  close: () => void;
+  setOpenedMenu: (str: string) => void;
+}
+
+export interface TrackerOptions {
+  time: Dayjs | null;
+  code: string | null;
 }

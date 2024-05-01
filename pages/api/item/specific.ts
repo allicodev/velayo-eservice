@@ -1,27 +1,27 @@
 import authMiddleware from "@/assets/ts/apiMiddleware";
 import dbConnect from "@/database/dbConnect";
 import Item from "@/database/models/item.schema";
-import { Response } from "@/types";
+import { ExtendedResponse, ItemData } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
-// todo: update the item parent (isParent: true) if item is a child
-async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
+async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<ExtendedResponse<ItemData>>
+) {
   await dbConnect();
 
   const { method } = req;
 
-  if (method != "POST")
+  if (method != "GET")
     res.json({
       code: 405,
       success: false,
       message: "Incorrect Request Method",
     });
 
-  return await Item.create(req.body)
-    .then((e) =>
-      res.json({ success: true, code: 200, message: "Successfully Created" })
-    )
+  return await Item.findOne({ _id: req.query.id })
+    .then((e) => res.json({ success: true, code: 200, data: e }))
     .catch((e) =>
       res.json({ success: false, code: 500, message: "Error in the Server" })
     );

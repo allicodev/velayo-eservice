@@ -5,22 +5,25 @@ import { Response } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
-// todo: update the item parent (isParent: true) if item is a child
 async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
   await dbConnect();
 
   const { method } = req;
 
-  if (method != "POST")
+  if (method != "GET")
     res.json({
       code: 405,
       success: false,
       message: "Incorrect Request Method",
     });
 
-  return await Item.create(req.body)
+  return await Item.findOneAndDelete({ _id: req.query.id })
     .then((e) =>
-      res.json({ success: true, code: 200, message: "Successfully Created" })
+      res.json({
+        success: true,
+        code: 200,
+        message: "Successfully Deleted the Item.",
+      })
     )
     .catch((e) =>
       res.json({ success: false, code: 500, message: "Error in the Server" })

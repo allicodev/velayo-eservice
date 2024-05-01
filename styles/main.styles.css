@@ -338,6 +338,24 @@ label.customCheckbox span span.ant-checkbox-inner {
   display: flex;
 }
 
+/* .ant-tree-switcher-leaf-line:after,
+.ant-tree-switcher-leaf-line:before {
+  height: 25px !important;
+} */
+
+.custom-item-select {
+  height: 47px !important;
+}
+
+.custom-item-select div.ant-select-selector {
+  height: 47px !important;
+  border-radius: 0 !important;
+  border: none !important;
+  border-bottom: 1px solid #aaa !important;
+  font-size: 1.75em !important;
+  padding-left: 5px !important;
+}
+
 .printer-container {
   margin-left: 15px;
 }
@@ -432,4 +450,9 @@ label.customCheckbox span span.ant-checkbox-inner {
 
 .customSelect .ant-select-selector {
   font-size: 1em !important;
+}
+
+.align-end-input-num div.ant-input-number-input-wrap input:first-child {
+  text-align: end;
+  padding-right: 10px;
 }

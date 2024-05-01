@@ -31,7 +31,6 @@ class API {
         Authorization: `Bearer ${token}`,
       },
     });
-
     if (request.data.success)
       return {
         success: true,
