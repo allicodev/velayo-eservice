@@ -169,7 +169,7 @@ const TransactionHistory = ({
     const sheet = workbook.addWorksheet("My Sheet");
 
     // * set the first row to be the title uwu :3
-    sheet.mergeCells("A1:O1");
+    sheet.mergeCells("A1:J1");
     sheet.getCell("A1").alignment = {
       horizontal: "center",
       vertical: "middle",
@@ -188,6 +188,7 @@ const TransactionHistory = ({
       "Biller Name / Product Code",
       "Amount",
       "Service Fee",
+      "Amount + Service Fee",
       "User",
       "Status",
     ];
@@ -216,7 +217,7 @@ const TransactionHistory = ({
       },
       {
         key: "branchName",
-        width: 47,
+        width: 20,
       },
       {
         key: "dateTime",
@@ -237,6 +238,10 @@ const TransactionHistory = ({
       {
         key: "serviceFee",
         width: 15,
+      },
+      {
+        key: "total",
+        width: 23,
       },
       {
         key: "user",
@@ -260,6 +265,10 @@ const TransactionHistory = ({
             ? -e.amount!
             : e.amount,
         serviceFee: e.fee,
+        total:
+          ((e.type == "wallet" && e.sub_type.split(" ")[1] == "cash-out"
+            ? -e.amount!
+            : e.amount) ?? 0) + (e.fee ?? 0),
         user: typeof e.tellerId == "object" ? e.tellerId.name : "",
         status: (e.history.at(-1)?.status ?? "").toLocaleUpperCase(),
       });
@@ -279,23 +288,29 @@ const TransactionHistory = ({
     s("g").alignment = {
       horizontal: "right",
     };
-    s("f").value = trans
-      .reduce(
-        (p, n) =>
-          p +
-          (n.type == "wallet" && n.sub_type.split(" ")[1] == "cash-out"
-            ? -n.amount!
-            : n?.amount ?? 0),
-        0
-      )
-      .toFixed(2)
-      .toString()
-      .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    s("g").value = trans
-      .reduce((p, n) => p + (n?.fee ?? 0), 0)
-      .toFixed(2)
-      .toString()
-      .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    s("h").alignment = {
+      horizontal: "right",
+    };
+
+    const totalAmount = trans.reduce(
+      (p, n) =>
+        p +
+        (n.type == "wallet" && n.sub_type.split(" ")[1] == "cash-out"
+          ? -n.amount!
+          : n?.amount ?? 0),
+      0
+    );
+    const totalFee = trans.reduce((p, n) => p + (n?.fee ?? 0), 0);
+
+    const parseToMoney = (num: number) =>
+      num
+        .toFixed(2)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+    s("f").value = parseToMoney(totalAmount);
+    s("g").value = parseToMoney(totalFee);
+    s("h").value = parseToMoney(totalAmount + totalFee);
 
     // * styles the headers
     ["A", "B", "C", "D", "E", "F", "G", "H", "I"].map((c) => {
