@@ -3,10 +3,13 @@ import dbConnect from "@/database/dbConnect";
 import Transaction from "@/database/models/transaction.schema";
 import { ExtendedResponse, Transaction as TransactionType } from "@/types";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 import type { NextApiRequest, NextApiResponse } from "next";
-
-process.env.TZ = "Asia/Manila";
 
 async function handler(
   req: NextApiRequest,
@@ -34,6 +37,7 @@ async function handler(
     query.push({
       createdAt: {
         $gte: dayjs(fromDate as string)
+          .tz("Asia/Manila")
           .startOf("day")
           .toDate(),
       },
@@ -44,11 +48,13 @@ async function handler(
         ...(!fromDate
           ? {
               $gte: dayjs(toDate as string)
+                .tz("Asia/Manila")
                 .startOf("day")
                 .toDate(),
             }
           : {}),
         $lte: dayjs(toDate as string)
+          .tz("Asia/Manila")
           .endOf("day")
           .toDate(),
       },
