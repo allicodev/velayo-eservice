@@ -93,7 +93,6 @@ const UserBadge = ({
 
   return (
     <>
-      {console.log(role)}
       <div style={style}>
         <div
           style={{

@@ -21,7 +21,6 @@ import ShoppeForm from "@/app/components/teller/shoppe_form";
 
 import BillService from "@/provider/bill.service";
 import BranchService from "@/provider/branch.service";
-import dayjs from "dayjs";
 
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
@@ -153,7 +152,6 @@ const Teller = () => {
   };
 
   useEffect(() => {
-    console.log(dayjs.locale());
     return initPusherProvider();
   }, []);
 

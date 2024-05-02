@@ -6,6 +6,15 @@ import "@/styles//main.styles.css";
 import { ConfigProvider } from "antd";
 import Head from "next/head";
 
+// setting timezone and locale
+import dayjs from "dayjs";
+import "dayjs/plugin/timezone";
+
+dayjs.extend(require("dayjs/plugin/utc"));
+dayjs.extend(require("dayjs/plugin/timezone"));
+
+dayjs.tz.setDefault("Asia/Manila");
+
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <ConfigProvider
