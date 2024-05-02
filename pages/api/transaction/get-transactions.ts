@@ -6,6 +6,8 @@ import dayjs from "dayjs";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
+process.env.TZ = "Asia/Manila";
+
 async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ExtendedResponse<TransactionType[]>>
