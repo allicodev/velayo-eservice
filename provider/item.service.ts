@@ -72,6 +72,18 @@ class ItemService extends Loader {
     this.loaderPop("update-item");
     return response;
   }
+
+  public async searchItem(search: string) {
+    this.loaderPush("search-item");
+    const response = await this.instance.get<ItemData[]>({
+      endpoint: "/item/search",
+      query: {
+        search,
+      },
+    });
+    this.loaderPop("search-item");
+    return response;
+  }
 }
 
 export default ItemService;

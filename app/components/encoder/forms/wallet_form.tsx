@@ -17,8 +17,6 @@ import {
   message,
   Tooltip,
   Alert,
-  TimePicker,
-  DatePicker,
 } from "antd";
 import type { CollapseProps, InputRef } from "antd";
 import {
@@ -105,17 +103,6 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
     val = { ...val, fee: `${getFee()}_money` };
     if (includeFee) val.amount = `${amount - getFee()}_money`;
 
-    if (walletType == "cash-out") {
-      if (!trackerOpt.time || !trackerOpt.code) {
-        message.warning("Please provide Time and Code for Tracking");
-
-        if (!trackerOpt.time) {
-          timeRef?.current?.focus();
-        } else codeRef?.current?.focus();
-        return;
-      }
-    }
-
     (async (_) => {
       let res = await _.requestWalletTransaction(
         `${selectedWallet!.name!} ${walletType}`,
@@ -128,11 +115,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
         getFee(),
         currentUser?._id ?? "",
         currentBranch,
-        walletType == "cash-out"
-          ? `${dayjs().format("DD")}${trackerOpt.time!.format("HHmm")}${
-              trackerOpt.code
-            }`
-          : null
+        walletType == "cash-out" ? val?.traceId ?? "" : null
       );
 
       if (res?.success ?? false) {
@@ -775,74 +758,42 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                 {selectedFormFields()?.map((e) => renderFormFieldSpecific(e))}
                 {walletType == "cash-out" && (
                   <div>
-                    <label style={{ fontSize: "1.5em" }}>
-                      Trace ID Generator{" "}
-                      <Tooltip title="Trace ID Generator for tracking CASH-OUT transaction(s)">
-                        <QuestionCircleOutlined
-                          style={{
-                            fontSize: "0.8em",
-                            cursor: "pointer",
-                          }}
-                        />
-                      </Tooltip>
-                    </label>
-                    <br />
-                    <div style={{ display: "flex", alignContent: "center" }}>
-                      <DatePicker
-                        style={{
-                          width: 70,
-                        }}
-                        styles={{
-                          popup: {
-                            fontSize: "1.5em",
-                          },
-                        }}
-                        format={"DD"}
-                        defaultValue={dayjs()}
-                        disabled
-                      />
-                      <Tooltip title="Select Time">
-                        <TimePicker
-                          format="h:mm a"
-                          size="large"
-                          placeholder="Time"
-                          style={{
-                            height: 48,
-                            width: 100,
-                            marginLeft: 10,
-                          }}
-                          popupStyle={{
-                            fontSize: "1.5em",
-                          }}
-                          onChange={(e) =>
-                            setTrackerOpt({ ...trackerOpt, time: e })
-                          }
-                          ref={timeRef}
-                          use12Hours
-                        />
-                      </Tooltip>
-                      <Tooltip title="4 Digit Reference Code">
-                        <Input
-                          style={{
-                            marginLeft: 10,
-                            width: 80,
-                            fontSize: "1.5em",
-                            textAlign: "center",
-                          }}
-                          placeholder="4 digit"
-                          minLength={4}
-                          maxLength={4}
-                          size="large"
-                          ref={codeRef}
-                          onChange={(e) =>
-                            setTrackerOpt({
-                              ...trackerOpt,
-                              code: e.target.value,
-                            })
-                          }
-                        />
-                      </Tooltip>
+                    <div
+                      style={{
+                        fontSize: "1.5em",
+                      }}
+                    >
+                      <QuestionCircleOutlined style={{ marginBottom: 10 }} />{" "}
+                      Reference Number (date, time, last 4 digits) (e.g
+                      2312121234)
                     </div>
+                    <Form.Item
+                      name="traceId"
+                      key="traceId"
+                      rules={[{ required: true, message: "" }]}
+                      style={{
+                        margin: 0,
+                        marginBottom: 10,
+                      }}
+                    >
+                      <InputNumber
+                        size="large"
+                        className="customInput size-70"
+                        controls={false}
+                        min={10}
+                        maxLength={10}
+                        onChange={(e) =>
+                          form.setFieldsValue({
+                            traceId: e,
+                          })
+                        }
+                        style={{
+                          width: "100%",
+                          height: 70,
+                          fontSize: "2em",
+                        }}
+                      />
+                    </Form.Item>
                   </div>
                 )}
               </Form>

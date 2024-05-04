@@ -16,17 +16,15 @@ const ItemSchema = new mongoose.Schema(
       ref: "Item",
       default: null,
     },
-    itemCode: {
-      type: Number,
-      default: 0,
-    },
     unit: {
       type: String,
       enum: ["pc(s)", "bot(s)", "kit(s)"],
     },
+    itemCode: Number,
     description: String,
     remarks: String,
     //* inventory
+    cost: Number,
     price: Number,
     quantity: Number,
   },
@@ -43,7 +41,7 @@ ItemSchema.pre("save", async function (next) {
         {},
         { sort: { itemCode: -1 } }
       );
-      this.itemCode = (lastDocument?.itemCode || 0) + 1;
+      this.itemCode = this.isParent ? null : (lastDocument?.itemCode || 0) + 1;
       next();
     } catch (error) {
       next(error as any);

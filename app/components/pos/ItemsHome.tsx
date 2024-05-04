@@ -9,6 +9,7 @@ import {
   Popconfirm,
   Row,
   Select,
+  Space,
   Tooltip,
   Tree,
   Typography,
@@ -22,6 +23,8 @@ import {
   EditOutlined,
   CloseOutlined,
   SaveOutlined,
+  VerticalAlignBottomOutlined,
+  VerticalAlignTopOutlined,
 } from "@ant-design/icons";
 
 // TODO: remove white space, connect them into 1 or add smart search (smart via word and not a whole sentence)
@@ -35,6 +38,7 @@ import {
   findAllIndicesOfSubstring,
   parseKeyToTree,
 } from "@/assets/ts";
+import Stock from "./components/stock";
 
 const ItemsHome = ({ open, close }: DrawerBasicProps) => {
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
@@ -54,12 +58,15 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
   // * utils
   const [_window, setWindow] = useState({ innerHeight: 0 });
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
+  const [openStock, setOpenStock] = useState({ open: false, type: "stock-in" });
   const [isUpdate, setIsUpdate] = useState(false);
   const [input, setInput] = useState<InputProps>({
     name: "",
     unit: undefined,
     price: 0,
     quantity: 0,
+    cost: 0,
   });
   const itemService = new ItemService();
 
@@ -77,7 +84,6 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
   };
 
   const handleSaveItem = () => {
-    console.log("called");
     (async (_) => {
       let res = await _.updateItem(selectedItem?._id ?? "", input);
 
@@ -85,15 +91,19 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
         message.success(res?.message ?? "Success");
         setSelectedItem(res?.data ?? null);
 
-        let { name, unit, price, quantity } = res?.data ?? {};
+        let { name, unit, price, quantity, cost } = res?.data ?? {};
         if (!name) name = "";
         if (!unit) unit = undefined;
         if (!price) price = 0;
         if (!quantity) quantity = 0;
-        setInput({ name, unit, price, quantity });
+        if (!cost) cost = 0;
+        setInput({ name, unit, price, quantity, cost });
         fetchItems();
         setIsUpdating(false);
         setIsUpdate(false);
+
+        setShowSaved(true);
+        setTimeout(() => setShowSaved(false), 3000);
       }
     })(itemService);
   };
@@ -136,12 +146,14 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
 
       if (res?.success ?? false) {
         setSelectedItem(res?.data ?? null);
-        let { name, unit, price, quantity } = res?.data ?? {};
+
+        let { name, unit, price, quantity, cost } = res?.data ?? {};
         if (!name) name = "";
         if (!unit) unit = undefined;
         if (!price) price = 0;
         if (!quantity) quantity = 0;
-        setInput({ name, unit, price, quantity });
+        if (!cost) cost = 0;
+        setInput({ name, unit, price, quantity, cost });
       }
     })(itemService);
   };
@@ -170,7 +182,7 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                 {startIndex != 0 ? (
                   <span>{_node.rawTitle.substring(0, startIndex)}</span>
                 ) : null}
-                <span style={{ color: "white", background: "red" }}>
+                <span style={{ color: "white", background: "#294b0f" }}>
                   {_node.rawTitle.substring(startIndex, lastIndex + 1)}
                 </span>
                 {!(lastIndex >= _node.rawTitle.length - 1) && (
@@ -228,7 +240,6 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
     };
 
     setTreeNodes(nodeUpdater(treeNodes));
-    // console.log(keys);
     setExpandedKeys(keys);
   };
 
@@ -244,6 +255,7 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
               borderBottom: "1px solid #aaa",
               padding: 5,
               background: "#eee",
+              height: 50,
             }}
           >
             {e.toLocaleUpperCase()}
@@ -252,9 +264,27 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
 
       if (index == 1)
         _ = (
+          <strong
+            style={{
+              fontSize: "2em",
+              borderBottom: "1px solid #aaa",
+              padding: 5,
+              background: "#eee",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              height: 50,
+            }}
+          >
+            {e}
+          </strong>
+        );
+
+      if (index == 2)
+        _ = (
           <Input
             style={{
-              height: 47,
+              height: 50,
               border: "none",
               borderBottom: "1px solid #aaa",
               borderRadius: 0,
@@ -269,7 +299,7 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
           />
         );
 
-      if (index == 2)
+      if (index == 3)
         _ = (
           <Select
             size="large"
@@ -286,13 +316,36 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
           />
         );
 
-      if (index == 3)
+      if (index == 4)
         _ = (
           <InputNumber
             size="large"
             defaultValue={item.price}
             style={{
-              height: 47,
+              height: 50,
+              border: "none",
+              borderBottom: "1px solid #aaa",
+              borderRadius: 0,
+              fontSize: "2em",
+              width: "100%",
+              padding: 5,
+            }}
+            controls={false}
+            min={0}
+            onChange={(e) => {
+              setIsUpdate(true);
+              setInput({ ...input, cost: e ?? 0 });
+            }}
+          />
+        );
+
+      if (index == 5)
+        _ = (
+          <InputNumber
+            size="large"
+            defaultValue={item.price}
+            style={{
+              height: 50,
               border: "none",
               borderBottom: "1px solid #aaa",
               borderRadius: 0,
@@ -309,15 +362,14 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
           />
         );
 
-      if (index == 4)
+      if (index == 6)
         _ = (
           <InputNumber
             size="large"
             defaultValue={item.quantity}
             style={{
-              height: 47,
+              height: 50,
               border: "none",
-              borderBottom: "1px solid #aaa",
               borderRadius: 0,
               fontSize: "2em",
               width: "100%",
@@ -364,6 +416,22 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
               </div>
             </Col>
           )}
+          {showSaved && !isUpdating && (
+            <Col span={24}>
+              <div
+                style={{
+                  height: 30,
+                  backgroundColor: "#28a745",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  paddingLeft: 20,
+                }}
+              >
+                Saving...
+              </div>
+            </Col>
+          )}
           <Col
             span={8}
             style={{
@@ -378,20 +446,27 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                 flexDirection: "column",
               }}
             >
-              {["Item Code", "Name", "Unit", "Price", "Quantity"].map(
-                (e, i) => (
-                  <strong
-                    key={e}
-                    style={{
-                      fontSize: "2em",
-                      borderBottom: i == 4 ? "" : "1px solid #aaa",
-                      padding: 5,
-                    }}
-                  >
-                    {e.toLocaleUpperCase()}
-                  </strong>
-                )
-              )}
+              {[
+                "Item Code",
+                "Categories",
+                "Name",
+                "Unit",
+                "Cost",
+                "Price",
+                "Quantity",
+              ].map((e, i) => (
+                <strong
+                  key={e}
+                  style={{
+                    fontSize: "2em",
+                    borderBottom: i == 6 ? "" : "1px solid #aaa",
+                    padding: 5,
+                    height: 50,
+                  }}
+                >
+                  {e.toLocaleUpperCase()}
+                </strong>
+              ))}
             </div>
           </Col>
           <Col
@@ -412,25 +487,36 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                 `${"00000".slice(item.itemCode.toString().length)}${
                   item.itemCode
                 }`,
+                parseKeyToTree(treeNodes, selectedNode?.key ?? ""),
                 item.name,
                 item.unit,
+                item.cost,
                 item.price,
                 item.quantity,
               ].map((e, i) =>
                 isUpdating ? (
                   renderUpdatingCell(i, e)
                 ) : (
-                  <p
-                    key={`value-${i}`}
-                    style={{
-                      fontSize: "2em",
-                      borderBottom: i == 4 ? "" : "1px solid #aaa",
-                      padding: 5,
-                      background: i == 0 ? "#eee" : "",
-                    }}
+                  <Tooltip
+                    title={typeof e == "string" && e.length >= 50 ? e : ""}
                   >
-                    {e ? e.toString() : ""}
-                  </p>
+                    <p
+                      key={`value-${i}`}
+                      style={{
+                        fontSize: "2em",
+                        borderBottom: i == 6 ? "" : "1px solid #aaa",
+                        padding: 5,
+                        background: i < 2 ? "#eee" : "",
+                        maxWidth: 500,
+                        height: 50,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {e ? e.toString() : ""}
+                    </p>
+                  </Tooltip>
                 )
               )}
             </div>
@@ -477,12 +563,14 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                 type="primary"
                 onClick={() => {
                   if (isUpdating) {
-                    let { name, unit, price, quantity } = selectedItem ?? {};
+                    let { name, unit, price, quantity, cost } =
+                      selectedItem ?? {};
                     if (!name) name = "";
                     if (!unit) unit = undefined;
                     if (!price) price = 0;
                     if (!quantity) quantity = 0;
-                    setInput({ name, unit, price, quantity });
+                    if (!cost) cost = 0;
+                    setInput({ name, unit, price, quantity, cost });
                     setIsUpdate(false);
                   }
                   setIsUpdating(!isUpdating);
@@ -532,20 +620,45 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
           },
         }}
         extra={[
-          <Button
-            key="new-category"
-            type="primary"
-            size="large"
-            style={{
-              fontWeight: "bolder",
-              width: 100,
-              fontSize: "1.4em",
-              padding: 0,
-            }}
-            onClick={() => setOpenNewItem({ open: true, parentId: "" })}
-          >
-            New
-          </Button>,
+          <Space key="extra-btns">
+            <Button
+              size="large"
+              icon={<VerticalAlignBottomOutlined />}
+              style={{
+                width: 130,
+                fontSize: "1.2em",
+                padding: 0,
+              }}
+              onClick={() => setOpenStock({ open: true, type: "stock-in" })}
+            >
+              STOCK IN
+            </Button>
+            <Button
+              size="large"
+              icon={<VerticalAlignTopOutlined />}
+              style={{
+                width: 130,
+                fontSize: "1.2em",
+                padding: 0,
+              }}
+              onClick={() => setOpenStock({ open: true, type: "stock-out" })}
+            >
+              STOCK OUT
+            </Button>
+            <Button
+              type="primary"
+              size="large"
+              style={{
+                fontWeight: "bolder",
+                width: 100,
+                fontSize: "1.4em",
+                padding: 0,
+              }}
+              onClick={() => setOpenNewItem({ open: true, parentId: "" })}
+            >
+              New
+            </Button>
+          </Space>,
         ]}
       >
         <Row gutter={[16, 16]}>
@@ -578,6 +691,7 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                     setAutoExpandParent(false);
                     setSearchValue("");
                     setSelectedNode(null);
+                    setSelectedItem(null);
                   }}
                 />
               </Tooltip>
@@ -618,7 +732,8 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                     if (!f.node.isParent) {
                       setSelectedNode(f.node);
                       updateSelectedItem(f.node.id);
-                      // parseKeyToTree(treeNodes, f.node.key);
+                    } else {
+                      setSelectedItem(null);
                     }
                   }
                 }}
@@ -651,6 +766,12 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
         }
         close={() => setOpenNewItem({ open: false, parentId: "" })}
         onSave={handleNewParentItem}
+      />
+      <Stock
+        open={openStock.open}
+        close={() => setOpenStock({ open: false, type: "stock-in" })}
+        type={openStock.type}
+        closeSelectedItem={() => setSelectedItem(null)}
       />
     </>
   );

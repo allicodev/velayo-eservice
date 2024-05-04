@@ -25,6 +25,7 @@ const NewItem = ({ title, open, close, onSave }: NewItemProps) => {
     let a = await onSave({ ...val, isParent });
 
     if (a) {
+      form.resetFields();
       setName("");
       close();
     }
@@ -49,6 +50,7 @@ const NewItem = ({ title, open, close, onSave }: NewItemProps) => {
       open={open}
       onCancel={() => {
         setIsParent(true);
+        form.resetFields();
         close();
       }}
       width={600}
@@ -85,18 +87,21 @@ const NewItem = ({ title, open, close, onSave }: NewItemProps) => {
         }}
         onFinish={handleFinish}
       >
-        <Form.Item
-          label={<span style={{ fontSize: "1.6em" }}>Item Code</span>}
-          style={{ margin: 0, marginBottom: 5 }}
-          name="nevamaynd"
-          rules={[
-            {
-              required: true,
-            },
-          ]}
-        >
-          <Input size="large" disabled />
-        </Form.Item>
+        {!isParent && (
+          <Form.Item
+            label={<span style={{ fontSize: "1.6em" }}>Item Code</span>}
+            style={{ margin: 0, marginBottom: 5 }}
+            name="nevamaynd"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
+            <Input size="large" disabled />
+          </Form.Item>
+        )}
+
         <Form.Item
           label={<span style={{ fontSize: "1.6em" }}>Name</span>}
           name="name"
@@ -110,7 +115,6 @@ const NewItem = ({ title, open, close, onSave }: NewItemProps) => {
             style={{
               letterSpacing: 0.5,
             }}
-            value={name}
             onChange={(e) => setName(e.target.value)}
           />
         </Form.Item>
@@ -160,6 +164,32 @@ const NewItem = ({ title, open, close, onSave }: NewItemProps) => {
                   label: e.toLocaleUpperCase(),
                   value: e,
                 }))}
+              />
+            </Form.Item>
+            <Form.Item
+              label={<span style={{ fontSize: "1.6em" }}>Cost</span>}
+              name="cost"
+              style={{ margin: 0, marginBottom: 5 }}
+              rules={[
+                {
+                  required: !isParent,
+                  message: "Cost is empty. Please Provide.",
+                },
+              ]}
+            >
+              <InputNumber
+                size="large"
+                className="align-end-input-num"
+                min={0}
+                style={{
+                  width: 120,
+                }}
+                prefix="₱"
+                controls={false}
+                formatter={(value: any) =>
+                  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                }
+                parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
               />
             </Form.Item>
             <Form.Item

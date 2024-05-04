@@ -202,7 +202,8 @@ textarea.customInput {
   top: -15px;
 }
 
-.ant-input-number-outlined.customInput.size-70.no-prefix div input {
+.ant-input-number-outlined.customInput.size-70.no-prefix div input,
+.customInput.size-70.ant-input-number div input {
   height: 70px;
 }
 
@@ -344,16 +345,24 @@ label.customCheckbox span span.ant-checkbox-inner {
 } */
 
 .custom-item-select {
-  height: 47px !important;
+  height: 50px !important;
 }
 
 .custom-item-select div.ant-select-selector {
-  height: 47px !important;
+  height: 50px !important;
   border-radius: 0 !important;
   border: none !important;
   border-bottom: 1px solid #aaa !important;
   font-size: 1.75em !important;
   padding-left: 5px !important;
+}
+
+.stock-item-select div.ant-select-selector input {
+  font-size: 2em !important;
+}
+
+.inputnum-align-end div input {
+  text-align: end !important;
 }
 
 .printer-container {

@@ -88,10 +88,12 @@ export interface Item {
   unit: ItemUnit | undefined;
   price: number;
   quantity: number;
+  cost: number;
 }
 
 export interface ItemData extends Item {
   _id: string;
+  parentName?: string;
 }
 
 // * Branch

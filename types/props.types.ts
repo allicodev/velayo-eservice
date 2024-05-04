@@ -196,10 +196,11 @@ export interface NewItemProps {
 }
 
 export interface InputProps {
-  name: string;
-  unit: ItemUnit | undefined;
-  price: number;
-  quantity: number;
+  name?: string;
+  unit?: ItemUnit | undefined;
+  price?: number;
+  quantity?: number;
+  cost?: number;
 }
 
 export interface COProps {
@@ -211,4 +212,11 @@ export interface COProps {
 export interface TrackerOptions {
   time: Dayjs | null;
   code: string | null;
+}
+
+export interface StockProps {
+  open: boolean;
+  close: () => void;
+  type: string;
+  closeSelectedItem: () => void;
 }

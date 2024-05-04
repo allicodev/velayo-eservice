@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.2.3",
     "antd": "^5.16.4",
     "axios": "^1.4.0",
     "bcryptjs": "^2.4.3",
@@ -26,6 +27,7 @@
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^17.0.2",
     "react-icons": "^4.8.0",
+    "react-redux": "^7.2.8",
     "react-to-print": "^2.14.13",
     "reflect-metadata": "^0.2.1",
     "usb": "^1.9.2",

@@ -75,10 +75,18 @@ export function findAllIndicesOfSubstring(
 
 // * tree utils
 export const parseKeyToTree = (nodes: TreeNode[], keys: string): string => {
-  const _keys = keys.split("-");
-  const len = _keys.length;
-  if (len < 1) return "Error key name";
-  let title = "";
+  let _keys = keys.split("-");
+  // _keys = [...new Set(_keys)];
+  console.log(_keys);
+  let selectedNode: TreeNode | null = nodes[parseInt(_keys[0])];
+  let title = `${selectedNode.rawTitle} ${_keys.length > 2 ? " - " : ""}`;
+
+  for (let i = 1; i < _keys.length - 1; i++) {
+    selectedNode = selectedNode.children[parseInt(_keys[i])];
+    if (selectedNode) {
+      title += selectedNode.rawTitle + (i == _keys.length - 2 ? "" : " - ");
+    }
+  }
 
   return title;
 };

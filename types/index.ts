@@ -1,5 +1,5 @@
 import { UserProps } from "./props.types";
-import { Transaction } from "./schema.types";
+import { ItemUnit, Transaction } from "./schema.types";
 
 type TransactionHistoryDataType_type = "pending" | "completed" | "failed";
 type TransactionNameType = "gcash" | "eload" | "bills";
@@ -100,4 +100,15 @@ export interface TransactionOptProps {
 
 export interface ItemCode {
   value: number;
+}
+
+export interface ItemState {
+  _id?: string;
+  name: string;
+  itemCode: number;
+  unit: ItemUnit;
+  currentQuantity: number;
+  quantity: number;
+  parentName: string;
+  price: number;
 }
