@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useRef, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import {
   Drawer,
   Typography,
@@ -18,7 +18,7 @@ import {
   Tooltip,
   Alert,
 } from "antd";
-import type { CollapseProps, InputRef } from "antd";
+import type { CollapseProps } from "antd";
 import {
   LeftOutlined,
   RightOutlined,
@@ -30,7 +30,6 @@ import {
   BillingsFormField,
   DrawerBasicProps,
   GcashCollapseItemButtonProps,
-  TrackerOptions,
   Wallet,
   WalletType,
 } from "@/types";
@@ -38,12 +37,13 @@ import {
 // todo: auto disable wallet buttons when disabled by encoder (pusher)
 
 import WalletService from "@/provider/wallet.service";
+import EtcService from "@/provider/etc.service";
 import { FloatLabel } from "@/assets/ts";
 import { useUserStore } from "@/provider/context";
-import dayjs, { Dayjs } from "dayjs";
 
 const WalletForm = ({ open, close }: DrawerBasicProps) => {
   const wallet = new WalletService();
+  const etc = new EtcService();
 
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>();
   const [walletType, setWalletType] = useState<WalletType | null>(null);
@@ -56,12 +56,6 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
   const [error, setError] = useState({});
 
   // for reference tracker
-  const timeRef = useRef<HTMLInputElement>(null);
-  const codeRef = useRef<InputRef>(null);
-  const [trackerOpt, setTrackerOpt] = useState<TrackerOptions>({
-    time: null,
-    code: null,
-  });
 
   const { currentUser, currentBranch } = useUserStore();
 
@@ -99,35 +93,44 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
       .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
       .join(" ");
 
-  const handleFinish = (val: any) => {
+  const handleFinish = async (val: any) => {
     val = { ...val, fee: `${getFee()}_money` };
     if (includeFee) val.amount = `${amount - getFee()}_money`;
 
-    (async (_) => {
-      let res = await _.requestWalletTransaction(
-        `${selectedWallet!.name!} ${walletType}`,
-        JSON.stringify({
-          ...val,
-          billerId: selectedWallet?._id,
-          transactionType: "wallet",
-        }),
-        includeFee ? amount - getFee() : amount,
-        getFee(),
-        currentUser?._id ?? "",
-        currentBranch,
-        walletType == "cash-out" ? val?.traceId ?? "" : null
-      );
-
-      if (res?.success ?? false) {
-        message.success(res?.message ?? "Success");
-        form.resetFields();
-        setSelectedWallet(null);
-        setWalletType(null);
-        setAmount(0);
-        setIncludeFee(false);
-        close();
+    // add validation for cashout
+    if (walletType == "cash-out") {
+      let res = await etc.getTransactionFromTraceId(val?.traceId);
+      if (res?.success) {
+        if (res?.data) {
+          message.error("Transaction is already processed. Cannot continue.");
+          return;
+        }
       }
-    })(wallet);
+    }
+
+    let res = await wallet.requestWalletTransaction(
+      `${selectedWallet!.name!} ${walletType}`,
+      JSON.stringify({
+        ...val,
+        billerId: selectedWallet?._id,
+        transactionType: "wallet",
+      }),
+      includeFee ? amount - getFee() : amount,
+      getFee(),
+      currentUser?._id ?? "",
+      currentBranch,
+      walletType == "cash-out" ? val?.traceId ?? "" : null
+    );
+
+    if (res?.success ?? false) {
+      message.success(res?.message ?? "Success");
+      form.resetFields();
+      setSelectedWallet(null);
+      setWalletType(null);
+      setAmount(0);
+      setIncludeFee(false);
+      close();
+    }
   };
 
   const toCollapsibleItemButton = ({
