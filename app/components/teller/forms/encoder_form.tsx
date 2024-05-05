@@ -347,7 +347,7 @@ const EncoderForm = ({
             <div
               style={{ marginRight: 20 }}
               onClick={() => {
-                setIsFailed(true);
+                setIsFailed(!isFailed);
                 setIsReceived(false);
               }}
             >
@@ -408,7 +408,12 @@ const EncoderForm = ({
             size="large"
             block
             onClick={handleUpdate}
-            disabled={isDisabled}
+            disabled={
+              isDisabled ||
+              (transaction.type != "wallet" &&
+                !isFailed &&
+                ["", null].includes(refNumber))
+            }
             style={{ marginTop: 10 }}
           >
             Update Transaction
