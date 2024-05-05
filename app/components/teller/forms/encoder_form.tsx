@@ -410,9 +410,10 @@ const EncoderForm = ({
             onClick={handleUpdate}
             disabled={
               isDisabled ||
-              (transaction.type != "wallet" &&
-                !isFailed &&
-                ["", null].includes(refNumber))
+              (transaction.type == "wallet" &&
+              transaction.sub_type?.split(" ")[1] == "cash-out"
+                ? false
+                : !isFailed && ["", null].includes(refNumber))
             }
             style={{ marginTop: 10 }}
           >
