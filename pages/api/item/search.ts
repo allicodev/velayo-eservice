@@ -20,6 +20,8 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
+  if (req.query?.search == "")
+    return res.json({ success: true, code: 200, data: [] });
   try {
     let data = await Item.aggregate([
       ...(req.query?.search ?? false
@@ -62,6 +64,7 @@ async function handler(
           quantity: { $first: "$quantity" },
           itemCode: { $first: "$itemCode" },
           price: { $first: "$price" },
+          cost: { $first: "$cost" },
           parents: { $push: "$parents" },
         },
       },
@@ -89,14 +92,7 @@ async function handler(
       },
       {
         $match: {
-          $and: [
-            {
-              $expr: {
-                $gt: [{ $size: "$parents" }, 1],
-              },
-            },
-            { isParent: false },
-          ],
+          cost: { $ne: null },
         },
       },
       {
@@ -106,6 +102,7 @@ async function handler(
           quantity: 1,
           itemCode: 1,
           price: 1,
+          cost: 1,
         },
       },
     ]);
@@ -121,4 +118,4 @@ async function handler(
   }
 }
 
-export default handler;
+export default authMiddleware(handler);

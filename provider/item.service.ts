@@ -5,10 +5,13 @@ import { InputProps, Item, ItemCode, ItemData } from "@/types";
 class ItemService extends Loader {
   private readonly instance = new Api();
 
-  public async getItems() {
+  public async getItems(isParent?: boolean) {
     this.loaderPush("new-items");
     const response = await this.instance.get<ItemData[]>({
       endpoint: "/item/all",
+      query: {
+        isParent,
+      },
     });
     this.loaderPop("new-items");
     return response;

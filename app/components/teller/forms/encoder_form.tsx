@@ -70,7 +70,15 @@ const EncoderForm = ({
         ? 3
         : 2;
     } else {
-      return ["Type", "Biller", "Teller", "Branch"].includes(_)
+      return [
+        "Type",
+        "Biller",
+        "Teller",
+        "Branch",
+        "Portal",
+        "Receiver Name",
+        "Receiver Number/Account Number",
+      ].includes(_)
         ? 3
         : lastStatus() == "completed"
         ? 3
@@ -88,7 +96,15 @@ const EncoderForm = ({
         i > 1 &&
         transaction &&
         lastStatus() == "pending" &&
-        !["Type", "Promo", "Teller", "Branch"].includes(_) &&
+        ![
+          "Type",
+          "Promo",
+          "Teller",
+          "Branch",
+          "Portal",
+          "Receiver Name",
+          "Receiver Number/Account Number",
+        ].includes(_) &&
         textData[0][i] != "Name"
       );
   };
@@ -144,6 +160,24 @@ const EncoderForm = ({
     }
   };
 
+  const updateAsFailed = () => {
+    (async (_) => {
+      if (transaction) {
+        transaction.history.push({
+          description: "No Payment Receive",
+          status: "failed",
+        });
+        let res = await _.updateTransaction(transaction);
+
+        if (res.success) {
+          message.success(res?.message ?? "Success");
+          if (refresh) refresh();
+          close();
+        }
+      }
+    })(bill);
+  };
+
   useEffect(() => {
     if (open && transaction) {
       if (transaction.transactionDetails) {
@@ -168,9 +202,13 @@ const EncoderForm = ({
               }),
             "Teller",
             "Branch",
+            ...(transaction.isOnlinePayment
+              ? ["Portal", "Receiver Name", "Receiver Number/Account Number"]
+              : []),
           ],
           [
-            transaction.type.toLocaleUpperCase(),
+            transaction.type.toLocaleUpperCase() +
+              (transaction.isOnlinePayment ? " Online Payment" : ""),
             transaction.sub_type.toLocaleUpperCase(),
             ...Object.keys(_)
               .filter(
@@ -188,6 +226,14 @@ const EncoderForm = ({
               }),
             (transaction.tellerId as User)?.name ?? "No Teller",
             (transaction.branchId as Branch)?.name ?? "No Branch",
+            ...(true
+              ? [
+                  transaction.portal,
+                  transaction.receiverName,
+                  transaction.recieverNum,
+                  transaction.reference,
+                ]
+              : []),
           ],
         ]);
       }
@@ -267,75 +313,91 @@ const EncoderForm = ({
         />
       )}
       {textData[0].map((_, i) => (
-        <div
-          style={{ display: "flex", justifyContent: "space-around" }}
-          key={i}
-        >
-          <div style={{ width: 140, fontSize: isMobile ? 18 : 20, flex: 2 }}>
-            {_}:
-          </div>
-          <div
-            style={{
-              width: 150,
-              fontSize: isMobile ? 18 : 20,
-              flex: getFlex(_, i),
-            }}
-          >
-            {textData[1][i]}
-          </div>
-          {checkFlagMark(_, i) ? (
+        <>
+          {_ == "Portal" && (
             <div
               style={{
-                flex: 1,
+                marginTop: 20,
+                fontSize: "1.5em",
+                fontWeight: 700,
+                display: "block",
+                textDecoration: "underline",
               }}
             >
-              <Button
-                icon={
-                  copiedIndex == i ? (
-                    <CheckCircleOutlined
-                      style={{
-                        color: "#fff",
-                      }}
-                    />
-                  ) : (
-                    <CopyOutlined
-                      style={{
-                        color: "#fff",
-                      }}
-                    />
-                  )
-                }
-                size="small"
+              Online Payment
+            </div>
+          )}
+          <div
+            style={{ display: "flex", justifyContent: "space-around" }}
+            key={i}
+          >
+            <div style={{ width: 140, fontSize: isMobile ? 18 : 20, flex: 2 }}>
+              {_}:
+            </div>
+            <div
+              style={{
+                width: 150,
+                fontSize: isMobile ? 18 : 20,
+                flex: getFlex(_, i),
+              }}
+            >
+              {textData[1][i]}
+            </div>
+            {checkFlagMark(_, i) ? (
+              <div
                 style={{
-                  backgroundColor: "#1777FF",
-                  color: "#fff",
-                  borderRadius: 8,
-                }}
-                onClick={() => {
-                  setCopiedIndex(i);
-                  setTimeout(() => setCopiedIndex(-1), 2500);
-                  let textToBeCopied: any = textData[1][i];
-
-                  if (textData[1][i].includes("₱")) {
-                    textToBeCopied = `${textData[1][i]
-                      .split(",")
-                      .join("")
-                      .slice(1)}`;
-                  }
-
-                  navigator.clipboard
-                    .writeText(textToBeCopied)
-                    .then((e) => message.success("Copied Successfully"));
+                  flex: 1,
                 }}
               >
-                {copiedIndex == i ? "Copied" : "Copy"}
-              </Button>
-            </div>
-          ) : null}
-        </div>
+                <Button
+                  icon={
+                    copiedIndex == i ? (
+                      <CheckCircleOutlined
+                        style={{
+                          color: "#fff",
+                        }}
+                      />
+                    ) : (
+                      <CopyOutlined
+                        style={{
+                          color: "#fff",
+                        }}
+                      />
+                    )
+                  }
+                  size="small"
+                  style={{
+                    backgroundColor: "#1777FF",
+                    color: "#fff",
+                    borderRadius: 8,
+                  }}
+                  onClick={() => {
+                    setCopiedIndex(i);
+                    setTimeout(() => setCopiedIndex(-1), 2500);
+                    let textToBeCopied: any = textData[1][i];
+
+                    if (textData[1][i].includes("₱")) {
+                      textToBeCopied = `${textData[1][i]
+                        .split(",")
+                        .join("")
+                        .slice(1)}`;
+                    }
+
+                    navigator.clipboard
+                      .writeText(textToBeCopied)
+                      .then((e) => message.success("Copied Successfully"));
+                  }}
+                >
+                  {copiedIndex == i ? "Copied" : "Copy"}
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        </>
       ))}
       {/* conditional rendering */}
-      {transaction && transaction.history.at(-1)?.status == "pending" ? (
+
+      {transaction && lastStatus() == "pending" ? (
         <>
           <div
             style={{

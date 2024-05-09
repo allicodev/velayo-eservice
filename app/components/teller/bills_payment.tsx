@@ -24,10 +24,12 @@ import {
   DrawerBasicProps,
   BillButtonProps,
   BillingsFormField,
+  OnlinePayment,
 } from "@/types";
 import BillService from "@/provider/bill.service";
 import { FloatLabel } from "@/assets/ts";
 import { useUserStore } from "@/provider/context";
+import EtcService from "@/provider/etc.service";
 
 // TODO: validation on confirm
 // TODO: auto disabled billing if disabled by encoder
@@ -83,14 +85,26 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
   const [_window, setWindow] = useState({ innerHeight: 0 });
   const [bills, setBills] = useState<BillingSettingsType[]>([]);
   const [form] = Form.useForm();
+  const [form2] = Form.useForm();
   const [selectedBill, setSelectedBill] = useState<BillingSettingsType | null>(
     null
   );
   const [amount, setAmount] = useState(0);
   const [searchKey, setSearchKey] = useState("");
   const [error, setError] = useState({});
+  const [onlinePaymentInput, setOnlinePaymentInput] = useState<OnlinePayment>({
+    isOnlinePayment: false,
+    portal: "",
+    receiverName: "",
+    recieverNum: "",
+    traceId: "",
+  });
+
+  const updateOP = (key: string, value: any) =>
+    setOnlinePaymentInput({ ...onlinePaymentInput, [key]: value });
 
   const bill = new BillService();
+  const etc = new EtcService();
 
   const { currentUser, currentBranch } = useUserStore();
 
@@ -115,31 +129,81 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
       .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
       .join(" ");
 
-  const handleFinish = (val: any) => {
-    val = { ...val, fee: `${getFee()}_money` };
+  const handleFinish = async (val: any) => {
+    let isError = false;
+    if (onlinePaymentInput.isOnlinePayment) {
+      await form2.validateFields().catch(() => {
+        isError = true;
+      });
 
-    (async (_) => {
-      if (selectedBill) {
-        let res = await _.requestBill(
-          selectedBill?.name,
-          JSON.stringify({
-            ...val,
-            billerId: selectedBill._id,
-            transactionType: "biller",
-          }),
-          amount,
-          getFee(),
-          currentUser?._id ?? "",
-          currentBranch
-        );
-
-        if (res.success) {
-          setSelectedBill(null);
-          message.success(res?.message ?? "Success");
-          close();
-        }
+      if (onlinePaymentInput.traceId.length < 10) {
+        message.warning("Trace ID should have a length of 10");
+        return;
       }
-    })(bill);
+    }
+    if (onlinePaymentInput.isOnlinePayment && isError) {
+      return;
+    }
+
+    const func = () => {
+      val = { ...val, fee: `${getFee()}_money` };
+      (async (_) => {
+        if (selectedBill) {
+          let res = await _.requestBill(
+            selectedBill?.name,
+            JSON.stringify({
+              ...val,
+              billerId: selectedBill._id,
+              transactionType: "biller",
+            }),
+            amount,
+            getFee(),
+            currentUser?._id ?? "",
+            currentBranch,
+            onlinePaymentInput.isOnlinePayment && !isError
+              ? onlinePaymentInput
+              : undefined
+          );
+
+          if (res.success) {
+            setSelectedBill(null);
+            setOnlinePaymentInput({
+              isOnlinePayment: false,
+              portal: "",
+              receiverName: "",
+              recieverNum: "",
+              traceId: "",
+            });
+            message.success(res?.message ?? "Success");
+            form.resetFields();
+            form2.resetFields();
+
+            close();
+          }
+        }
+      })(bill);
+    };
+
+    // if isOnlinepayment is true, check for traceid
+    if (onlinePaymentInput.isOnlinePayment)
+      return await new Promise(async (resolve, reject) => {
+        await etc
+          .getTransactionFromTraceId(onlinePaymentInput.traceId)
+          .then((e) => (e?.data ? resolve(e.data) : reject()));
+      })
+        .then((e) => {
+          if (e)
+            message.warning(
+              "Transaction is already processed. Cannot continue."
+            );
+          return;
+        })
+        .catch(() => {
+          func();
+          return;
+        });
+    console.log("reached");
+    func();
   };
 
   const renderSelectedBill = (bill: BillingSettingsType | null): ReactNode => {
@@ -431,7 +495,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
     return bill?.formField && bill?.formField?.length > 0 ? (
       <Card
         style={{
-          minWidth: 500,
+          minWidth: 650,
           height: "80vh",
         }}
         styles={{
@@ -514,6 +578,162 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             Make Request
           </Button> */}
           </Form>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              cursor: "pointer",
+            }}
+            onClick={() =>
+              updateOP("isOnlinePayment", !onlinePaymentInput.isOnlinePayment)
+            }
+          >
+            <Checkbox
+              className="customCheckbox"
+              checked={onlinePaymentInput.isOnlinePayment}
+            />
+            <span
+              style={{
+                fontSize: "2em",
+                marginLeft: 10,
+              }}
+            >
+              Online Payment
+            </span>
+          </div>
+          {onlinePaymentInput.isOnlinePayment && (
+            <Form
+              form={form2}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                marginTop: 20,
+                gap: 10,
+              }}
+            >
+              <Form.Item
+                rules={[
+                  {
+                    required: true,
+                    message: "Portal is required. Please provide",
+                  },
+                ]}
+                name="portal"
+                noStyle
+              >
+                <FloatLabel
+                  value={onlinePaymentInput.portal}
+                  label="Portal (Payment Wallet Used)"
+                >
+                  <Input
+                    className="customInput size-70"
+                    value={onlinePaymentInput.portal}
+                    style={{
+                      height: 70,
+                      fontSize: "2em",
+                    }}
+                    onChange={(e) => {
+                      updateOP("portal", e.target.value);
+                      form2.setFieldValue("portal", e.target.value);
+                    }}
+                  />
+                </FloatLabel>
+              </Form.Item>
+              <Form.Item
+                rules={[
+                  {
+                    required: true,
+                    message: "Receiver Name is required. Please provide",
+                  },
+                ]}
+                name="receiverName"
+                noStyle
+              >
+                <FloatLabel
+                  value={onlinePaymentInput.receiverName}
+                  label="Receiver Name (Payees name of payment wallet being sent)"
+                >
+                  <Input
+                    className="customInput size-70"
+                    value={onlinePaymentInput.receiverName}
+                    style={{
+                      height: 70,
+                      fontSize: "2em",
+                    }}
+                    onChange={(e) => {
+                      updateOP("receiverName", e.target.value);
+                      form2.setFieldValue("receiverName", e.target.value);
+                    }}
+                  />
+                </FloatLabel>
+              </Form.Item>
+              <Form.Item
+                rules={[
+                  {
+                    required: true,
+                    message: "Receiver Number is required. Please provide",
+                  },
+                ]}
+                name="recieverNum"
+                noStyle
+              >
+                <FloatLabel
+                  value={onlinePaymentInput.recieverNum}
+                  label="Receiver Number/Account Number"
+                >
+                  <Input
+                    className="customInput size-70"
+                    value={onlinePaymentInput.recieverNum}
+                    style={{
+                      height: 70,
+                      fontSize: "2em",
+                    }}
+                    onChange={(e) => {
+                      updateOP("recieverNum", e.target.value);
+                      form2.setFieldValue("recieverNum", e.target.value);
+                    }}
+                  />
+                </FloatLabel>
+              </Form.Item>
+              <Form.Item
+                rules={[
+                  {
+                    required: true,
+                    message: "Trace ID is required. Please provide",
+                  },
+                ]}
+                name="traceId"
+                noStyle
+              >
+                <FloatLabel
+                  value={onlinePaymentInput.traceId}
+                  label="Trace ID (date, time, last 4 digits) (e.g 2312121234)"
+                >
+                  <Input
+                    className="customInput size-70"
+                    value={onlinePaymentInput.traceId}
+                    maxLength={10}
+                    minLength={10}
+                    style={{
+                      height: 70,
+                      fontSize: "2em",
+                    }}
+                    onChange={(e) => {
+                      if (e.target.value == "") {
+                        updateOP("traceId", "");
+                        form2.setFieldValue("traceId", "");
+                      }
+
+                      if (!Number.isNaN(Number(e.target.value))) {
+                        updateOP("traceId", e.target.value);
+                        form2.setFieldValue("traceId", e.target.value);
+                      }
+                    }}
+                  />
+                </FloatLabel>
+              </Form.Item>
+            </Form>
+          )}
           <Divider
             style={{
               background: "#eee",
@@ -578,8 +798,16 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
       onClose={() => {
         close();
         setSelectedBill(null);
+        setOnlinePaymentInput({
+          isOnlinePayment: false,
+          portal: "",
+          receiverName: "",
+          recieverNum: "",
+          traceId: "",
+        });
         setError({});
         form.resetFields();
+        form2.resetFields();
       }}
       width="100%"
       closeIcon={<LeftOutlined />}
@@ -660,6 +888,13 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                   isSelected={e._id == selectedBill?._id}
                   onSelected={(e) => {
                     setSelectedBill(e);
+                    setOnlinePaymentInput({
+                      isOnlinePayment: false,
+                      portal: "",
+                      receiverName: "",
+                      recieverNum: "",
+                      traceId: "",
+                    });
                   }}
                   key={`bills-btn-${i}`}
                   disabled={e.isDisabled ?? false}

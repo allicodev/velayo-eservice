@@ -102,6 +102,7 @@ export interface ItemCode {
   value: number;
 }
 
+// redux
 export interface ItemState {
   _id?: string;
   name: string;

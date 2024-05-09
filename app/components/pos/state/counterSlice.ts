@@ -28,9 +28,24 @@ const counterSlice = createSlice({
         return e;
       });
     },
+    incrementQuantity: (
+      state,
+      action: PayloadAction<{ id: string; quantity: number }>
+    ) => {
+      return state.map((e) => {
+        if (e._id == action.payload.id)
+          return { ...e, quantity: e.quantity + action.payload.quantity };
+        return e;
+      });
+    },
   },
 });
 
-export const { newItem, removeItem, updateQuantity, purgeItems } =
-  counterSlice.actions;
+export const {
+  newItem,
+  removeItem,
+  updateQuantity,
+  purgeItems,
+  incrementQuantity,
+} = counterSlice.actions;
 export default counterSlice.reducer;

@@ -7,6 +7,7 @@ import {
   Response,
   UpdateFeeProps,
   TransactionHistoryStatus,
+  OnlinePayment,
 } from "@/types";
 import { Dayjs } from "dayjs";
 
@@ -119,7 +120,8 @@ class BillService extends Loader {
     amount: number,
     fee: number,
     tellerId: string,
-    branchId: string
+    branchId: string,
+    online?: OnlinePayment
   ) {
     let transaction: Transaction = {
       type: "bills",
@@ -129,6 +131,7 @@ class BillService extends Loader {
       amount,
       tellerId,
       branchId,
+      ...(online ? online : {}),
       history: [
         {
           description: "First  Transaction requested",

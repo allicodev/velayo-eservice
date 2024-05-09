@@ -50,6 +50,15 @@ const TransactionSchema = new mongoose.Schema(
     },
     // for only ewallet cashout
     traceId: String,
+
+    // for online cash payment
+    isOnlinePayment: {
+      type: Boolean,
+      default: false,
+    },
+    portal: String,
+    receiverName: String,
+    recieverNum: String,
   },
   {
     timestamps: true,

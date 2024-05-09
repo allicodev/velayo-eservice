@@ -54,6 +54,19 @@ export interface Transaction {
   amount?: number;
   fee?: number;
   traceId?: string; // for ewallet cashout
+  isOnlinePayment?: boolean;
+  portal?: string;
+  receiverName?: string;
+  recieverNum?: string;
+}
+
+export interface OnlinePayment {
+  isOnlinePayment: boolean;
+  portal: string;
+  receiverName: string;
+  recieverNum: string;
+  traceId: string;
+  reference?: string;
 }
 
 export type WalletType = "cash-in" | "cash-out";

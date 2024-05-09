@@ -20,7 +20,7 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  return await Item.find()
+  return await Item.find(req.query)
     .then((e) => res.json({ success: true, code: 200, data: e }))
     .catch((e) =>
       res.json({ success: false, code: 500, message: "Error in the Server" })

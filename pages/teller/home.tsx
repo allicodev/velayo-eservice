@@ -14,13 +14,16 @@ import {
 } from "@/app/components/teller";
 
 import { BranchData, Eload as EloadProp, TransactionOptProps } from "@/types";
-import { useUserStore } from "@/provider/context";
+import { useItemStore, useUserStore } from "@/provider/context";
 import { Pusher } from "@/provider/utils/pusher";
 import Eload from "@/app/components/teller/forms/eload_form";
 import ShoppeForm from "@/app/components/teller/shoppe_form";
 
 import BillService from "@/provider/bill.service";
 import BranchService from "@/provider/branch.service";
+import PosHome from "@/app/components/pos/pos";
+import dayjs from "dayjs";
+import ItemService from "@/provider/item.service";
 
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
@@ -34,9 +37,11 @@ const Teller = () => {
     });
 
   const { currentUser, currentBranch } = useUserStore();
+  const { setItems, lastDateUpdated, setLastDateUpdated } = useItemStore();
 
   const bill = new BillService();
   const branch = new BranchService();
+  const itemService = new ItemService();
 
   const menu = [
     {
@@ -83,7 +88,10 @@ const Teller = () => {
       ),
       onPress: () => setOpenedMenu("th"),
     },
-    { title: "miscellaneous", onPress: () => {} },
+    {
+      title: "Miscellaneous",
+      onPress: () => setOpenedMenu("pos"),
+    },
   ];
 
   const initPusherProvider = () => {
@@ -96,6 +104,8 @@ const Teller = () => {
       channel.unsubscribe();
     };
   };
+
+  const close = () => setOpenedMenu("");
 
   const handleNotify = (data: any) => {
     let { queue, id } = data;
@@ -168,11 +178,25 @@ const Teller = () => {
   }, []);
 
   useEffect(() => {
+    const minutes = 5; // change this to update the items per (x) minutes
     (async (_) => {
       let res = await _.getBranchSpecific(currentBranch);
 
       if (res?.success ?? false) setBrans(res?.data ?? null);
     })(branch);
+
+    if (
+      Math.abs(dayjs(lastDateUpdated).diff(dayjs(), "minutes")) >= minutes ||
+      lastDateUpdated == null
+    ) {
+      (async (_) => {
+        let res = await _.getItems(false);
+        if (res?.success ?? false) {
+          setItems(res?.data ?? []);
+          setLastDateUpdated(dayjs());
+        }
+      })(itemService);
+    }
   }, []);
 
   return (
@@ -273,17 +297,11 @@ const Teller = () => {
 
       {/* context */}
       {contextHolder}
-      <WalletForm
-        open={openedMenu == "gcash"}
-        close={() => setOpenedMenu("")}
-      />
-      <BillsPayment
-        open={openedMenu == "bills"}
-        close={() => setOpenedMenu("")}
-      />
+      <WalletForm open={openedMenu == "gcash"} close={close} />
+      <BillsPayment open={openedMenu == "bills"} close={close} />
       <TransactionHistory
         open={openedMenu == "th"}
-        close={() => setOpenedMenu("")}
+        close={close}
         onCellClick={(e) => {
           setTransactionOpt({ open: true, transaction: e });
         }}
@@ -294,13 +312,14 @@ const Teller = () => {
       />
       <Eload
         open={openedMenu == "eload"}
-        close={() => setOpenedMenu("")}
+        close={close}
         onSubmit={handleEloadRequest}
       />
       <ShoppeForm
         open={openedMenu == "shoppe"}
         close={() => setOpenedMenu("")}
       />
+      <PosHome open={openedMenu == "pos"} close={close} />
     </>
   );
 };

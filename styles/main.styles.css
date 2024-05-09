@@ -207,6 +207,14 @@ textarea.customInput {
   height: 70px;
 }
 
+.custom.customInput.size-70.ant-input-number div input {
+  font-size: 2em;
+  text-align: center;
+}
+.custom.customInput.size-70.with-prefix span.ant-input-number-prefix {
+  font-size: 2em;
+}
+
 .ant-input-number-outlined.customInput.size-70.no-prefix + label {
   top: 15px;
   left: 15px;
@@ -267,6 +275,10 @@ textarea.customInput.special + label.label-float {
 label.customCheckbox span span.ant-checkbox-inner {
   width: 32px;
   height: 32px;
+}
+
+label.customCheckbox span span.ant-checkbox-inner::after {
+  inset-inline-start: 35% !important;
 }
 
 .customInput.with-prefix ~ label {
@@ -464,4 +476,20 @@ label.customCheckbox span span.ant-checkbox-inner {
 .align-end-input-num div.ant-input-number-input-wrap input:first-child {
   text-align: end;
   padding-right: 10px;
+}
+
+.no-border-radius-autocomplete div {
+  border-radius: 0 !important;
+}
+
+.no-border-radius-autocomplete div span input {
+  font-size: 1.5em !important;
+}
+
+.pos-autocomplete-popup * div.ant-select-item.ant-select-item-option-active {
+  background-color: rgba(41, 75, 15, 0.35) !important;
+}
+
+.tender-bottom-group div:hover {
+  background-color: #eee;
 }
