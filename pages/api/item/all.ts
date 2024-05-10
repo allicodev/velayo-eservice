@@ -48,6 +48,7 @@ async function handler(
         itemCode: { $first: "$itemCode" },
         price: { $first: "$price" },
         cost: { $first: "$cost" },
+        parentId: { $first: "$parentId" },
         parents: { $push: "$parents" },
       },
     },
@@ -74,19 +75,7 @@ async function handler(
       },
     },
     {
-      $match: {
-        cost: { $ne: null },
-      },
-    },
-    {
-      $project: {
-        name: 1,
-        parentName: 1,
-        quantity: 1,
-        itemCode: 1,
-        price: 1,
-        cost: 1,
-      },
+      $project: { parents: 0 },
     },
   ])
     .then((e) => res.json({ success: true, code: 200, data: e }))
