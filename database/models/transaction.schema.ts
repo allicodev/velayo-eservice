@@ -36,10 +36,7 @@ const TransactionSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    fee: {
-      type: Number,
-      required: true,
-    },
+    fee: Number,
     tellerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -59,6 +56,7 @@ const TransactionSchema = new mongoose.Schema(
     portal: String,
     receiverName: String,
     recieverNum: String,
+    cash: Number,
   },
   {
     timestamps: true,

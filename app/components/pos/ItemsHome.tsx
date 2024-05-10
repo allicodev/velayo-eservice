@@ -29,7 +29,7 @@ import {
 
 // TODO: remove white space, connect them into 1 or add smart search (smart via word and not a whole sentence)
 
-import { DrawerBasicProps, InputProps, Item, ItemData } from "@/types";
+import { DrawerBasicProps, InputProps, ItemData } from "@/types";
 import NewItem from "./components/new_item";
 import ItemService from "@/provider/item.service";
 import {
@@ -133,9 +133,25 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
         if (res?.data) {
           setItems(res?.data ?? []);
           setTreeNodes(
-            buildTree(parseTree(res.data, null), null, handleItemOnAddClick)
+            buildTree(
+              parseTree(res.data, null),
+              null,
+              handleItemOnAddClick,
+              handlePurgeItem
+            )
           );
         }
+      }
+    })(itemService);
+  };
+
+  const handlePurgeItem = (id: string) => {
+    (async (_) => {
+      let res = await _.purgeItem(id);
+
+      if (res?.success ?? false) {
+        message.success(res?.message ?? "Success");
+        fetchItems();
       }
     })(itemService);
   };
@@ -320,7 +336,7 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
         _ = (
           <InputNumber
             size="large"
-            defaultValue={item.price}
+            defaultValue={item.cost}
             style={{
               height: 50,
               border: "none",
@@ -692,6 +708,7 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                     setSearchValue("");
                     setSelectedNode(null);
                     setSelectedItem(null);
+                    highlightSearchItems("");
                   }}
                 />
               </Tooltip>
@@ -709,14 +726,13 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                 }}
                 onSelect={(_, f) => {
                   let e = f.node.key;
+
                   if (
                     expandedKeys
                       .map((q) => q.toString())
                       .filter((p) =>
                         new RegExp(`^${e}(-.*)?$`).test(p.toString())
                       ).length > 0 &&
-                    selectedNode &&
-                    selectedNode.id != f.node.id &&
                     !f.node.isLeaf
                   ) {
                     setExpandedKeys(
@@ -783,12 +799,13 @@ export default ItemsHome;
 export function buildTree(
   items: ItemData[],
   parentId: string | null = null,
-  onClick: (str: string) => void
+  onClick: (str: string) => void,
+  purge: (str: string) => void
 ): TreeNode[] {
   return items
     .filter((item) => item.parentId === parentId)
     .map((item, index) =>
-      convertToTreeNode(item, parentId ?? "", index, [], onClick)
+      convertToTreeNode(item, parentId ?? "", index, [], onClick, purge)
     );
 }
 
@@ -797,7 +814,8 @@ export function convertToTreeNode(
   parentId: string,
   index: number,
   parentKeys: string[] = [],
-  onClick: (str: string) => void
+  onClick: (str: string) => void,
+  purge: (str: string) => void
 ): TreeNode {
   const onClickNewSubCategory = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -817,14 +835,44 @@ export function convertToTreeNode(
     >
       <span style={{ marginRight: 10, fontSize: "1.8em" }}>{item.name}</span>
       {item.isParent && (
-        <Tooltip title="New Subcategory">
-          <Button
-            size="large"
-            onClick={onClickNewSubCategory}
-            icon={<PlusOutlined />}
-            style={{ margin: 5 }}
-          />
-        </Tooltip>
+        <div>
+          <Popconfirm
+            title="Deleting this will also delete all sub-categories"
+            okButtonProps={{ size: "large", danger: true, type: "primary" }}
+            okText="DELETE"
+            cancelButtonProps={{ size: "large" }}
+            onCancel={(e) => {
+              e?.stopPropagation();
+              e?.preventDefault();
+            }}
+            onConfirm={(e) => {
+              e?.stopPropagation();
+              e?.preventDefault();
+
+              purge(item._id);
+            }}
+          >
+            <Button
+              size="large"
+              icon={<DeleteOutlined />}
+              style={{ margin: 5 }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              type="primary"
+              danger
+            />
+          </Popconfirm>
+          <Tooltip title="New Subcategory">
+            <Button
+              size="large"
+              onClick={onClickNewSubCategory}
+              icon={<PlusOutlined />}
+              style={{ margin: 5 }}
+            />
+          </Tooltip>
+        </div>
       )}
     </div>
   );
@@ -839,7 +887,8 @@ export function convertToTreeNode(
           item._id,
           i,
           [...parentKeys, String(index)],
-          onClick
+          onClick,
+          purge
         )
       )
     : [];

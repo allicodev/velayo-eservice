@@ -31,7 +31,7 @@ const TransactionDetails = ({
   const printer = new PrinterService();
 
   const latestHistory = () => transaction?.history?.at(-1);
-  const { currentBranch } = useUserStore();
+  const { currentBranch, currentUser } = useUserStore();
 
   const getStatusColor = (status: TransactionHistoryDataType_type): string => {
     if (status == "completed") return "#29A645";
@@ -96,6 +96,7 @@ const TransactionDetails = ({
       if (transaction) {
         let { data } = await _.printReceipt({
           printData: transactionToPrinter(transaction),
+          tellerId: currentUser?.name ?? "",
           branchId: currentBranch,
         });
 
@@ -110,48 +111,130 @@ const TransactionDetails = ({
     if (open && transaction) {
       if (transaction.transactionDetails) {
         let _ = JSON.parse(transaction.transactionDetails);
-        setTextData([
-          [
-            "Type",
-            "Biller",
-            "Teller",
-            ...Object.keys(_)
-              .filter(
-                (e: any) =>
-                  !["billerId", "transactionType", "tellerId"].includes(e)
-              )
-              .map((e) =>
-                e
-                  .replaceAll("_", " ")
-                  .split(" ")
-                  .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
-                  .join(" ")
-              ),
-            "Request Date",
-            "Current Status",
-          ],
-          [
-            transaction.type.toLocaleUpperCase(),
-            transaction.sub_type.toLocaleUpperCase(),
-            `${(transaction.tellerId as User)?.name ?? "No Teller"} (${
-              (transaction.branchId as Branch)?.name ?? "No Branch"
-            })` ?? "No Teller",
-            ...Object.keys(_)
-              .filter(
-                (e: any) =>
-                  !["billerId", "transactionType", "tellerId"].includes(e)
-              )
-              .map((e: any) => {
-                if (typeof _[e] == "string" && _[e].includes("_money"))
-                  return `₱${parseInt(_[e].split("_")[0]).toLocaleString()}`;
-                // if (typeof e == "string" && e.startsWith("09"))
-                //   return `+${63}${e.slice(1)}`;
-                return _[e];
-              }),
-            dayjs(transaction?.createdAt).format("MMMM DD, YYYY - hh:mma"),
-            getStatusBadge(latestHistory()!.status),
-          ],
-        ]);
+
+        if (transaction.type == "miscellaneous")
+          setTextData([
+            [
+              "Type",
+              "Teller",
+              "Request Date",
+              "Items**",
+              ..._.map((e: any) => e.name),
+              "Total",
+              ...(transaction.isOnlinePayment
+                ? [
+                    "Online Payment**",
+                    "Portal",
+                    "Sender Name",
+                    "Sender Number/Account Number",
+                  ]
+                : []),
+              "Current Status",
+            ],
+            [
+              transaction.type.toLocaleUpperCase(),
+              `${(transaction.tellerId as User)?.name ?? "No Teller"} (${
+                (transaction.branchId as Branch)?.name ?? "No Branch"
+              })` ?? "No Teller",
+              dayjs(transaction?.createdAt).format("MMMM DD, YYYY - hh:mma"),
+              "",
+              ..._.map((e: any) => (
+                <div
+                  style={{
+                    display: "flex",
+                    width: "100%",
+                  }}
+                >
+                  <span style={{ width: 120 }}>{`₱${
+                    e.quantity * e.price
+                  }`}</span>
+                  <span>{`₱${e.price} x ${e.quantity}${e.unit}`}</span>
+                </div>
+              )),
+              `₱${transaction.amount}`,
+              ...(transaction.isOnlinePayment
+                ? [
+                    "",
+                    transaction.portal,
+                    transaction.receiverName,
+                    transaction.recieverNum,
+                  ]
+                : []),
+              getStatusBadge(latestHistory()!.status),
+            ],
+          ]);
+        else
+          setTextData([
+            [
+              "Type",
+              "Biller",
+              "Teller",
+              "Request Date",
+              "Current Status",
+              "Other Details**",
+              ...Object.keys(_)
+                .filter(
+                  (e: any) =>
+                    ![
+                      "billerId",
+                      "transactionType",
+                      "tellerId",
+                      "traceId",
+                    ].includes(e)
+                )
+                .map((e) =>
+                  e
+                    .replaceAll("_", " ")
+                    .split(" ")
+                    .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
+                    .join(" ")
+                ),
+              ...(transaction.isOnlinePayment
+                ? [
+                    "Online Payment**",
+                    "Portal",
+                    "Sender Name",
+                    "Sender Number/Account Number",
+                  ]
+                : []),
+            ],
+            [
+              transaction.type.toLocaleUpperCase(),
+              transaction.sub_type?.toLocaleUpperCase() ?? "N/A",
+              `${(transaction.tellerId as User)?.name ?? "No Teller"} (${
+                (transaction.branchId as Branch)?.name ?? "No Branch"
+              })` ?? "No Teller",
+              dayjs(transaction?.createdAt).format("MMMM DD, YYYY - hh:mma"),
+              getStatusBadge(latestHistory()!.status),
+              "",
+              ...Object.keys(_)
+                .filter(
+                  (e: any) =>
+                    ![
+                      "billerId",
+                      "transactionType",
+                      "tellerId",
+                      "traceId",
+                    ].includes(e)
+                )
+                .map((e: any) => {
+                  if (typeof _[e] == "string" && _[e].includes("_money"))
+                    return `₱${parseInt(_[e].split("_")[0]).toLocaleString()}`;
+                  // if (typeof e == "string" && e.startsWith("09"))
+                  //   return `+${63}${e.slice(1)}`;
+                  return _[e];
+                }),
+
+              ...(transaction.isOnlinePayment
+                ? [
+                    "",
+                    transaction.portal,
+                    transaction.receiverName,
+                    transaction.recieverNum,
+                  ]
+                : []),
+            ],
+          ]);
       }
     }
   }, [open]);
@@ -165,15 +248,41 @@ const TransactionDetails = ({
           Transaction Details
         </Typography.Title>
       }
-      width={850}
+      width={950}
       zIndex={2}
     >
       <Row gutter={[4, 0]}>
         <Col span={14}>
           {textData[0].map((_, i) => (
             <div style={{ display: "flex" }} key={i}>
-              <div style={{ width: 250, fontSize: 20 }}>{_}:</div>
-              <div style={{ width: 300, fontSize: 20 }}>{textData[1][i]}</div>
+              <div
+                style={{
+                  width: 350,
+                  fontSize: 20,
+                  marginTop:
+                    _.includes("**") ||
+                    ((transaction?.type == "miscellaneous" ?? false) &&
+                      _.toLocaleLowerCase() == "current status")
+                      ? 10
+                      : 0,
+                  textDecoration: _.includes("**") ? "underline" : "",
+                }}
+              >
+                {_.includes("**") ? _.split("**")[0] : `${_}:`}
+              </div>
+              <div
+                style={{
+                  width: 300,
+                  fontSize: 20,
+                  marginTop:
+                    (transaction?.type == "miscellaneous" ?? false) &&
+                    _.toLocaleLowerCase() == "current status"
+                      ? 10
+                      : 0,
+                }}
+              >
+                {textData[1][i]}
+              </div>
             </div>
           ))}
           {latestHistory() &&

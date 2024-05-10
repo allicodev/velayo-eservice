@@ -493,3 +493,7 @@ label.customCheckbox span span.ant-checkbox-inner::after {
 .tender-bottom-group div:hover {
   background-color: #eee;
 }
+
+.ant-tree-switcher.ant-tree-switcher-noop {
+  display: none !important;
+}

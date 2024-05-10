@@ -87,7 +87,9 @@ const Encoder = () => {
               : "#EFB40D"
           }
         >
-          {type.toLocaleUpperCase()}
+          {type == "miscellaneous" && isMobile
+            ? "Misc"
+            : type.toLocaleUpperCase()}
         </Tag>
       ),
     },

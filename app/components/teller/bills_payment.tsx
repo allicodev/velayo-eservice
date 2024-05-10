@@ -100,10 +100,12 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
     traceId: "",
   });
 
+  const [loading, setLoading] = useState(false);
+
   const updateOP = (key: string, value: any) =>
     setOnlinePaymentInput({ ...onlinePaymentInput, [key]: value });
 
-  const bill = new BillService();
+  const billService = new BillService();
   const etc = new EtcService();
 
   const { currentUser, currentBranch } = useUserStore();
@@ -149,6 +151,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
       val = { ...val, fee: `${getFee()}_money` };
       (async (_) => {
         if (selectedBill) {
+          setLoading(true);
           let res = await _.requestBill(
             selectedBill?.name,
             JSON.stringify({
@@ -166,6 +169,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
           );
 
           if (res.success) {
+            setLoading(false);
             setSelectedBill(null);
             setOnlinePaymentInput({
               isOnlinePayment: false,
@@ -179,9 +183,9 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             form2.resetFields();
 
             close();
-          }
+          } else setLoading(false);
         }
-      })(bill);
+      })(billService);
     };
 
     // if isOnlinepayment is true, check for traceid
@@ -643,7 +647,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                 rules={[
                   {
                     required: true,
-                    message: "Receiver Name is required. Please provide",
+                    message: "Sender Name is required. Please provide",
                   },
                 ]}
                 name="receiverName"
@@ -651,7 +655,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
               >
                 <FloatLabel
                   value={onlinePaymentInput.receiverName}
-                  label="Receiver Name (Payees name of payment wallet being sent)"
+                  label="Sender Name (Payees name of payment wallet being sent)"
                 >
                   <Input
                     className="customInput size-70"
@@ -671,7 +675,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                 rules={[
                   {
                     required: true,
-                    message: "Receiver Number is required. Please provide",
+                    message: "Sender Number is required. Please provide",
                   },
                 ]}
                 name="recieverNum"
@@ -679,7 +683,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
               >
                 <FloatLabel
                   value={onlinePaymentInput.recieverNum}
-                  label="Receiver Number/Account Number"
+                  label="Sender Number/Account Number"
                 >
                   <Input
                     className="customInput size-70"
@@ -760,6 +764,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
               marginTop: 25,
             }}
             onClick={form.submit}
+            loading={loading}
             block
           >
             CONFIRM
@@ -781,7 +786,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
       if (res.success) {
         setBills(res?.data ?? []);
       }
-    })(bill);
+    })(billService);
   };
 
   useEffect(() => {

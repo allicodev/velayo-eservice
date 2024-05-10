@@ -194,6 +194,7 @@ const Teller = () => {
         if (res?.success ?? false) {
           setItems(res?.data ?? []);
           setLastDateUpdated(dayjs());
+          console.log("Items are refreshed");
         }
       })(itemService);
     }

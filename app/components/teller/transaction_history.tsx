@@ -121,7 +121,12 @@ const TransactionHistory = ({
     {
       title: "Biller",
       dataIndex: "sub_type",
-      render: (_) => _.toLocaleUpperCase(),
+      render: (_) =>
+        _?.toLocaleUpperCase() ?? (
+          <Typography.Text type="secondary" italic>
+            Not Applicable
+          </Typography.Text>
+        ),
     },
     {
       title: "Amount",
@@ -259,16 +264,18 @@ const TransactionHistory = ({
         branchName: (e.branchId as Branch).name,
         dateTime: dayjs(e.createdAt).format("MM/DD/YYYY HH:mm"),
         transactionType: getTransactionLabel(e.type),
-        billerName: e.sub_type.toLocaleUpperCase(),
+        billerName: e.sub_type?.toLocaleUpperCase() ?? "N/A",
         amount:
-          e.type == "wallet" && e.sub_type.split(" ")[1] == "cash-out"
+          e.type == "wallet" && e.sub_type!.split(" ")[1] == "cash-out"
             ? -e.amount!
             : e.amount,
         serviceFee: e.fee,
         total:
-          ((e.type == "wallet" && e.sub_type.split(" ")[1] == "cash-out"
-            ? -e.amount!
-            : e.amount) ?? 0) + (e.fee ?? 0),
+          e?.sub_type ?? false
+            ? ((e.type == "wallet" && e.sub_type!.split(" ")[1] == "cash-out"
+                ? -e.amount!
+                : e.amount) ?? 0) + (e.fee ?? 0)
+            : e.amount,
         user: typeof e.tellerId == "object" ? e.tellerId.name : "",
         status: (e.history.at(-1)?.status ?? "").toLocaleUpperCase(),
       });
@@ -295,9 +302,11 @@ const TransactionHistory = ({
     const totalAmount = trans.reduce(
       (p, n) =>
         p +
-        (n.type == "wallet" && n.sub_type.split(" ")[1] == "cash-out"
-          ? -n.amount!
-          : n?.amount ?? 0),
+        (n?.sub_type ?? false
+          ? n.type == "wallet" && n.sub_type!.split(" ")[1] == "cash-out"
+            ? -n.amount!
+            : n?.amount ?? 0
+          : n.amount!),
       0
     );
     const totalFee = trans.reduce((p, n) => p + (n?.fee ?? 0), 0);
@@ -313,7 +322,7 @@ const TransactionHistory = ({
     s("h").value = parseToMoney(totalAmount + totalFee);
 
     // * styles the headers
-    ["A", "B", "C", "D", "E", "F", "G", "H", "I"].map((c) => {
+    ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"].map((c) => {
       sheet.getCell(`${c}2`).alignment = {
         horizontal: "center",
         vertical: "middle",

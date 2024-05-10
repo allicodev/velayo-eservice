@@ -44,3 +44,11 @@ export interface TransactionPrinter {
   amount: number;
   otherDetails: string;
 }
+
+export interface TransactionPrinterPOS {
+  itemDetails: string;
+  amount: number;
+  cash: number;
+  receiptNo: string;
+  refNo: string;
+}

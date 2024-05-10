@@ -1,11 +1,18 @@
 import dbConnect from "@/database/dbConnect";
 import Transaction from "@/database/models/transaction.schema";
-import { Response } from "@/types";
+import {
+  ExtendedResponse,
+  Response,
+  TransactionPOS as TransactionProp,
+} from "@/types";
 import { Pusher2 } from "@/provider/utils/pusher";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
-async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
+async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<ExtendedResponse<TransactionProp> | Response>
+) {
   await dbConnect();
 
   const { method } = req;
@@ -18,12 +25,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
     });
 
   return await Transaction.create(req.body)
-    .then(async () => {
-      await new Pusher2().emit("encoder", "notify", {});
+    .then(async (e) => {
+      if (req.body.type == "miscellaneous") {
+        if (req.body.isOnlinePayment)
+          await new Pusher2().emit("encoder", "notify", {});
+      } else await new Pusher2().emit("encoder", "notify", {});
+
       return res.json({
         code: 200,
         success: true,
         message: "Transaction has been sent",
+        data: e,
       });
     })
     .catch((e) => {

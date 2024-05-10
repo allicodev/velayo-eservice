@@ -46,7 +46,7 @@ export interface Transaction {
   type: TransactionType;
   tellerId: User | string;
   branchId: Branch | string;
-  sub_type: string;
+  sub_type?: string;
   transactionDetails: string;
   reference?: string;
   history: TransactionHistory[];
@@ -58,6 +58,10 @@ export interface Transaction {
   portal?: string;
   receiverName?: string;
   recieverNum?: string;
+}
+
+export interface TransactionPOS extends Transaction {
+  cash: number;
 }
 
 export interface OnlinePayment {

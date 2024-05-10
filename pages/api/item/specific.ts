@@ -55,6 +55,7 @@ async function handler(
         itemCode: { $first: "$itemCode" },
         price: { $first: "$price" },
         cost: { $first: "$cost" },
+        unit: { $first: "$unit" },
         parents: { $push: "$parents" },
       },
     },
@@ -89,6 +90,7 @@ async function handler(
         itemCode: 1,
         price: 1,
         cost: 1,
+        unit: 1,
       },
     },
   ])

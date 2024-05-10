@@ -63,6 +63,7 @@ type ItemStore = {
   setItems: (token: ItemData[]) => void;
   lastDateUpdated: Dayjs | null;
   setLastDateUpdated: (token: Dayjs) => void;
+  clearItems: () => void;
 };
 
 type MyPersistItem = (
@@ -78,6 +79,7 @@ const useItemStore = create<ItemStore, []>(
       lastDateUpdated: null,
       setLastDateUpdated: (token: Dayjs) =>
         set((state) => ({ lastDateUpdated: token })),
+      clearItems: () => set(() => ({ items: [] })),
     }),
     {
       name: "items",

@@ -39,9 +39,11 @@ import {
 } from "./state/counterSlice";
 import BranchService from "@/provider/branch.service";
 import { FloatLabel } from "@/assets/ts";
+import PrinterService from "@/provider/printer.service";
+import EtcService from "@/provider/etc.service";
 
 const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
-  const [currentTime, setCurrentTime] = useState<Dayjs>();
+  const [currentTime, setCurrentTime] = useState<Dayjs>(dayjs());
   const [popupItem, setPopupitems] = useState<ItemData[]>([]);
   const [inputQuantity, setInputQuantity] = useState<number | null>();
   const [openItemOpt, setOpenItemOpt] = useState<{
@@ -64,7 +66,6 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
     receiverName: "",
     recieverNum: "",
     traceId: "",
-    reference: "",
   });
 
   const [form] = Form.useForm();
@@ -76,6 +77,8 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
   // provider
   const item = new ItemService();
   const branch = new BranchService();
+  const printer = new PrinterService();
+  const etc = new EtcService();
 
   // redux
   const selectedItem = useSelector((state: RootState) => state.item);
@@ -83,22 +86,21 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
 
   // utils
   const [paymentSaved, setPaymentSaved] = useState(false);
+  const [modal, context] = Modal.useModal();
 
   // tender utils
   const [amount, setAmount] = useState<number | null>(null);
 
   const onlinePaymentLabels = [
     "Portal",
-    "Receiver Name",
-    "Receiver Number/Account Number",
-    "Reference Number",
+    "Sender Name",
+    "Sender Number/Account Number",
     "Trace ID",
   ];
   const onlinePaymentValues = [
     onlinePaymentInput.portal,
     onlinePaymentInput.receiverName,
     onlinePaymentInput.recieverNum,
-    onlinePaymentInput.reference,
     onlinePaymentInput.traceId,
   ];
 
@@ -133,6 +135,11 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
     setOnlinePaymentInput({ ...onlinePaymentInput, [key]: value });
 
   const confirmQuantity = () => {
+    if ([null, 0, undefined].includes(inputQuantity)) {
+      message.warning("Cannot Add an Item. Quantity should be greater than 0");
+      return;
+    }
+
     setOpenItemOpt({ open: false, data: null, mode: "" });
     setInputSearch("");
     setInputQuantity(null);
@@ -185,9 +192,122 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
   const getTotal = () =>
     selectedItem.reduce((p, n) => p + n.price * n.quantity, 0);
 
+  const handleRequestTransaction = async () => {
+    let transactionDetails = JSON.stringify(
+      selectedItem.map((e) => ({
+        name: e.name,
+        price: e.price,
+        quantity: e.quantity,
+        unit: e.unit,
+      }))
+    );
+    let cash = amount;
+    let _amount = getTotal();
+    let tellerId = currentUser?._id ?? "";
+    let branchId = currentBranch;
+    let online = onlinePaymentInput;
+
+    const func /* a newbie function */ = async () => {
+      let res = await item.requestTransaction(
+        transactionDetails,
+        cash!,
+        _amount,
+        tellerId,
+        branchId,
+        "",
+        online
+      );
+
+      if (res?.success ?? false) {
+        if (!online.isOnlinePayment)
+          modal.confirm({
+            title: "Do you want to print the receipt ?",
+            okText: "PRINT",
+            zIndex: 999999,
+            okButtonProps: {
+              size: "large",
+            },
+            cancelButtonProps: {
+              size: "large",
+            },
+            onOk: () => {
+              // call proxy server, also call a flag that the print is success
+
+              new Promise(async (resolve, reject) => {
+                await printer.printReceiptPos({
+                  printData: {
+                    itemDetails: JSON.stringify(
+                      selectedItem.map((e) => ({
+                        name: e.name,
+                        unit: e.unit,
+                        price: e.price,
+                        quantity: e.quantity,
+                      }))
+                    ),
+                    amount: getTotal(),
+                    cash: _amount,
+                    receiptNo:
+                      `3772-${parseInt(
+                        (res.data as any)._id.slice(-8).toString(),
+                        16
+                      )}` ?? "",
+                    refNo: "",
+                  },
+                  tellerId: currentUser?.name ?? "",
+                  branchId: currentBranch,
+                });
+
+                resolve(true);
+              }).then(() => {
+                message.success(res?.message ?? "Success");
+                setOpenTender(false);
+                setAmount(null);
+                dispatch(purgeItems());
+              });
+            },
+            onCancel: () => {
+              setOpenTender(false);
+              setAmount(null);
+              dispatch(purgeItems());
+            },
+          });
+        else {
+          message.success(res?.message ?? "Success");
+          setOpenTender(false);
+          setAmount(null);
+          dispatch(purgeItems());
+        }
+      }
+    };
+
+    if (onlinePaymentInput.isOnlinePayment)
+      return await new Promise(async (resolve, reject) => {
+        await etc
+          .getTransactionFromTraceId(onlinePaymentInput.traceId)
+          .then((e) => (e?.data ? resolve(e.data) : reject()));
+      })
+        .then((e) => {
+          if (e)
+            message.warning(
+              "This Transaction is already processed. Cannot continue."
+            );
+          return;
+        })
+        .catch(() => {
+          func();
+          return;
+        });
+    console.log("reached");
+    func();
+  };
+
   useEffect(() => {
     let sec = Number.parseInt(dayjs().format("ss"));
-    setTimeout(() => setInterval(() => setCurrentTime(dayjs())), 60 - sec);
+    setTimeout(() => {
+      setInterval(() => {
+        setCurrentTime(dayjs());
+      }, 60 * 1000);
+    }, 60 * 1000 - sec * 1000);
 
     (async (_) => {
       let res = await _.getBranchSpecific(currentBranch);
@@ -350,7 +470,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
                 .indexOf(inputValue.toUpperCase()) !== -1
             }
             options={popupItem.map((e) => ({
-              label: `${"00000".slice(e.itemCode.toString().length)}${
+              label: `${"00000".slice(e.itemCode?.toString().length)}${
                 e.itemCode
               }: ${e.name}`,
               value: e.name,
@@ -433,6 +553,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
       </Drawer>
 
       {/* context */}
+      {context}
       <Modal
         open={openItemOpt.open}
         onCancel={() => {
@@ -753,11 +874,12 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
               height: 70,
               width: 210,
               marginRight: 30,
-              fontSize: "2em",
+              fontSize: "3em",
               background: getTotal() > (amount ?? 0) ? "#98c04b88" : "#98c04b",
               color: "#fff",
             }}
             disabled={getTotal() > (amount ?? 0)}
+            onClick={handleRequestTransaction}
           >
             Confirm
           </Button>
@@ -842,7 +964,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
             rules={[
               {
                 required: true,
-                message: "Receiver Name is required. Please provide",
+                message: "Sender Name is required. Please provide",
               },
             ]}
             name="receiverName"
@@ -850,7 +972,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
           >
             <FloatLabel
               value={onlinePaymentInput.receiverName}
-              label="Receiver Name (Payees name of payment wallet being sent)"
+              label="Sender Name (Payees name of payment wallet being sent)"
             >
               <Input
                 className="customInput size-70"
@@ -870,7 +992,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
             rules={[
               {
                 required: true,
-                message: "Receiver Number is required. Please provide",
+                message: "Sender Number is required. Please provide",
               },
             ]}
             name="recieverNum"
@@ -878,7 +1000,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
           >
             <FloatLabel
               value={onlinePaymentInput.recieverNum}
-              label="Receiver Number/Account Number"
+              label="Sender Number/Account Number"
             >
               <Input
                 className="customInput size-70"
@@ -890,34 +1012,6 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
                 onChange={(e) => {
                   updateOP("recieverNum", e.target.value);
                   form.setFieldValue("recieverNum", e.target.value);
-                }}
-              />
-            </FloatLabel>
-          </Form.Item>
-          <Form.Item
-            rules={[
-              {
-                required: true,
-                message: "Reference Number is required. Please provide",
-              },
-            ]}
-            name="reference"
-            noStyle
-          >
-            <FloatLabel
-              value={onlinePaymentInput.reference}
-              label="Reference Number"
-            >
-              <Input
-                className="customInput size-70"
-                value={onlinePaymentInput.reference}
-                style={{
-                  height: 70,
-                  fontSize: "2em",
-                }}
-                onChange={(e) => {
-                  updateOP("reference", e.target.value);
-                  form.setFieldValue("reference", e.target.value);
                 }}
               />
             </FloatLabel>

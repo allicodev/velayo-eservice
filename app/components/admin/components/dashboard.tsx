@@ -14,7 +14,12 @@ const ReportDashboard = ({ transaction }: { transaction: Transaction[] }) => {
     {
       title: "biller",
       dataIndex: "sub_type",
-      render: (_) => _.toLocaleUpperCase(),
+      render: (_) =>
+        _?.toLocaleUpperCase() ?? (
+          <Typography.Text type="secondary" italic>
+            N/A
+          </Typography.Text>
+        ),
     },
     {
       title: "Amount",
@@ -86,7 +91,7 @@ const ReportDashboard = ({ transaction }: { transaction: Transaction[] }) => {
             dataSource={transaction.map((e): RecentTransaction => {
               return {
                 type: e.type,
-                sub_type: e.sub_type,
+                sub_type: e?.sub_type ?? "",
                 amount: e.amount ?? 0,
                 fee: e.fee ?? 0,
               };

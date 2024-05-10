@@ -33,6 +33,11 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
 
   const handleRequest = () => {
     // validate
+    if (eload.provider == null) {
+      message.warning("Provider is Blank. Please provide.");
+      return;
+    }
+
     if (!eload.phone || eload.phone == "") {
       message.warning("Phone Number is empty. Please Provide.");
       return;

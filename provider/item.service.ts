@@ -1,6 +1,16 @@
 import Loader from "./utils/loader";
 import Api from "./api.service";
-import { InputProps, Item, ItemCode, ItemData } from "@/types";
+import {
+  InputProps,
+  Item,
+  ItemCode,
+  ItemData,
+  TransactionPOS,
+  OnlinePayment,
+  ExtendedResponse,
+  Transaction,
+  Response,
+} from "@/types";
 
 class ItemService extends Loader {
   private readonly instance = new Api();
@@ -85,6 +95,59 @@ class ItemService extends Loader {
       },
     });
     this.loaderPop("search-item");
+    return response;
+  }
+
+  public async purgeItem(id: string) {
+    const response = await this.instance.get<ItemData[]>({
+      endpoint: "/item/purge-item",
+      query: {
+        id,
+      },
+    });
+    return response;
+  }
+
+  public async requestTransaction(
+    transactionDetails: string,
+    cash: number,
+    amount: number,
+    tellerId: string,
+    branchId: string,
+    reference: string,
+    online?: OnlinePayment
+  ) {
+    let transaction: TransactionPOS = {
+      type: "miscellaneous",
+      transactionDetails, // crucial
+      reference,
+      cash,
+      amount,
+      tellerId,
+      branchId,
+      ...(online?.isOnlinePayment ?? false ? online : {}),
+      history:
+        online?.isOnlinePayment ?? false
+          ? [
+              {
+                description: "First  Transaction requested",
+                status: "pending",
+              },
+            ]
+          : [
+              {
+                description: "Transaction Completed",
+                status: "completed",
+              },
+            ],
+    };
+
+    this.loaderPush("request-bill");
+    const response = await this.instance.post<Transaction | Response>({
+      endpoint: "/bill/request-transaction",
+      payload: { ...transaction, branchId },
+    });
+    this.loaderPop("request-bill");
     return response;
   }
 }

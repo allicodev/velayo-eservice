@@ -20,7 +20,75 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  return await Item.find(req.query)
+  return await Item.aggregate([
+    {
+      $graphLookup: {
+        from: "items",
+        startWith: "$_id",
+        connectFromField: "parentId",
+        connectToField: "_id",
+        as: "parents",
+        depthField: "depth",
+      },
+    },
+    {
+      $unwind: "$parents",
+    },
+    {
+      $sort: {
+        "parents.depth": -1,
+      },
+    },
+    {
+      $group: {
+        _id: "$_id",
+        name: { $first: "$name" },
+        isParent: { $first: "$isParent" },
+        quantity: { $first: "$quantity" },
+        itemCode: { $first: "$itemCode" },
+        price: { $first: "$price" },
+        cost: { $first: "$cost" },
+        parents: { $push: "$parents" },
+      },
+    },
+    {
+      $addFields: {
+        parentName: {
+          $reduce: {
+            input: {
+              $filter: {
+                input: "$parents",
+                cond: { $ne: ["$$this._id", "$_id"] },
+              },
+            },
+            initialValue: "",
+            in: {
+              $concat: [
+                "$$value",
+                { $cond: [{ $eq: ["$$value", ""] }, "", " > "] },
+                "$$this.name",
+              ],
+            },
+          },
+        },
+      },
+    },
+    {
+      $match: {
+        cost: { $ne: null },
+      },
+    },
+    {
+      $project: {
+        name: 1,
+        parentName: 1,
+        quantity: 1,
+        itemCode: 1,
+        price: 1,
+        cost: 1,
+      },
+    },
+  ])
     .then((e) => res.json({ success: true, code: 200, data: e }))
     .catch((e) =>
       res.json({ success: false, code: 500, message: "Error in the Server" })

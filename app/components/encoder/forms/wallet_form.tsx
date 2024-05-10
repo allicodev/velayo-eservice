@@ -54,6 +54,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
   const [includeFee, setIncludeFee] = useState(false);
   const [searchKey, setSearchKey] = useState("");
   const [error, setError] = useState({});
+  const [loading, setLoading] = useState(false);
 
   // for reference tracker
 
@@ -75,7 +76,8 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
     } else {
       return selectedWallet?.cashoutType == "fixed"
         ? selectedWallet?.cashoutFeeValue!
-        : Math.round(amount * (selectedWallet?.cashoutFeeValue! / 100));
+        : amount -
+            Math.round(amount / (1 + selectedWallet?.cashoutFeeValue! / 100));
     }
   };
 
@@ -108,6 +110,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
       }
     }
 
+    setLoading(true);
     let res = await wallet.requestWalletTransaction(
       `${selectedWallet!.name!} ${walletType}`,
       JSON.stringify({
@@ -123,6 +126,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
     );
 
     if (res?.success ?? false) {
+      setLoading(false);
       message.success(res?.message ?? "Success");
       form.resetFields();
       setSelectedWallet(null);
@@ -130,7 +134,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
       setAmount(0);
       setIncludeFee(false);
       close();
-    }
+    } else setLoading(false);
   };
 
   const toCollapsibleItemButton = ({
@@ -779,22 +783,33 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                         marginBottom: 10,
                       }}
                     >
-                      <InputNumber
+                      <Input
                         size="large"
                         className="customInput size-70"
-                        controls={false}
-                        min={10}
+                        minLength={10}
                         maxLength={10}
-                        onChange={(e) =>
-                          form.setFieldsValue({
-                            traceId: e,
-                          })
-                        }
                         style={{
                           width: "100%",
                           height: 70,
                           fontSize: "2em",
                         }}
+                        onKeyDown={(e) => {
+                          const charCode = e.which || e.keyCode;
+                          if (
+                            charCode != 8 &&
+                            charCode != 37 &&
+                            charCode != 39
+                          ) {
+                            if (charCode < 48 || charCode > 57) {
+                              e.preventDefault();
+                            }
+                          }
+                        }}
+                        onChange={(e) =>
+                          form.setFieldsValue({
+                            traceId: e.target.value,
+                          })
+                        }
                       />
                     </Form.Item>
                   </div>
@@ -855,6 +870,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                   marginRight: 24,
                 }}
                 onClick={form.submit}
+                loading={loading}
               >
                 CONFIRM
               </Button>
