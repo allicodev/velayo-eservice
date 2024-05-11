@@ -35,11 +35,6 @@ async function handler(
       $unwind: "$parents",
     },
     {
-      $sort: {
-        "parents.depth": -1,
-      },
-    },
-    {
       $group: {
         _id: "$_id",
         name: { $first: "$name" },
@@ -49,6 +44,7 @@ async function handler(
         price: { $first: "$price" },
         cost: { $first: "$cost" },
         parentId: { $first: "$parentId" },
+        createdAt: { $first: "$createdAt" },
         parents: { $push: "$parents" },
       },
     },
@@ -72,6 +68,11 @@ async function handler(
             },
           },
         },
+      },
+    },
+    {
+      $sort: {
+        createdAt: 1,
       },
     },
     {

@@ -25,6 +25,7 @@ import BillService from "@/provider/bill.service";
 import WalletService from "@/provider/wallet.service";
 import EtcService from "@/provider/etc.service";
 import COTracker from "./teller/cashout_tracker";
+import { useItemStore } from "@/provider/context";
 
 const UserBadge = ({
   name,
@@ -51,6 +52,8 @@ const UserBadge = ({
   const bill = new BillService();
   const wallet = new WalletService();
   const etc = new EtcService();
+
+  const { setItems } = useItemStore();
 
   const getBillsAndWallets = () => {
     (async (_) => {
@@ -156,6 +159,7 @@ const UserBadge = ({
                       },
                       onOk: () => {
                         Cookies.remove("token");
+                        setItems([]);
                         window.location.reload();
                       },
                     }),

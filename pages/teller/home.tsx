@@ -37,7 +37,8 @@ const Teller = () => {
     });
 
   const { currentUser, currentBranch } = useUserStore();
-  const { setItems, lastDateUpdated, setLastDateUpdated } = useItemStore();
+  const { setItems, lastDateUpdated, setLastDateUpdated, items } =
+    useItemStore();
 
   const bill = new BillService();
   const branch = new BranchService();
@@ -187,12 +188,13 @@ const Teller = () => {
 
     if (
       Math.abs(dayjs(lastDateUpdated).diff(dayjs(), "minutes")) >= minutes ||
-      lastDateUpdated == null
+      lastDateUpdated == null ||
+      items.length == 0
     ) {
       (async (_) => {
         let res = await _.getItems(false);
         if (res?.success ?? false) {
-          setItems(res?.data ?? []);
+          setItems(res?.data?.filter((e) => !e.isParent) ?? []);
           setLastDateUpdated(dayjs());
           console.log("Items are refreshed");
         }

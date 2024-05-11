@@ -80,6 +80,8 @@ const EncoderForm = ({
         "Amount",
         "Fee",
         "Biller",
+        "Trace ID",
+        ...(transaction?.type == "miscellaneous" ? ["Total"] : []),
       ].includes(_)
         ? 3
         : lastStatus() == "completed"
@@ -110,6 +112,8 @@ const EncoderForm = ({
           "Amount",
           "Fee",
           "Biller",
+          "Trace ID",
+          ...(transaction?.type == "miscellaneous" ? ["Total"] : []),
         ].includes(_) &&
         textData[0][i] != "Name"
       );
@@ -183,6 +187,7 @@ const EncoderForm = ({
                     "Portal",
                     "Sender Name",
                     "Sender Number/Account Number",
+                    "Trace ID",
                   ]
                 : []),
               "Others**",
@@ -192,12 +197,20 @@ const EncoderForm = ({
             [
               ...(isMobile ? [] : [transaction.type.toLocaleUpperCase()]),
               `₱${transaction.amount}`,
+
               ...(transaction.isOnlinePayment
                 ? [
                     "",
                     transaction.portal!,
                     transaction.receiverName!,
                     transaction.recieverNum!,
+                    `${transaction.traceId?.slice(
+                      0,
+                      2
+                    )}-${transaction.traceId?.slice(
+                      2,
+                      6
+                    )}-${transaction.traceId?.slice(6, 10)}` ?? "N/A",
                   ]
                 : []),
               "",
@@ -219,7 +232,6 @@ const EncoderForm = ({
                       "fee",
                       "tellerId",
                       "amount",
-                      "traceId",
                     ].includes(e)
                 )
                 .map((e) => {
@@ -236,6 +248,7 @@ const EncoderForm = ({
                     "Portal",
                     "Sender Name",
                     "Sender Number/Account Number",
+                    "Trace ID",
                   ]
                 : []),
               "Others**",
@@ -259,7 +272,6 @@ const EncoderForm = ({
                       "fee",
                       "tellerId",
                       "amount",
-                      "traceId",
                     ].includes(e)
                 )
                 .map((e: any) => {
@@ -276,6 +288,13 @@ const EncoderForm = ({
                     transaction.portal,
                     transaction.receiverName,
                     transaction.recieverNum,
+                    `${transaction.traceId?.slice(
+                      0,
+                      2
+                    )}-${transaction.traceId?.slice(
+                      2,
+                      6
+                    )}-${transaction.traceId?.slice(6, 10)}` ?? "N/A",
                   ]
                 : []),
               "",
