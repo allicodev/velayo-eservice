@@ -8,6 +8,7 @@ import {
   UpdateFeeProps,
   TransactionHistoryStatus,
   OnlinePayment,
+  TransactionType,
 } from "@/types";
 import { Dayjs } from "dayjs";
 
@@ -149,16 +150,31 @@ class BillService extends Loader {
     return response;
   }
 
-  public async getAllTransaction(
-    page: number,
-    pageSize: number,
-    status?: TransactionHistoryStatus[] | null,
-    order?: "descending" | "ascending",
-    fromDate?: Dayjs | null,
-    toDate?: Dayjs | null,
-    tellerId?: string,
-    branchId?: string
-  ) {
+  public async getAllTransaction({
+    page,
+    pageSize,
+    status,
+    order,
+    fromDate,
+    toDate,
+    tellerId,
+    branchId,
+    type,
+    sub_type,
+    project,
+  }: {
+    page: number;
+    pageSize: number;
+    status?: TransactionHistoryStatus[] | null;
+    order?: "descending" | "ascending";
+    fromDate?: Dayjs | null;
+    toDate?: Dayjs | null;
+    tellerId?: string;
+    branchId?: string;
+    type?: TransactionType | null;
+    sub_type?: string | null;
+    project?: Record<any, any>;
+  }) {
     this.loaderPush("get-transaction");
     const response = await this.instance.get<Transaction[]>({
       endpoint: "/transaction/get-transactions",
@@ -171,6 +187,9 @@ class BillService extends Loader {
         toDate,
         tellerId,
         branchId,
+        type,
+        sub_type,
+        project: JSON.stringify(project),
       },
     });
     this.loaderPop("get-transaction");

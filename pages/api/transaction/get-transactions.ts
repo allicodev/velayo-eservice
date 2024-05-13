@@ -27,8 +27,19 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  let { page, pageSize, status, order, fromDate, toDate, tellerId, branchId } =
-    req.query;
+  let {
+    page,
+    pageSize,
+    status,
+    order,
+    fromDate,
+    toDate,
+    tellerId,
+    branchId,
+    type,
+    sub_type,
+    project,
+  } = req.query;
 
   const _page = Number.parseInt(page!.toString()) - 1;
 
@@ -79,13 +90,26 @@ async function handler(
 
   if (tellerId)
     query.push({ tellerId: new mongoose.Types.ObjectId(tellerId as any) });
-  // if (branchId) query.push({ branchId });
+  if (branchId)
+    query.push({ branchId: new mongoose.Types.ObjectId(branchId as any) });
+  if (type) query.push({ type });
 
   const total = await Transaction.countDocuments(
     query.length > 0 ? { $and: query } : {}
   );
 
-  return await Transaction.find(query.length > 0 ? { $and: query } : {})
+  if (typeof sub_type == "string" && ![null, ""].includes(sub_type)) {
+    query.push({
+      sub_type: { $regex: new RegExp(sub_type.toString().trim(), "i") },
+    });
+  }
+
+  if (project) project = JSON.parse(project as string);
+
+  return await Transaction.find(
+    query.length > 0 ? { $and: query } : {},
+    project
+  )
     .skip(_page * Number.parseInt(pageSize!.toString()))
     .limit(Number.parseInt(pageSize!.toString()))
     .sort({

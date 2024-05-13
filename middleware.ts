@@ -21,7 +21,7 @@ export async function middleware(req: NextRequest) {
     "/teller/home",
     "/encoder/home",
     "/admin/home",
-    // "/accounting/home",
+    "/accounting",
     "/pos/settings",
   ];
 
@@ -60,5 +60,6 @@ export const config = {
     "/encoder/home",
     "/admin/home",
     "/pos/settings",
+    "/accounting",
   ],
 };

@@ -5,8 +5,6 @@ import { verify } from "@/assets/ts";
 import { useAuthStore } from "./context";
 import { ExtendedResponse, ApiGetProps, ApiPostProps } from "@/types";
 
-// TODO: re-adjust the expire token if user still accessing the api
-
 class API {
   public async get<T>({
     endpoint,

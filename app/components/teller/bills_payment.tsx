@@ -31,7 +31,6 @@ import { FloatLabel } from "@/assets/ts";
 import { useUserStore } from "@/provider/context";
 import EtcService from "@/provider/etc.service";
 
-// TODO: validation on confirm
 // TODO: auto disabled billing if disabled by encoder
 // TODO: auto disabled wallet if disabled by encoder
 

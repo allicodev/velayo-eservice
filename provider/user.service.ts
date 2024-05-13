@@ -38,9 +38,9 @@ class UserService extends Loader {
 
   public async getUsers(
     prop: PageProps
-  ): Promise<ExtendedResponse<ProtectedUser[]>> {
+  ): Promise<ExtendedResponse<ProtectedUser[] | User[]>> {
     this.loaderPush("fetch-users");
-    const response = await this.instance.get<ProtectedUser[]>({
+    const response = await this.instance.get<ProtectedUser[] | User[]>({
       endpoint: "/user/get-users",
       query: prop,
     });

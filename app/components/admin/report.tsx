@@ -14,7 +14,7 @@ const Report = ({ open, close }: TransactionReportProps) => {
 
   useEffect(() => {
     (async (_, __) => {
-      let res = await _.getAllTransaction(1, 10);
+      let res = await _.getAllTransaction({ page: 1, pageSize: 10 });
       if (res?.success ?? false) setRecentTransction(res?.data ?? []);
     })(bill);
   }, []);

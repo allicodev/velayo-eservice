@@ -20,8 +20,6 @@ import { FloatLabel } from "@/assets/ts";
 import BillService from "@/provider/bill.service";
 import EtcService from "@/provider/etc.service";
 
-// TODO: refactor the other details rendering, same as the billing form
-
 const EncoderForm = ({
   open,
   close,

@@ -93,6 +93,19 @@ export interface Fee {
   fee: number | null;
 }
 
+export interface AccountingTableProps {
+  ref: string; // Ref Code
+  branch: string; //Branch Name
+  createdAt: Date; //Date/Time
+  type: TransactionType; //Transaction Type
+  billerName: string; //Biller Name / Product Code
+  amount: number; //Amount
+  fee: number; // Service Fee
+  amFee: number; //Amount + Service Fee
+  teller: string; //User
+  status: TransactionHistoryStatus; //Status
+}
+
 export type ItemUnit = "pc(s)" | "bot(s)" | "kit(s)";
 
 //* Items

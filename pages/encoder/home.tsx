@@ -146,14 +146,15 @@ const Encoder = () => {
   }) => {
     if (!pageSize) pageSize = 10;
     (async (_) => {
-      let res = await _.getAllTransaction(
+      let res = await _.getAllTransaction({
         page,
         pageSize,
         status,
-        status && ["completed", "failed"].includes(status[0])
-          ? "descending"
-          : "ascending"
-      );
+        order:
+          status && ["completed", "failed"].includes(status[0])
+            ? "descending"
+            : "ascending",
+      });
 
       if (res.success) {
         setTransaction(res?.data ?? []);

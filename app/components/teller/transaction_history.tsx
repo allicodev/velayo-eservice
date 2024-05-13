@@ -10,7 +10,6 @@ import {
   message,
   Select,
   DatePicker,
-  AutoComplete,
   Tooltip,
 } from "antd";
 import { DownOutlined, CopyOutlined, ReloadOutlined } from "@ant-design/icons";
@@ -370,16 +369,15 @@ const TransactionHistory = ({
       // setTotal
       if (!pageSize) pageSize = 10;
 
-      let res = await bill.getAllTransaction(
+      let res = await bill.getAllTransaction({
         page,
         pageSize,
-        status ? status : null,
-        "descending",
+        status: status ? status : null,
+        order: "descending",
         fromDate,
         toDate,
         tellerId,
-        currentBranch
-      );
+      });
 
       if (res?.success ?? false) {
         if (!updateTransaction) {
