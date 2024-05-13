@@ -261,7 +261,7 @@ const TransactionHistory = ({
     trans.map((e) => {
       sheet.addRow({
         refCode: e.reference,
-        branchName: (e.branchId as Branch).name,
+        branchName: (e.branchId as Branch)?.name ?? "No Branch",
         dateTime: dayjs(e.createdAt).format("MM/DD/YYYY HH:mm"),
         transactionType: getTransactionLabel(e.type),
         billerName: e.sub_type?.toLocaleUpperCase() ?? "N/A",
