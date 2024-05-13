@@ -21,6 +21,7 @@ export async function middleware(req: NextRequest) {
     "/teller/home",
     "/encoder/home",
     "/admin/home",
+    // "/accounting/home",
     "/pos/settings",
   ];
 

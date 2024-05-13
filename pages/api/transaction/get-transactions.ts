@@ -10,6 +10,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 import type { NextApiRequest, NextApiResponse } from "next";
+import mongoose from "mongoose";
 
 async function handler(
   req: NextApiRequest,
@@ -76,8 +77,9 @@ async function handler(
     });
   }
 
-  if (tellerId) query.push({ tellerId });
-  if (branchId) query.push({ branchId });
+  if (tellerId)
+    query.push({ tellerId: new mongoose.Types.ObjectId(tellerId as any) });
+  // if (branchId) query.push({ branchId });
 
   const total = await Transaction.countDocuments(
     query.length > 0 ? { $and: query } : {}

@@ -842,7 +842,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
                 borderBottomLeftRadius: 10,
               }}
             >
-              Exchange
+              Change
             </Col>
             <Col
               span={20}

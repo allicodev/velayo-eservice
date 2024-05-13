@@ -1,6 +1,6 @@
 import { BillingsFormField } from "./billings.types";
 
-export type RoleType = "teller" | "encoder";
+export type RoleType = "teller" | "encoder" | "accounting" | "admin";
 
 export interface User {
   _id: string;

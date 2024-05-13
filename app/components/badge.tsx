@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import {
   Button,
   Dropdown,
@@ -25,7 +25,7 @@ import BillService from "@/provider/bill.service";
 import WalletService from "@/provider/wallet.service";
 import EtcService from "@/provider/etc.service";
 import COTracker from "./teller/cashout_tracker";
-import { useItemStore } from "@/provider/context";
+import { useItemStore, useUserStore } from "@/provider/context";
 
 const UserBadge = ({
   name,
@@ -36,7 +36,7 @@ const UserBadge = ({
   extra,
   setOpenedMenu,
 }: UserBadgeProps) => {
-  const [currentTime, setCurrentTime] = useState(dayjs());
+  const [currentTime, setCurrentTime] = useState<Dayjs>(dayjs());
   const [openDisableBill, setOpenDisbaleBill] = useState(false);
 
   const [modal, contextHolder] = Modal.useModal();
@@ -54,6 +54,7 @@ const UserBadge = ({
   const etc = new EtcService();
 
   const { setItems } = useItemStore();
+  const { removeUser, removeBranch } = useUserStore();
 
   const getBillsAndWallets = () => {
     (async (_) => {
@@ -83,11 +84,12 @@ const UserBadge = ({
   };
 
   useEffect(() => {
-    const currentSeconds = dayjs().second();
-    setTimeout(
-      () => setInterval(() => setCurrentTime(dayjs()), 1000 * 60),
-      (60 - currentSeconds) * 1000
-    );
+    let sec = Number.parseInt(dayjs().format("ss"));
+    setTimeout(() => {
+      setInterval(() => {
+        setCurrentTime(dayjs());
+      }, 60 * 1000);
+    }, 60 * 1000 - sec * 1000);
   }, []);
 
   useEffect(() => {
@@ -159,6 +161,8 @@ const UserBadge = ({
                       },
                       onOk: () => {
                         Cookies.remove("token");
+                        removeUser();
+                        removeBranch();
                         setItems([]);
                         window.location.reload();
                       },

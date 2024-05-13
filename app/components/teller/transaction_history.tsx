@@ -48,7 +48,7 @@ const TransactionHistory = ({
   const bill = new BillService();
   const user = new UserService();
 
-  const { currentBranch } = useUserStore();
+  const { currentBranch, currentUser } = useUserStore();
 
   // * FILTER
   const [selectedStatus, setSelectedStatus] = useState<
@@ -399,6 +399,7 @@ const TransactionHistory = ({
         status: selectedStatus,
         fromDate,
         toDate,
+        tellerId: currentUser?._id,
       });
   }, [fromDate, toDate, selectedStatus, open]);
 
@@ -487,7 +488,7 @@ const TransactionHistory = ({
                   status: selectedStatus,
                   fromDate,
                   toDate,
-                  tellerId: selectedTeller ?? undefined,
+                  tellerId: currentUser?._id,
                 }).then((e) => {
                   if (typeof e == "object" && e.length > 0) exportExcel(e);
                 });
@@ -635,6 +636,7 @@ const TransactionHistory = ({
               status: selectedStatus,
               fromDate,
               toDate,
+              tellerId: currentUser?._id,
             }),
         }}
         onRow={(data) => {
