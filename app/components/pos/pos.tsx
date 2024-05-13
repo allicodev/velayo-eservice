@@ -463,19 +463,127 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
             value={inputSearch}
             ref={searchRef}
             onSelect={(_, e) => getItem(e.key)}
+            dropdownStyle={{
+              width: 1100,
+            }}
             filterOption={(inputValue, option) =>
               option!
                 .value!.toString()
                 .toUpperCase()
                 .indexOf(inputValue.toUpperCase()) !== -1
             }
-            options={popupItem.map((e) => ({
-              label: `${"00000".slice(e.itemCode?.toString().length)}${
-                e.itemCode
-              }: ${e.name}`,
-              value: e.name,
-              key: e._id,
-            }))}
+            options={[
+              {
+                label: (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      background: "#c5d9ef",
+                      height: 35,
+                      cursor: "default",
+                    }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "1.5em",
+                        width: 600,
+                        borderTop: "1px solid #000",
+                        borderRight: "1px solid #000",
+                        borderLeft: "1px solid #000",
+                        display: "block",
+                        textAlign: "center",
+                      }}
+                    >
+                      Item
+                    </span>
+                    <span
+                      style={{
+                        width: 250,
+                        fontSize: "1.5em",
+                        borderTop: "1px solid #000",
+                        borderRight: "1px solid #000",
+                        display: "block",
+                        textAlign: "center",
+                      }}
+                    >
+                      Price
+                    </span>
+                    <span
+                      style={{
+                        width: 250,
+                        fontSize: "1.5em",
+                        borderTop: "1px solid #000",
+                        borderRight: "1px solid #000",
+                        textAlign: "center",
+                      }}
+                    >
+                      On Hand Quantity
+                    </span>
+                  </div>
+                ),
+                className: "custom-select",
+                value: "none",
+                key: "none",
+              },
+              ...popupItem.map((e, i) => ({
+                label: (
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <span
+                      style={{
+                        fontSize: "1.5em",
+                        width: 590.5,
+                        borderTop: "1px solid #000",
+                        borderRight: "1px solid #000",
+                        borderLeft: "1px solid #000",
+                        borderBottom:
+                          i == popupItem.length - 1 ? "1px solid #000" : "",
+                        paddingLeft: 10,
+                      }}
+                    >{`${"00000".slice(e.itemCode?.toString().length)}${
+                      e.itemCode
+                    }: ${e.name}`}</span>
+                    <span
+                      style={{
+                        fontSize: "1.5em",
+                        width: 245.5,
+                        borderTop: "1px solid #000",
+                        borderRight: "1px solid #000",
+                        borderBottom:
+                          i == popupItem.length - 1 ? "1px solid #000" : "",
+                        paddingLeft: 10,
+                        textAlign: "end",
+                        paddingRight: 10,
+                      }}
+                    >
+                      {e.price.toFixed(2)}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "1.5em",
+                        width: 246,
+                        borderTop: "1px solid #000",
+                        borderRight: "1px solid #000",
+                        borderBottom:
+                          i == popupItem.length - 1 ? "1px solid #000" : "",
+                        paddingLeft: 10,
+                        textAlign: "end",
+                        paddingRight: 10,
+                      }}
+                    >
+                      {e.quantity}
+                    </span>
+                  </div>
+                ),
+                className: "custom-select",
+                value: e.name,
+                key: e._id,
+              })),
+            ]}
           />
           <Button
             size="large"
@@ -505,7 +613,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
                 align: "center",
                 render: (_) => `${"00000".slice(_.toString().length)}${_}`,
               },
-              { title: "Name", dataIndex: "name", width: 150 },
+              { title: "Name", dataIndex: "name", width: 300 },
               { title: "Category", dataIndex: "parentName", width: 300 },
               {
                 title: "Price",
