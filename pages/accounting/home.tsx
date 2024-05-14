@@ -605,6 +605,8 @@ const Accounting = () => {
                       tellerId: filter.tellerId ?? "",
                       branchId: filter.branchId ?? "",
                       type: filter.type ?? null,
+                      status: filter.status ?? null,
+                      sub_type: filter.sub_type ?? null,
                     }),
                 }}
                 summary={(pageData) => (
