@@ -9,6 +9,8 @@ import {
   RoleType,
   TransactionType,
   ItemUnit,
+  LogType,
+  TransactionPOS,
 } from ".";
 import { Dayjs } from "dayjs";
 
@@ -66,6 +68,7 @@ export interface FloatLabelProps {
   bool?: boolean;
   labelClassName?: string;
   extra?: ReactNode;
+  labelStyle?: CSSProperties;
 }
 
 export interface UserProps {
@@ -80,13 +83,15 @@ export interface UserProps {
 export interface TransactionDetailsProps {
   open: boolean;
   close: () => void;
-  transaction: Transaction | null;
+  transaction: Transaction | TransactionPOS | null;
 }
 
 export interface NewUserProps {
   open: boolean;
   close: () => void;
   onAdd: (obj: NewUser) => void;
+  onSave: (obj: NewUser) => void;
+  user?: NewUser | null;
 }
 
 export interface NewBillerProps {
@@ -219,4 +224,13 @@ export interface StockProps {
   close: () => void;
   type: string;
   closeSelectedItem: () => void;
+}
+
+// * LOG
+
+export interface NewLog {
+  userId: string;
+  type: LogType;
+  branchId?: string;
+  [key: string]: any;
 }

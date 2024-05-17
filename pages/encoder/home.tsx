@@ -1,21 +1,27 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import {
+  Button,
+  DatePicker,
+  Input,
   Modal,
   Select,
+  Space,
   Table,
   TableProps,
   Tag,
   Typography,
   message,
 } from "antd";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { CopyOutlined } from "@ant-design/icons";
 
 import {
   TransactionOptProps,
   Transaction,
   TransactionHistoryStatus,
+  TransactionType,
+  User,
 } from "@/types";
 import notifSound from "../../public/notif.mp3";
 
@@ -24,6 +30,15 @@ import { EncoderForm } from "@/app/components/teller";
 import { useUserStore } from "@/provider/context";
 import { Pusher } from "@/provider/utils/pusher";
 import BillService from "@/provider/bill.service";
+
+interface FilterProps {
+  status?: TransactionHistoryStatus | null;
+  type?: TransactionType | null;
+  tellerId?: string | null;
+  sub_type?: string | null;
+  fromDate?: Dayjs | null;
+  toDate?: Dayjs | null;
+}
 
 const Encoder = () => {
   const [billsOption, setBillsOption] = useState<TransactionOptProps>({
@@ -34,8 +49,7 @@ const Encoder = () => {
   const [trigger, setTrigger] = useState(0);
   const [total, setTotal] = useState(0);
   const [transactions, setTransaction] = useState<Transaction[]>([]);
-  const [selectedStatus, setSelectedStatus] =
-    useState<TransactionHistoryStatus | null>("pending");
+
   const [isMobile, setIsMobile] = useState<any>();
 
   const { currentUser } = useUserStore();
@@ -45,6 +59,17 @@ const Encoder = () => {
   // const [play] = useSound(notifSound);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [api, contextHolder] = Modal.useModal();
+  const [fetching, setFetching] = useState(false);
+  const [tellers, setTellers] = useState<User[]>([]);
+
+  const [filter, setFilter] = useState<FilterProps>({
+    status: "pending",
+    type: null,
+    tellerId: null,
+    sub_type: null,
+    fromDate: null,
+    toDate: null,
+  });
 
   const getStatusBadge = (str: TransactionHistoryStatus | null) => {
     switch (str) {
@@ -135,33 +160,160 @@ const Encoder = () => {
     },
   ];
 
-  const getTransactions = ({
+  const getHeader = () => (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+      }}
+    >
+      <Space size={[32, 0]}>
+        <Select
+          size="large"
+          style={{ width: 200 }}
+          placeholder="Select a Teller"
+          options={tellers.map((e) => ({
+            label: e.name,
+            value: e.name,
+            key: e._id,
+          }))}
+          onChange={(_, e: any) =>
+            setFilter({ ...filter, tellerId: e?.key ?? null })
+          }
+          allowClear
+        />
+        <DatePicker.RangePicker
+          size="large"
+          format="MMMM DD, YYYY"
+          onChange={(e) => {
+            setFilter({
+              ...filter,
+              fromDate: e ? e[0] : null,
+              toDate: e ? e[1] : null,
+            });
+          }}
+        />
+        <Select
+          size="large"
+          style={{ width: 200 }}
+          placeholder="Select a Transaction Type"
+          options={["bills", "wallet", "eload", "miscellaneous", "shopee"].map(
+            (e) => ({
+              label: e.toLocaleUpperCase(),
+              value: e,
+            })
+          )}
+          onChange={(_, e: any) =>
+            setFilter({ ...filter, type: e?.value ?? null })
+          }
+          allowClear
+        />
+        <Select
+          size="large"
+          style={{ width: 200 }}
+          placeholder="Select a Status"
+          value={filter.status}
+          options={["all", "completed", "failed", "pending"].map((e) => ({
+            label: e.toLocaleUpperCase(),
+            value: e == "all" ? null : e,
+          }))}
+          onChange={(_, e: any) =>
+            setFilter({ ...filter, status: e?.value ?? null })
+          }
+          allowClear
+        />
+        <Input
+          size="large"
+          style={{ width: 300 }}
+          placeholder="Search a Biller"
+          onChange={(e) => setFilter({ ...filter, sub_type: e.target.value })}
+          allowClear
+        />
+      </Space>
+      <Button
+        type="primary"
+        size="large"
+        onClick={() => {
+          (async () => {
+            await getTransactions({
+              page: 1,
+              pageSize: 99999999,
+              tellerId: filter.tellerId ?? "",
+              type: filter.type ?? undefined,
+              status: filter.status,
+              sub_type: filter.sub_type ?? null,
+              fromDate: filter.fromDate ?? null,
+              toDate: filter.toDate ?? null,
+            }).then((e) => {
+              // if (typeof e == "object" && e.length > 0) exportExcel(e);
+            });
+          })();
+        }}
+      >
+        EXPORT
+      </Button>
+    </div>
+  );
+
+  const getTransactions = async ({
     page,
     pageSize,
+    tellerId,
+    branchId,
+    type,
     status,
+    sub_type,
+    updateTransact = true,
+    project,
+    fromDate,
+    toDate,
   }: {
     page: number;
     pageSize?: number;
-    status?: TransactionHistoryStatus[] | null;
-  }) => {
-    if (!pageSize) pageSize = 10;
-    (async (_) => {
-      let res = await _.getAllTransaction({
+    tellerId?: string;
+    branchId?: string;
+    type?: TransactionType | null;
+    status?: TransactionHistoryStatus | null;
+    sub_type?: string | null;
+    updateTransact?: boolean;
+    project?: Record<any, any>;
+    fromDate?: Dayjs | null;
+    toDate?: Dayjs | null;
+  }): Promise<Transaction[] | any | void> =>
+    new Promise(async (resolve, reject) => {
+      setFetching(true);
+      if (!pageSize) pageSize = 10;
+
+      let res = await bill.getAllTransaction({
         page,
         pageSize,
-        status,
+        tellerId,
+        branchId,
+        type,
+        status: status ? [status] : null,
+        sub_type,
+        project,
+        fromDate,
+        toDate,
         order:
           status && ["completed", "failed"].includes(status[0])
             ? "descending"
             : "ascending",
       });
 
-      if (res.success) {
+      if (res?.success ?? false) {
+        if (!updateTransact) {
+          return resolve(res.data);
+        }
+        setFetching(false);
         setTransaction(res?.data ?? []);
         setTotal(res.meta?.total ?? 10);
+        resolve(res.data);
+      } else {
+        setFetching(false);
+        reject();
       }
-    })(bill);
-  };
+    });
 
   const initPusherProvider = () => {
     let channel = new Pusher().subscribe("encoder");
@@ -179,14 +331,32 @@ const Encoder = () => {
     // });
 
     audioRef.current?.play();
-    getTransactions({ page: 1, status: [selectedStatus!] });
+    getTransactions({
+      page: 1,
+      pageSize: 10,
+      tellerId: filter.tellerId ?? "",
+      type: filter.type ?? null,
+      status: filter.status ?? null,
+      sub_type: filter.sub_type ?? null,
+      fromDate: filter.fromDate ?? null,
+      toDate: filter.toDate ?? null,
+    });
   };
 
   useEffect(() => {
-    getTransactions({ page: 1, status: [selectedStatus!] });
+    getTransactions({
+      page: 1,
+      pageSize: 10,
+      tellerId: filter.tellerId ?? "",
+      type: filter.type ?? null,
+      status: filter.status ?? null,
+      sub_type: filter.sub_type ?? null,
+      fromDate: filter.fromDate ?? null,
+      toDate: filter.toDate ?? null,
+    });
     setIsMobile(typeof window !== "undefined" ? window.innerWidth < 768 : null);
     return initPusherProvider();
-  }, [trigger]);
+  }, [trigger, filter]);
 
   useEffect(() => {
     // api.confirm({
@@ -223,51 +393,53 @@ const Encoder = () => {
             }}
           />
 
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <Typography.Text
-              style={{ fontSize: 25, marginLeft: 10 }}
-              onClick={() => handleNotify()}
-            >
-              Transactions
-            </Typography.Text>
-            <Select
-              key="status-filter"
-              defaultValue="pending"
-              onChange={(e: any) => {
-                if (e) getTransactions({ page: 1, status: [e] });
-                else getTransactions({ page: 1 });
-                setSelectedStatus(e);
-              }}
-              style={{
-                width: 100,
-                marginRight: 10,
-              }}
-              options={[
-                {
-                  label: "All",
-                  value: null,
-                },
-                {
-                  label: "Pending",
-                  value: "pending",
-                },
-                {
-                  label: "Completed",
-                  value: "completed",
-                },
-                {
-                  label: "Failed",
-                  value: "failed",
-                },
-              ]}
-            />
-          </div>
           <Table
+            title={() =>
+              isMobile ? (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Typography.Text
+                    style={{ fontSize: 25, marginLeft: 10 }}
+                    onClick={() => handleNotify()}
+                  >
+                    Transactions
+                  </Typography.Text>
+                  <Select
+                    key="status-filter"
+                    defaultValue="pending"
+                    onChange={(e: any) => setFilter({ ...filter, status: e })}
+                    style={{
+                      width: 100,
+                      marginRight: 10,
+                    }}
+                    options={[
+                      {
+                        label: "All",
+                        value: null,
+                      },
+                      {
+                        label: "Pending",
+                        value: "pending",
+                      },
+                      {
+                        label: "Completed",
+                        value: "completed",
+                      },
+                      {
+                        label: "Failed",
+                        value: "failed",
+                      },
+                    ]}
+                  />
+                </div>
+              ) : (
+                getHeader()
+              )
+            }
             dataSource={transactions}
             columns={columns}
             rowKey={(e) => e._id ?? e.type}
@@ -278,7 +450,16 @@ const Encoder = () => {
             pagination={{
               total,
               onChange: (page, pageSize) =>
-                getTransactions({ page, pageSize, status: [selectedStatus!] }),
+                getTransactions({
+                  page: 1,
+                  pageSize: 10,
+                  tellerId: filter.tellerId ?? "",
+                  type: filter.type ?? null,
+                  status: filter.status ?? null,
+                  sub_type: filter.sub_type ?? null,
+                  fromDate: filter.fromDate ?? null,
+                  toDate: filter.toDate ?? null,
+                }),
             }}
             onRow={(data) => {
               return {

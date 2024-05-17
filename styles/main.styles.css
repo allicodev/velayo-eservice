@@ -94,6 +94,14 @@ input[type="text"].customInput {
   top: 15px;
   font-size: 1.8em !important;
 }
+.float-label input[type="text"].customInput.size-50 ~ label.label {
+  top: 5px;
+  font-size: 1.8em !important;
+}
+.float-label input[type="password"].customInput.size-50 ~ label.label {
+  top: 10px;
+  font-size: 1.8em !important;
+}
 
 .float-label input[type="text"] ~ label.label-float {
   top: -10px;
@@ -102,6 +110,11 @@ input[type="text"].customInput {
 .float-label input[type="text"].customInput.size-70 ~ label.label-float {
   font-size: 1.5em !important;
   top: -18px;
+}
+
+.float-label input[type="text"].customInput.size-50 ~ label.label-float {
+  font-size: 1.2em !important;
+  top: -12px;
 }
 
 .label {
@@ -166,6 +179,16 @@ textarea.customInput {
 
 .ant-select.customInput.size-70 ~ label.label-float {
   top: -20px;
+}
+
+.ant-select.customInput.size-50 ~ label.label {
+  top: 8px;
+  font-size: 1.4em !important;
+}
+
+.ant-select.customInput.size-50 ~ label.label-float {
+  top: -12px;
+  font-size: 1.2em !important;
 }
 
 .ant-select.customInput.size-70
@@ -501,4 +524,8 @@ label.customCheckbox span span.ant-checkbox-inner::after {
 .custom-select {
   padding: 0 !important;
   padding-right: 10px !important;
+}
+
+.custom-select-new-user .ant-select-selection-item {
+  font-size: 1.5em !important;
 }

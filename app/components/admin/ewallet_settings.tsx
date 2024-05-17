@@ -43,6 +43,7 @@ import {
   DraggingStyle,
   NotDraggingStyle,
 } from "react-beautiful-dnd";
+import PrinterException from "./components/printer_execption";
 
 const EWalletSettings = ({ open, close }: BillsSettings) => {
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>();
@@ -510,6 +511,28 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                   </div>
                 ),
               },
+              {
+                label: "Print Exception Settings (Cash-In)",
+                key: "printer-exception-settings-cash-in",
+                children: (
+                  <PrinterException
+                    wallet={selectedWallet ?? null}
+                    walletKey="cash-in"
+                    refresh={() => setTrigger(trigger + 1)}
+                  />
+                ),
+              },
+              {
+                label: "Print Exception Settings (Cash-Out)",
+                key: "printer-exception-settings-cash-out",
+                children: (
+                  <PrinterException
+                    wallet={selectedWallet ?? null}
+                    walletKey="cash-out"
+                    refresh={() => setTrigger(trigger + 1)}
+                  />
+                ),
+              },
             ]}
           />
         </Card>
@@ -775,7 +798,10 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                       .includes(searchKey.toLocaleLowerCase());
                 })
                 .map((e, i) => (
-                  <Tooltip title={e.name.length > 20 ? e.name : ""}>
+                  <Tooltip
+                    title={e.name.length > 20 ? e.name : ""}
+                    key={`btn-btn-${i}`}
+                  >
                     <Button
                       key={`wallet-btn-${i}`}
                       style={{

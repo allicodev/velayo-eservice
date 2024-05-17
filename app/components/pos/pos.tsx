@@ -42,6 +42,8 @@ import { FloatLabel } from "@/assets/ts";
 import PrinterService from "@/provider/printer.service";
 import EtcService from "@/provider/etc.service";
 
+// TODO: reduce the item quantity on api after POS transact
+
 const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
   const [currentTime, setCurrentTime] = useState<Dayjs>(dayjs());
   const [popupItem, setPopupitems] = useState<ItemData[]>([]);
@@ -187,6 +189,8 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
         })
       );
     }
+
+    setPopupitems(items);
   };
 
   const getTotal = () =>
@@ -245,7 +249,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
                       }))
                     ),
                     amount: getTotal(),
-                    cash: _amount,
+                    cash: amount!,
                     receiptNo:
                       `3772-${parseInt(
                         (res.data as any)._id.slice(-8).toString(),
@@ -297,7 +301,6 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
           func();
           return;
         });
-    console.log("reached");
     func();
   };
 

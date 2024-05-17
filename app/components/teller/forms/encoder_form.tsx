@@ -15,10 +15,13 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 
+// TODO: auto disable wallet of biller settings in teller if encoder disable the wallet or biller
+
 import { BillsPaymentProps, Branch, BranchData, User } from "@/types";
 import { FloatLabel } from "@/assets/ts";
 import BillService from "@/provider/bill.service";
 import EtcService from "@/provider/etc.service";
+import { useUserStore } from "@/provider/context";
 
 const EncoderForm = ({
   open,
@@ -35,6 +38,8 @@ const EncoderForm = ({
   const [refNumber, setRefNumber] = useState<string | null>("");
   const [isDisabled, setIsDisabled] = useState(false);
 
+  const { currentUser } = useUserStore();
+
   const bill = new BillService();
   const etc = new EtcService();
 
@@ -50,7 +55,7 @@ const EncoderForm = ({
     } else null;
   };
 
-  const lastStatus = () => transaction && transaction.history.at(-1)?.status;
+  const lastStatus = () => transaction && transaction.history?.at(-1)?.status;
 
   const getFlex = (_: string, i: number) => {
     if (transaction?.type == "eload") {
@@ -118,25 +123,37 @@ const EncoderForm = ({
   };
 
   const handleUpdate = () => {
+    // remove history so api can update it
+    let _transaction: any = transaction;
+    delete _transaction.history;
+
     if (!isFailed) {
-      if (!transaction?.sub_type?.includes("cash-out") && refNumber == "") {
+      if (
+        !_transaction?.sub_type?.includes("cash-out") &&
+        refNumber == "" &&
+        _transaction.type != "miscellaneous"
+      ) {
         message.warning("Reference number is empty. Cannot update.");
         return;
       }
 
       (async (_) => {
-        if (transaction) {
-          transaction.history.push({
-            description: "Transaction completed",
-            status: "completed",
-          });
+        if (_transaction) {
           let res = await _.updateTransaction({
-            ...transaction,
-            type: transaction.type,
+            ..._transaction,
+            type: _transaction.type,
+            encoderId: currentUser?._id ?? "",
             reference:
-              transaction?.sub_type?.includes("cash-out") ?? false
+              _transaction?.sub_type?.includes("cash-out") ?? false
                 ? "RECEIVED"
                 : refNumber!,
+            $push: {
+              history: {
+                description: "Transaction completed",
+                status: "completed",
+                createdAt: new Date(),
+              },
+            },
           });
 
           if (res.success) {
@@ -149,14 +166,18 @@ const EncoderForm = ({
       })(bill);
     } else {
       (async (_) => {
-        if (transaction) {
-          transaction.history.push({
-            description: reason,
-            status: "failed",
-          });
+        if (_transaction) {
           let res = await _.updateTransaction({
-            ...transaction,
-            type: transaction.type,
+            ..._transaction,
+            type: _transaction.type,
+            encoderId: currentUser?._id ?? "",
+            $push: {
+              history: {
+                description: reason,
+                status: "failed",
+                createdAt: new Date(),
+              },
+            },
           });
 
           if (res.success) {
@@ -369,12 +390,12 @@ const EncoderForm = ({
               Transaction Details
             </Typography.Title>
             {transaction?.type == "miscellaneous" &&
-            transaction.history.length == 1 &&
+            transaction.history?.length == 1 &&
             lastStatus() == "completed" ? (
               <></>
             ) : (
               <>
-                {transaction?.history.at(-1)?.status == "completed" && (
+                {transaction?.history?.at(-1)?.status == "completed" && (
                   <div
                     style={{
                       display: "flex",
@@ -628,18 +649,18 @@ const EncoderForm = ({
             <div style={{ flex: 3, fontSize: isMobile ? 18 : 20 }}>
               <Tag
                 color={
-                  transaction?.history.at(-1)?.status == "failed"
+                  transaction?.history?.at(-1)?.status == "failed"
                     ? "#f00"
                     : "#29A645"
                 }
               >
-                {transaction?.history.at(-1)?.status == "failed"
+                {transaction?.history?.at(-1)?.status == "failed"
                   ? "FAILED"
                   : "SUCCESS"}
               </Tag>
             </div>
           </div>
-          {transaction?.history.at(-1)?.status == "failed" && (
+          {transaction?.history?.at(-1)?.status == "failed" && (
             <div style={{ display: "flex" }} key="failed-transact-container">
               <div style={{ width: 200, fontSize: 20 }}>Reason/s:</div>
               <div

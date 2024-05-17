@@ -1,6 +1,7 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import {
   Button,
+  DatePicker,
   Input,
   Segmented,
   Select,
@@ -21,10 +22,11 @@ import {
   TransactionType,
   Branch,
 } from "@/types";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import BillService from "@/provider/bill.service";
 import BranchService from "@/provider/branch.service";
 import UserService from "@/provider/user.service";
+import { useUserStore } from "@/provider/context";
 
 // TODO: exportable via excel
 // TODO: Excel Fix User to Teller
@@ -33,8 +35,9 @@ interface FilterProps {
   status?: TransactionHistoryStatus | null;
   type?: TransactionType | null;
   tellerId?: string | null;
-  branchId?: string | null;
   sub_type?: string | null;
+  fromDate?: Dayjs | null;
+  toDate?: Dayjs | null;
 }
 
 interface TotalProps {
@@ -52,8 +55,9 @@ const Accounting = () => {
     status: "completed",
     type: null,
     tellerId: null,
-    branchId: null,
     sub_type: null,
+    fromDate: null,
+    toDate: null,
   });
 
   const [totalOpt, setTotalOpt] = useState<TotalProps>({ amount: 0, fee: 0 });
@@ -63,6 +67,8 @@ const Accounting = () => {
   const bill = new BillService();
   const branch = new BranchService();
   const user = new UserService();
+
+  const { currentUser } = useUserStore();
 
   const column: TableProps<Transaction>["columns"] = [
     {
@@ -150,91 +156,67 @@ const Accounting = () => {
       }}
     >
       <Space size={[32, 0]}>
-        {/* <Segmented
-          options={["Daily", "Monthly", "Yearly"]}
-          style={{ padding: 5 }}
+        <Select
           size="large"
-        /> */}
-        <div>
-          {/* <span style={{ fontSize: "1.3em", marginRight: 10 }}>Teller</span> */}
-          <Select
-            size="large"
-            style={{ width: 200 }}
-            placeholder="Select a Teller"
-            options={tellers.map((e) => ({
-              label: e.name,
-              value: e.name,
-              key: e._id,
-            }))}
-            onChange={(_, e: any) =>
-              setFilter({ ...filter, tellerId: e?.key ?? null })
-            }
-            allowClear
-          />
-        </div>
-        <div>
-          {/* <span style={{ fontSize: "1.3em", marginRight: 10 }}>Branch</span> */}
-          <Select
-            size="large"
-            style={{ width: 200 }}
-            placeholder="Select a Branch"
-            options={branches.map((e) => ({
-              label: e.name,
-              value: e.name,
-              key: e._id,
-            }))}
-            onChange={(_, e: any) =>
-              setFilter({ ...filter, branchId: e?.key ?? null })
-            }
-            allowClear
-          />
-        </div>
-        <div>
-          <Select
-            size="large"
-            style={{ width: 200 }}
-            placeholder="Select a Transaction Type"
-            options={[
-              "bills",
-              "wallet",
-              "eload",
-              "miscellaneous",
-              "shopee",
-            ].map((e) => ({
+          style={{ width: 200 }}
+          placeholder="Select a Teller"
+          options={tellers.map((e) => ({
+            label: e.name,
+            value: e.name,
+            key: e._id,
+          }))}
+          onChange={(_, e: any) =>
+            setFilter({ ...filter, tellerId: e?.key ?? null })
+          }
+          allowClear
+        />
+        <DatePicker.RangePicker
+          size="large"
+          format="MMMM DD, YYYY"
+          onChange={(e) => {
+            setFilter({
+              ...filter,
+              fromDate: e ? e[0] : null,
+              toDate: e ? e[1] : null,
+            });
+          }}
+        />
+        <Select
+          size="large"
+          style={{ width: 200 }}
+          placeholder="Select a Transaction Type"
+          options={["bills", "wallet", "eload", "miscellaneous", "shopee"].map(
+            (e) => ({
               label: e.toLocaleUpperCase(),
               value: e,
-            }))}
-            onChange={(_, e: any) =>
-              setFilter({ ...filter, type: e?.value ?? null })
-            }
-            allowClear
-          />
-        </div>
-        <div>
-          <Select
-            size="large"
-            style={{ width: 200 }}
-            placeholder="Select a Status"
-            value={filter.status}
-            options={["completed", "failed", "pending"].map((e) => ({
-              label: e.toLocaleUpperCase(),
-              value: e,
-            }))}
-            onChange={(_, e: any) =>
-              setFilter({ ...filter, status: e?.value ?? null })
-            }
-            allowClear
-          />
-        </div>
-        <div>
-          <Input
-            size="large"
-            style={{ width: 300 }}
-            placeholder="Search a Biller"
-            onChange={(e) => setFilter({ ...filter, sub_type: e.target.value })}
-            allowClear
-          />
-        </div>
+            })
+          )}
+          onChange={(_, e: any) =>
+            setFilter({ ...filter, type: e?.value ?? null })
+          }
+          allowClear
+        />
+        <Select
+          size="large"
+          style={{ width: 200 }}
+          placeholder="Select a Status"
+          value={filter.status}
+          options={["completed", "failed", "pending"].map((e) => ({
+            label: e.toLocaleUpperCase(),
+            value: e,
+          }))}
+          onChange={(_, e: any) =>
+            setFilter({ ...filter, status: e?.value ?? null })
+          }
+          allowClear
+        />
+        <Input
+          size="large"
+          style={{ width: 300 }}
+          placeholder="Search a Biller"
+          onChange={(e) => setFilter({ ...filter, sub_type: e.target.value })}
+          allowClear
+        />
       </Space>
       <Button
         type="primary"
@@ -245,10 +227,11 @@ const Accounting = () => {
               page: 1,
               pageSize: 99999999,
               tellerId: filter.tellerId ?? "",
-              branchId: filter.branchId ?? "",
               type: filter.type ?? undefined,
               status: filter.status,
               sub_type: filter.sub_type ?? null,
+              fromDate: filter.fromDate ?? null,
+              toDate: filter.toDate ?? null,
             }).then((e) => {
               if (typeof e == "object" && e.length > 0) exportExcel(e);
             });
@@ -270,6 +253,8 @@ const Accounting = () => {
     sub_type,
     updateTransact = true,
     project,
+    fromDate,
+    toDate,
   }: {
     page: number;
     pageSize?: number;
@@ -280,6 +265,8 @@ const Accounting = () => {
     sub_type?: string | null;
     updateTransact?: boolean;
     project?: Record<any, any>;
+    fromDate?: Dayjs | null;
+    toDate?: Dayjs | null;
   }): Promise<Transaction[] | any | void> =>
     new Promise(async (resolve, reject) => {
       setFetching(true);
@@ -295,6 +282,8 @@ const Accounting = () => {
         status: status ? [status] : null,
         sub_type,
         project,
+        fromDate,
+        toDate,
       });
 
       if (res?.success ?? false) {
@@ -316,11 +305,12 @@ const Accounting = () => {
       page: 1,
       pageSize: 999999999999,
       tellerId: filter.tellerId ?? "",
-      branchId: filter.branchId ?? "",
       type: filter.type ?? undefined,
       status: filter.status,
       sub_type: filter.sub_type ?? null,
       updateTransact: false,
+      fromDate: filter.fromDate ?? null,
+      toDate: filter.toDate ?? null,
       project: {
         amount: 1,
         fee: 1,
@@ -534,10 +524,11 @@ const Accounting = () => {
     getTransaction({
       page: 1,
       tellerId: filter.tellerId ?? "",
-      branchId: filter.branchId ?? "",
       type: filter.type ?? undefined,
       status: filter.status,
       sub_type: filter.sub_type ?? null,
+      fromDate: filter.fromDate ?? null,
+      toDate: filter.toDate ?? null,
     });
 
     // get branch
@@ -549,7 +540,7 @@ const Accounting = () => {
 
     // get tellers
     (async (_) => {
-      let res = await _.getUsers({ page: 1, pageSize: 9999, role: "teller" });
+      let res = await _.getUsers({ page: 1, pageSize: 9999, role: ["teller"] });
 
       if (res?.success ?? false) setTellers((res?.data as User[]) ?? []);
     })(user);
@@ -569,8 +560,8 @@ const Accounting = () => {
           }}
         >
           <UserBadge
-            name={""}
-            title="To Accounting Area"
+            name={currentUser?.name ?? ""}
+            title="Accountant"
             role="accounting"
             style={{
               margin: 25,
@@ -603,10 +594,11 @@ const Accounting = () => {
                       page,
                       pageSize,
                       tellerId: filter.tellerId ?? "",
-                      branchId: filter.branchId ?? "",
                       type: filter.type ?? null,
                       status: filter.status ?? null,
                       sub_type: filter.sub_type ?? null,
+                      fromDate: filter.fromDate ?? null,
+                      toDate: filter.toDate ?? null,
                     }),
                 }}
                 summary={(pageData) => (

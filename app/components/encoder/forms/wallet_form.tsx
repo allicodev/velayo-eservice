@@ -122,7 +122,8 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
       getFee(),
       currentUser?._id ?? "",
       currentBranch,
-      walletType == "cash-out" ? val?.traceId ?? "" : null
+      walletType == "cash-out" ? val?.traceId ?? "" : null,
+      selectedWallet?._id
     );
 
     if (res?.success ?? false) {

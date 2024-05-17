@@ -17,6 +17,7 @@ import {
   Branch,
   TransactionDetailsProps,
   TransactionHistoryDataType_type,
+  TransactionPOS,
   User,
 } from "@/types";
 import { transactionToPrinter } from "@/assets/ts";
@@ -31,7 +32,7 @@ const TransactionDetails = ({
   const printer = new PrinterService();
 
   const latestHistory = () => transaction?.history?.at(-1);
-  const { currentBranch, currentUser } = useUserStore();
+  const { currentBranch, currentUser, printerIsAlive } = useUserStore();
 
   const getStatusColor = (status: TransactionHistoryDataType_type): string => {
     if (status == "completed") return "#29A645";
@@ -61,7 +62,7 @@ const TransactionDetails = ({
       mode="left"
       items={transaction?.history?.map((e) => {
         return {
-          label: dayjs(e.dateCreated).format("MMM DD, YYYY - hh:mma"),
+          label: dayjs(e.createdAt).format("MMM DD, YYYY - hh:mma"),
           children: e.description,
           dot: (
             <div
@@ -92,19 +93,45 @@ const TransactionDetails = ({
   );
 
   const handlePrint = () => {
-    (async (_) => {
-      if (transaction) {
-        let { data } = await _.printReceipt({
-          printData: transactionToPrinter(transaction),
-          tellerId: currentUser?.name ?? "",
-          branchId: currentBranch,
-        });
+    if (printerIsAlive)
+      if (transaction?.type != "miscellaneous")
+        (async (_) => {
+          if (transaction) {
+            let printData = await transactionToPrinter(transaction);
+            let { data } = await _.printReceipt({
+              printData,
+              tellerId: currentUser?.name ?? "",
+              branchId: currentBranch,
+            });
 
-        if (data?.success ?? false) {
-          message.success(data?.message ?? "Success");
-        }
+            if (data?.success ?? false) {
+              message.success(data?.message ?? "Success");
+            }
+          }
+        })(printer);
+      else {
+        (async (_) => {
+          await _.printReceiptPos({
+            printData: {
+              itemDetails: transaction.transactionDetails,
+              amount: transaction?.amount ?? 0,
+              cash: (transaction as TransactionPOS).cash,
+              receiptNo:
+                `3772-${parseInt(
+                  transaction!._id!.slice(-8).toString(),
+                  16
+                )}` ?? "",
+              refNo: "",
+            },
+            tellerId: currentUser?.name ?? "",
+            branchId: currentBranch,
+          });
+        })(printer);
       }
-    })(printer);
+    else {
+      message.error("Print Error. Printer server is offline");
+      return;
+    }
   };
 
   useEffect(() => {

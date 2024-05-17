@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Drawer, Layout, Affix, Menu, Button, Typography } from "antd";
-import { DownOutlined, BarChartOutlined } from "@ant-design/icons";
+import {
+  DownOutlined,
+  BarChartOutlined,
+  CalendarOutlined,
+} from "@ant-design/icons";
 
 import { Transaction, TransactionReportProps } from "@/types";
 import BillService from "@/provider/bill.service";
 import ReportDashboard from "./components/dashboard";
+import Attendance from "./components/attendance";
 
 const Report = ({ open, close }: TransactionReportProps) => {
   const [recentTransaction, setRecentTransction] = useState<Transaction[]>([]);
@@ -24,7 +29,7 @@ const Report = ({ open, close }: TransactionReportProps) => {
       <Drawer
         open={open}
         onClose={() => {
-          setActiveKey("branch");
+          setActiveKey("dashboard");
           close();
         }}
         placement="bottom"
@@ -53,6 +58,11 @@ const Report = ({ open, close }: TransactionReportProps) => {
                     key: "dashboard",
                     icon: <BarChartOutlined />,
                   },
+                  {
+                    label: "Attendance",
+                    key: "attendance",
+                    icon: <CalendarOutlined />,
+                  },
                 ]}
                 // defaultSelectedKeys="dashboard"
                 style={{
@@ -73,12 +83,11 @@ const Report = ({ open, close }: TransactionReportProps) => {
               }}
             >
               <Typography.Title level={3}>
+                {activeKey == "attendance" ? "EMPLOYEE " : ""}
                 {activeKey.toLocaleUpperCase()}
               </Typography.Title>
             </div>
-            {activeKey == "dashboard" ? (
-              <ReportDashboard transaction={recentTransaction} />
-            ) : null}
+            {activeKey == "attendance" ? <Attendance /> : null}
           </Layout>
         </Layout>
       </Drawer>

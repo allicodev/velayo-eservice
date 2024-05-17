@@ -280,24 +280,6 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
 
       if (index == 1)
         _ = (
-          <strong
-            style={{
-              fontSize: "2em",
-              borderBottom: "1px solid #aaa",
-              padding: 5,
-              background: "#eee",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              height: 50,
-            }}
-          >
-            {e}
-          </strong>
-        );
-
-      if (index == 2)
-        _ = (
           <Input
             style={{
               height: 50,
@@ -315,7 +297,7 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
           />
         );
 
-      if (index == 3)
+      if (index == 2)
         _ = (
           <Select
             size="large"
@@ -332,7 +314,7 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
           />
         );
 
-      if (index == 4)
+      if (index == 3)
         _ = (
           <InputNumber
             size="large"
@@ -355,7 +337,7 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
           />
         );
 
-      if (index == 5)
+      if (index == 4)
         _ = (
           <InputNumber
             size="large"
@@ -378,7 +360,7 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
           />
         );
 
-      if (index == 6)
+      if (index == 5)
         _ = (
           <InputNumber
             size="large"
@@ -462,27 +444,21 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                 flexDirection: "column",
               }}
             >
-              {[
-                "Item Code",
-                "Categories",
-                "Name",
-                "Unit",
-                "Cost",
-                "Price",
-                "Quantity",
-              ].map((e, i) => (
-                <strong
-                  key={e}
-                  style={{
-                    fontSize: "2em",
-                    borderBottom: i == 6 ? "" : "1px solid #aaa",
-                    padding: 5,
-                    height: 50,
-                  }}
-                >
-                  {e.toLocaleUpperCase()}
-                </strong>
-              ))}
+              {["Item Code", "Name", "Unit", "Cost", "Price", "Quantity"].map(
+                (e, i) => (
+                  <strong
+                    key={e}
+                    style={{
+                      fontSize: "2em",
+                      borderBottom: i == 6 ? "" : "1px solid #aaa",
+                      padding: 5,
+                      height: 50,
+                    }}
+                  >
+                    {e.toLocaleUpperCase()}
+                  </strong>
+                )
+              )}
             </div>
           </Col>
           <Col
@@ -503,7 +479,6 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                 `${"00000".slice(item.itemCode.toString().length)}${
                   item.itemCode
                 }`,
-                parseKeyToTree(treeNodes, selectedNode?.key ?? ""),
                 item.name,
                 item.unit,
                 item.cost,
@@ -522,7 +497,7 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                         fontSize: "2em",
                         borderBottom: i == 6 ? "" : "1px solid #aaa",
                         padding: 5,
-                        background: i < 2 ? "#eee" : "",
+                        background: i == 0 ? "#eee" : "",
                         maxWidth: 500,
                         height: 50,
                         overflow: "hidden",

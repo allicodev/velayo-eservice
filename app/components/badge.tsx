@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import {
   Button,
@@ -18,6 +18,7 @@ import {
   SettingOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
+import { CiLogin } from "react-icons/ci";
 
 import { BillingSettingsType, UserBadgeProps, Wallet } from "@/types";
 import Cookies from "js-cookie";
@@ -26,6 +27,8 @@ import WalletService from "@/provider/wallet.service";
 import EtcService from "@/provider/etc.service";
 import COTracker from "./teller/cashout_tracker";
 import { useItemStore, useUserStore } from "@/provider/context";
+import WebCamera from "./teller/webcam";
+import Webcam from "react-webcam";
 
 const UserBadge = ({
   name,
@@ -48,6 +51,8 @@ const UserBadge = ({
 
   // for teller
   const [openCOTracker, setOpenCOTracker] = useState(false);
+  const [openWebcam, setOpenWebCam] = useState(false);
+  const webcamRef = useRef<Webcam>(null);
 
   const bill = new BillService();
   const wallet = new WalletService();
@@ -117,6 +122,9 @@ const UserBadge = ({
           </Typography.Text>
           <Dropdown
             trigger={["click"]}
+            overlayStyle={{
+              width: 110,
+            }}
             menu={{
               items: [
                 role == "encoder"
@@ -130,13 +138,33 @@ const UserBadge = ({
                       onClick: () => setOpenDisbaleBill(true),
                     }
                   : null,
+                ["teller", "accounting", "encoder"].includes(role ?? "")
+                  ? {
+                      key: "time-in",
+                      label: (
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <CiLogin
+                            style={{ marginRight: 3, fontSize: "1.15em" }}
+                          />{" "}
+                          Attendance
+                        </div>
+                      ),
+                      onClick: () => setOpenWebCam(true),
+                    }
+                  : null,
                 role == "teller"
                   ? {
                       key: "1",
                       label: (
-                        <Tooltip title="Track CASH-OUT Transaction">
+                        <>
                           <SearchOutlined /> Track
-                        </Tooltip>
+                        </>
                       ),
                       onClick: () => setOpenCOTracker(true),
                     }
@@ -286,6 +314,11 @@ const UserBadge = ({
         open={openCOTracker}
         close={() => setOpenCOTracker(false)}
         setOpenedMenu={setOpenedMenu!}
+      />
+      <WebCamera
+        open={openWebcam}
+        close={() => setOpenWebCam(false)}
+        webcamRef={webcamRef}
       />
     </>
   );

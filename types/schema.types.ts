@@ -1,4 +1,8 @@
-import { BillingsFormField } from "./billings.types";
+import {
+  BillingSettingsType,
+  BillingsFormField,
+  ExceptionItemProps,
+} from "./billings.types";
 
 export type RoleType = "teller" | "encoder" | "accounting" | "admin";
 
@@ -11,6 +15,7 @@ export interface User {
   role: RoleType;
   createdAt: Date;
   updatedAt: Date;
+  employeeId?: string;
 }
 
 export interface ProtectedUser {
@@ -19,6 +24,7 @@ export interface ProtectedUser {
   email: string;
   username: string;
   role: RoleType;
+  employeeId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,12 +45,15 @@ export type TransactionHistoryStatus = "completed" | "failed" | "pending";
 export interface TransactionHistory {
   description: string;
   status: TransactionHistoryStatus;
-  dateCreated?: Date;
+  createdAt: Date;
 }
 export interface Transaction {
   _id?: string;
   type: TransactionType;
   tellerId: User | string;
+  billerId?: string | null;
+  walletId?: string | null;
+  encoderId?: string | null;
   branchId: Branch | string;
   sub_type?: string;
   transactionDetails: string;
@@ -85,6 +94,8 @@ export interface Wallet {
   cashoutFeeValue: number | null;
   cashInFormField: BillingsFormField[];
   cashOutFormField: BillingsFormField[];
+  cashInexceptFormField?: ExceptionItemProps[];
+  cashOutexceptFormField?: ExceptionItemProps[];
   isDisabled?: boolean;
 }
 
@@ -140,11 +151,20 @@ export interface BranchData extends Branch {
 }
 
 // * Log
+export type LogType = "attendance" | "stock";
 export interface Log {
-  user: User;
-  branch: Branch | BranchData;
+  type: LogType;
+  userId: User;
+  branchId: Branch;
+
+  // for attendance
+  timeIn?: Date;
+  timeOut?: Date;
+  timeInPhoto?: string;
+  timeOutPhoto?: string;
 }
 
 export interface LogData extends Log {
-  _id?: string;
+  _id: string;
+  createdAt?: Date;
 }

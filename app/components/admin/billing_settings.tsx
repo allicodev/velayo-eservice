@@ -43,6 +43,7 @@ import {
 import { NewBiller, NewOption, UpdateBiller } from "./modals";
 import BillService from "@/provider/bill.service";
 import { FloatLabel } from "@/assets/ts";
+import PrinterException from "./components/printer_execption";
 
 type State = {
   fee: number | null;
@@ -377,6 +378,16 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                       />
                     </FloatLabel>
                   </Space>
+                ),
+              },
+              {
+                label: "Print Exception Settings",
+                key: "printer-exception-settings",
+                children: (
+                  <PrinterException
+                    biller={selectedBiller ?? null}
+                    refresh={() => setTrigger(trigger + 1)}
+                  />
                 ),
               },
             ]}

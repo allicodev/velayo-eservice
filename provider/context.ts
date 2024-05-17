@@ -34,6 +34,8 @@ type UserStore = {
   currentBranch: string;
   setBranch: (string: string) => void;
   removeBranch: () => void;
+  printerIsAlive: boolean;
+  setPrinter: (alive: boolean) => void;
 };
 
 type MyPersistUser = (
@@ -50,6 +52,8 @@ const useUserStore = create<UserStore, []>(
       currentBranch: "",
       setBranch: (branch: string) => set(() => ({ currentBranch: branch })),
       removeBranch: () => set({ currentBranch: "" }),
+      printerIsAlive: false,
+      setPrinter: (alive: boolean) => set({ printerIsAlive: alive }),
     }),
     {
       name: "user",

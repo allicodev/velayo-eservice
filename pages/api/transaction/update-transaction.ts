@@ -21,6 +21,7 @@ async function handler(
       success: false,
       message: "Incorrect Request Method",
     });
+
   return await Transaction.findOneAndUpdate({ _id: req.body._id }, req.body, {
     returnOriginal: false,
   })

@@ -8,16 +8,22 @@ import {
   Table,
   Popconfirm,
   message,
+  Tooltip,
 } from "antd";
 import {
   DownOutlined,
   DeleteOutlined,
   UserAddOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 
 import dayjs from "dayjs";
 
-import { DrawerBasicProps, ProtectedUser } from "@/types";
+import {
+  DrawerBasicProps,
+  ProtectedUser,
+  NewUser as NewUserProp,
+} from "@/types";
 import NewUser from "./new_user";
 import UserService from "@/provider/user.service";
 
@@ -30,12 +36,18 @@ const User = ({
   onCellClick,
 }: DrawerBasicProps) => {
   const [openedNewUser, setOpenedNewUser] = useState(false);
+  const [openedUser, setOpenedUser] = useState<NewUserProp | null>(null);
   const [users, setUsers] = useState<ProtectedUser[]>([]);
   const [trigger, setTrigger] = useState(0);
 
   const user = new UserService();
 
   const columns: TableProps<ProtectedUser>["columns"] = [
+    {
+      title: "ID",
+      key: "id",
+      dataIndex: "employeeId",
+    },
     {
       title: "Name",
       key: "name",
@@ -55,6 +67,7 @@ const User = ({
       title: "Role",
       key: "role",
       dataIndex: "role",
+      render: (_) => _.toLocaleUpperCase(),
     },
     {
       title: "Date Created",
@@ -65,14 +78,29 @@ const User = ({
     {
       title: "Actions",
       align: "center",
-      dataIndex: "_id",
-      render: (_) => (
+      render: (_, row) => (
         <Space>
+          <Tooltip title="Edit User">
+            <Button
+              size="large"
+              icon={<EditOutlined />}
+              onClick={() => {
+                let $ = row as any;
+                delete $.__v;
+                delete $.updatedAt;
+                delete $.createdAt;
+                delete $.password;
+
+                setOpenedUser($);
+                setOpenedNewUser(true);
+              }}
+            />
+          </Tooltip>
           <Popconfirm
             title="Delete Confirmation"
             description="Are you sure to archive this user?"
             okText="Confirm"
-            onConfirm={() => handeRemoveUser(_)}
+            onConfirm={() => handeRemoveUser(row?._id ?? "")}
           >
             <Button icon={<DeleteOutlined />} danger />
           </Popconfirm>
@@ -88,6 +116,18 @@ const User = ({
         message.success("Successfully Created");
         setTrigger(trigger + 1);
         setOpenedNewUser(false);
+      } else message.warning(res.message);
+    })(user);
+  };
+
+  const handleSaveUser = (obj: any) => {
+    (async (_) => {
+      let res = await _.updateUser(obj);
+      if (res?.success ?? false) {
+        message.success(res?.message ?? "Success");
+        setTrigger(trigger + 1);
+        setOpenedNewUser(false);
+        setOpenedUser(null);
       } else message.warning(res.message);
     })(user);
   };
@@ -164,8 +204,12 @@ const User = ({
       {/* context */}
       <NewUser
         open={openedNewUser}
-        close={() => setOpenedNewUser(false)}
+        close={() => {
+          setOpenedNewUser(false);
+        }}
         onAdd={handleNewUser}
+        onSave={handleSaveUser}
+        user={openedUser}
       />
     </>
   );

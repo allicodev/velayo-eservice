@@ -23,12 +23,20 @@ const UserSchema = new mongoose.Schema(
     role: {
       type: String,
       required: true,
-      enum: ["teller", "encoder", "admin", "accounting"],
     },
+    // for employee
+    employeeId: String,
   },
   {
     timestamps: true,
   }
 );
+
+UserSchema.pre("findOneAndUpdate", function (next) {
+  (this.getUpdate() as any).$set.role = (
+    this.getUpdate() as any
+  ).$set.role.toLocaleLowerCase();
+  next();
+});
 
 export default mongoose.models.User || mongoose.model("User", UserSchema);

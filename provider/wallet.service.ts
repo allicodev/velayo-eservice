@@ -7,15 +7,17 @@ import {
   Wallet,
   WalletType,
   Response,
+  ExceptionItemProps,
 } from "@/types";
 
 class WalletService extends Loader {
   private readonly instance = new Api();
 
-  public async getWallet() {
+  public async getWallet(_id?: string | null) {
     this.loaderPush("get-wallet");
     const response = await this.instance.get<Wallet[]>({
       endpoint: "/wallet/get-wallet",
+      query: { _id },
     });
     this.loaderPop("get-wallet");
     return response;
@@ -165,7 +167,8 @@ class WalletService extends Loader {
     fee: number,
     tellerId: string,
     branchId: string,
-    traceId: string | null
+    traceId: string | null,
+    walletId?: string | null
   ) {
     let transaction: Transaction = {
       type: "wallet",
@@ -175,10 +178,12 @@ class WalletService extends Loader {
       fee,
       tellerId,
       branchId,
+      walletId,
       history: [
         {
           description: "First  Transaction requested",
           status: "pending",
+          createdAt: new Date(),
         },
       ],
     };
@@ -199,6 +204,22 @@ class WalletService extends Loader {
     const response = await this.instance.get<Response>({
       endpoint: "/wallet/delete-wallet",
       query: { _id },
+    });
+    this.loaderPop("delete-biller");
+    return response;
+  }
+
+  public async updateExceptionWallet(
+    _id: string,
+    direction: string,
+    type: string,
+    excludeItems: ExceptionItemProps[]
+  ): Promise<Response> {
+    this.loaderPush("delete-biller");
+
+    const response = await this.instance.post<Response>({
+      endpoint: "/wallet/update-exception",
+      payload: { _id, direction, excludeItems, type },
     });
     this.loaderPop("delete-biller");
     return response;

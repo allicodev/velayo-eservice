@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   Button,
-  Checkbox,
   Form,
   Input,
   InputNumber,
@@ -14,19 +13,14 @@ import { NewItemProps } from "@/types";
 import ItemService from "@/provider/item.service";
 
 const NewItem = ({ title, open, close, onSave }: NewItemProps) => {
-  const [name, setName] = useState("");
-
-  const [isParent, setIsParent] = useState(true);
-
   const item = new ItemService();
   const [form] = Form.useForm();
 
   const handleFinish = async (val: any) => {
-    let a = await onSave({ ...val, isParent });
+    let a = await onSave({ ...val, isParent: false });
 
     if (a) {
       form.resetFields();
-      setName("");
       close();
     }
   };
@@ -49,7 +43,6 @@ const NewItem = ({ title, open, close, onSave }: NewItemProps) => {
     <Modal
       open={open}
       onCancel={() => {
-        setIsParent(true);
         form.resetFields();
         close();
       }}
@@ -87,20 +80,13 @@ const NewItem = ({ title, open, close, onSave }: NewItemProps) => {
         }}
         onFinish={handleFinish}
       >
-        {!isParent && (
-          <Form.Item
-            label={<span style={{ fontSize: "1.6em" }}>Item Code</span>}
-            style={{ margin: 0, marginBottom: 5 }}
-            name="nevamaynd"
-            rules={[
-              {
-                required: true,
-              },
-            ]}
-          >
-            <Input size="large" disabled />
-          </Form.Item>
-        )}
+        <Form.Item
+          label={<span style={{ fontSize: "1.6em" }}>Item Code</span>}
+          style={{ margin: 0, marginBottom: 5 }}
+          name="nevamaynd"
+        >
+          <Input size="large" disabled />
+        </Form.Item>
 
         <Form.Item
           label={<span style={{ fontSize: "1.6em" }}>Name</span>}
@@ -115,132 +101,101 @@ const NewItem = ({ title, open, close, onSave }: NewItemProps) => {
             style={{
               letterSpacing: 0.5,
             }}
-            onChange={(e) => setName(e.target.value)}
           />
         </Form.Item>
-        <div
-          style={{ float: "right", display: "flex", alignContent: "center" }}
+        <Form.Item
+          label={<span style={{ fontSize: "1.6em" }}>Unit</span>}
+          name="unit"
+          style={{ margin: 0, marginBottom: 5 }}
+          initialValue={"pc(s)"}
+          rules={[
+            {
+              required: true,
+            },
+          ]}
         >
-          <Checkbox
-            className="customCheckbox"
-            style={{ marginRight: 5 }}
-            defaultChecked={isParent}
-            onChange={(e) => setIsParent(e.target.checked)}
+          <Select
+            size="large"
+            defaultValue={"pc(s)"}
+            options={["pc(s)", "bot(s)", "kit(s)"].map((e) => ({
+              label: e.toLocaleUpperCase(),
+              value: e,
+            }))}
           />
-          <label style={{ fontSize: "1.4em" }}>Is Parent?</label>
-        </div>
-        <br />
-        <br />
-        {!isParent && (
-          <>
-            <Form.Item
-              label={<span style={{ fontSize: "1.6em" }}>Description</span>}
-              name="description"
-              style={{ margin: 0, marginBottom: 5 }}
-              rules={[
-                {
-                  required: !isParent,
-                  message: "Description is empty. Please Provide.",
-                },
-              ]}
-            >
-              <Input.TextArea autoSize={{ minRows: 2 }} />
-            </Form.Item>
-            <Form.Item
-              label={<span style={{ fontSize: "1.6em" }}>Unit</span>}
-              name="unit"
-              style={{ margin: 0, marginBottom: 5 }}
-              initialValue={"pc(s)"}
-              rules={[
-                {
-                  required: true,
-                },
-              ]}
-            >
-              <Select
-                size="large"
-                defaultValue={"pc(s)"}
-                options={["pc(s)", "bot(s)", "kit(s)"].map((e) => ({
-                  label: e.toLocaleUpperCase(),
-                  value: e,
-                }))}
-              />
-            </Form.Item>
-            <Form.Item
-              label={<span style={{ fontSize: "1.6em" }}>Cost</span>}
-              name="cost"
-              style={{ margin: 0, marginBottom: 5 }}
-              rules={[
-                {
-                  required: !isParent,
-                  message: "Cost is empty. Please Provide.",
-                },
-              ]}
-            >
-              <InputNumber
-                size="large"
-                className="align-end-input-num"
-                min={0}
-                style={{
-                  width: 120,
-                }}
-                prefix="₱"
-                controls={false}
-                formatter={(value: any) =>
-                  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
-              />
-            </Form.Item>
-            <Form.Item
-              label={<span style={{ fontSize: "1.6em" }}>Price</span>}
-              name="price"
-              style={{ margin: 0, marginBottom: 5 }}
-              rules={[
-                {
-                  required: !isParent,
-                  message: "Price is empty. Please Provide.",
-                },
-              ]}
-            >
-              <InputNumber
-                size="large"
-                className="align-end-input-num"
-                min={0}
-                style={{
-                  width: 120,
-                }}
-                prefix="₱"
-                controls={false}
-                formatter={(value: any) =>
-                  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
-              />
-            </Form.Item>
-            <Form.Item
-              label={<span style={{ fontSize: "1.6em" }}>Quantity</span>}
-              name="quantity"
-              style={{ margin: 0, marginBottom: 5 }}
-              rules={[
-                {
-                  required: !isParent,
-                  message: "Quantity is empty. Please Provide.",
-                },
-              ]}
-            >
-              <InputNumber
-                size="large"
-                className="align-end-input-num"
-                min={0}
-                style={{
-                  width: 120,
-                }}
-                controls={false}
-              />
-            </Form.Item>
-          </>
-        )}
+        </Form.Item>
+        <Form.Item
+          label={<span style={{ fontSize: "1.6em" }}>Cost</span>}
+          name="cost"
+          style={{ margin: 0, marginBottom: 5 }}
+          rules={[
+            {
+              required: true,
+              message: "Cost is empty. Please Provide.",
+            },
+          ]}
+        >
+          <InputNumber
+            size="large"
+            className="align-end-input-num"
+            min={0}
+            style={{
+              width: 120,
+            }}
+            prefix="₱"
+            controls={false}
+            formatter={(value: any) =>
+              value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            }
+            parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
+          />
+        </Form.Item>
+        <Form.Item
+          label={<span style={{ fontSize: "1.6em" }}>Price</span>}
+          name="price"
+          style={{ margin: 0, marginBottom: 5 }}
+          rules={[
+            {
+              required: true,
+              message: "Price is empty. Please Provide.",
+            },
+          ]}
+        >
+          <InputNumber
+            size="large"
+            className="align-end-input-num"
+            min={0}
+            style={{
+              width: 120,
+            }}
+            prefix="₱"
+            controls={false}
+            formatter={(value: any) =>
+              value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            }
+            parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
+          />
+        </Form.Item>
+        <Form.Item
+          label={<span style={{ fontSize: "1.6em" }}>Quantity</span>}
+          name="quantity"
+          style={{ margin: 0, marginBottom: 5 }}
+          rules={[
+            {
+              required: true,
+              message: "Quantity is empty. Please Provide.",
+            },
+          ]}
+        >
+          <InputNumber
+            size="large"
+            className="align-end-input-num"
+            min={0}
+            style={{
+              width: 120,
+            }}
+            controls={false}
+          />
+        </Form.Item>
       </Form>
     </Modal>
   );

@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import "@/database/models/user.schema";
 import "@/database/models/branch.schema";
+import "@/database/models/bill.schema";
+import "@/database/models/wallet.schema";
 
 const TransactionHistorySchema = new mongoose.Schema(
   {
@@ -28,6 +30,18 @@ const TransactionSchema = new mongoose.Schema(
     transactionDetails: String,
     reference: String,
     history: [TransactionHistorySchema],
+    billerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Bill",
+    },
+    walletId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Wallet",
+    },
+    encoderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     queue: {
       type: Number,
       default: 1,

@@ -30,7 +30,7 @@ const Home = () => {
       onPress: () => (window.location.href = "/pos/settings"),
     },
     {
-      title: "Admin Miscellaneous",
+      title: "Admin Tools",
       onPress: () => setOpenedMenu("transaction"),
     },
     { title: "Receipt Format", onPress: () => setOpenedMenu("branch") },

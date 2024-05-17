@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   Card,
@@ -18,6 +18,8 @@ import axios from "axios";
 import { BranchData, UserLoginProps } from "@/types";
 import UserService from "@/provider/user.service";
 import { useUserStore, useAuthStore } from "@/provider/context";
+import WebCamera from "@/app/components/teller/webcam";
+import Webcam from "react-webcam";
 
 const Login = () => {
   const [form] = Form.useForm();
@@ -29,6 +31,9 @@ const Login = () => {
   const [branches, setBranches] = useState<BranchData[]>([]);
 
   const [token, setToken] = useState("");
+
+  const webcamRef = useRef<Webcam>(null);
+  const [openWebcam, setOpenWebCam] = useState(false);
 
   const handleFinish = async (val: UserLoginProps) => {
     const response = await user.login(val);
@@ -169,17 +174,16 @@ const Login = () => {
                 }}
               />
             </Form.Item>
-            <Button
-              type="primary"
-              size="large"
-              loading={user.loaderHas("logging-in")}
-              htmlType="submit"
-              block
-            >
+            <Button type="primary" size="large" htmlType="submit" block>
               Login
             </Button>
-            <div style={{ textAlign: "center" }}>
-              Forget Password? <Typography.Link>Click Here</Typography.Link>
+            <div style={{ textAlign: "center", marginTop: 15 }}>
+              <Typography.Link
+                style={{ fontSize: "1.25em" }}
+                onClick={() => setOpenWebCam(true)}
+              >
+                TIME IN / TIME OUT
+              </Typography.Link>
             </div>
           </Form>
         </Card>
@@ -196,6 +200,11 @@ const Login = () => {
           Cookies.set("token", token);
           window.location.reload();
         }}
+      />
+      <WebCamera
+        open={openWebcam}
+        close={() => setOpenWebCam(false)}
+        webcamRef={webcamRef}
       />
     </>
   );

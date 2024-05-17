@@ -111,6 +111,7 @@ const BillSchema = new mongoose.Schema(
       default: 0,
     },
     formField: [FormFieldSchema],
+    exceptFormField: [Object],
     isDisabled: {
       type: Boolean,
       default: false,

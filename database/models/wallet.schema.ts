@@ -27,6 +27,8 @@ const WalletSchema = new mongoose.Schema(
     },
     cashInFormField: [FormFieldSchema],
     cashOutFormField: [FormFieldSchema],
+    cashInexceptFormField: [Object],
+    cashOutexceptFormField: [Object],
     isDisabled: {
       type: Boolean,
       default: false,

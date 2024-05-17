@@ -19,17 +19,15 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  const { page, pageSize, id, role, searchKey } = req.query;
+  const { page, pageSize, employeeId, role, searchKey } = req.query;
   var re;
 
   if (searchKey && searchKey != "") {
     re = new RegExp(searchKey!.toString().trim(), "i");
   }
 
-  if (id) {
-    return await User.findOne(
-      searchKey ? { _id: id, name: { $regex: re } } : { _id: id }
-    )
+  if (employeeId) {
+    return await User.findOne(req.query)
       .then((e) => {
         return res.json({
           code: 200,
@@ -48,7 +46,7 @@ async function handler(
       });
   } else if (role) {
     return await User.find(
-      searchKey ? { role, name: { $regex: re } } : { role }
+      searchKey ? { role, name: { $regex: re } } : { role: { $in: role } }
     )
       .then((e) => {
         return res.json({

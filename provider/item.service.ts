@@ -132,12 +132,14 @@ class ItemService extends Loader {
               {
                 description: "First  Transaction requested",
                 status: "pending",
+                createdAt: new Date(),
               },
             ]
           : [
               {
                 description: "Transaction Completed",
                 status: "completed",
+                createdAt: new Date(),
               },
             ],
     };

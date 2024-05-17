@@ -28,7 +28,6 @@ import ItemService from "@/provider/item.service";
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
   const [api, contextHolder] = notification.useNotification();
-  const [isPrinterConnected, setIsPrinterConnected] = useState(false);
   const [brans, setBrans] = useState<BranchData | null>(null);
   const [transactionDetailsOpt, setTransactionOpt] =
     useState<TransactionOptProps>({
@@ -36,7 +35,8 @@ const Teller = () => {
       transaction: null,
     });
 
-  const { currentUser, currentBranch } = useUserStore();
+  const { currentUser, currentBranch, setPrinter, printerIsAlive } =
+    useUserStore();
   const { setItems, lastDateUpdated, setLastDateUpdated, items } =
     useItemStore();
 
@@ -167,12 +167,13 @@ const Teller = () => {
   }, []);
 
   useEffect(() => {
+    setPrinter(false);
     (async () => {
       if (!(await checkServer())) {
-        setIsPrinterConnected(false);
+        setPrinter(false);
         return;
       } else {
-        setIsPrinterConnected(true);
+        setPrinter(true);
         return;
       }
     })();
@@ -261,7 +262,7 @@ const Teller = () => {
                 </Tag>
               </div>
               <div className="printer-container">
-                {isPrinterConnected ? (
+                {printerIsAlive ? (
                   <Typography.Text
                     style={{
                       paddingRight: 8,

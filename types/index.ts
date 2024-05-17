@@ -32,7 +32,8 @@ interface BillsStateDataType {
 
 interface NewUser
   extends Pick<UserProps, "name" | "email" | "username" | "role"> {
-  password: string;
+  password?: string;
+  employeeId?: string;
 }
 
 interface BillsSettings {
@@ -66,11 +67,13 @@ interface ExtendedResponse<T> extends Response {
 // pagination props
 
 interface PageProps {
-  pageSize: number;
-  page: number;
+  pageSize?: number;
+  page?: number;
+  _id?: string;
   total?: number;
-  role?: string;
+  role?: string[];
   searchKey?: string;
+  [key: string]: any;
 }
 
 export type {

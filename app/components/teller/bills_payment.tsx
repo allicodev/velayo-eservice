@@ -164,7 +164,8 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             currentBranch,
             onlinePaymentInput.isOnlinePayment && !isError
               ? onlinePaymentInput
-              : undefined
+              : undefined,
+            selectedBill._id
           );
 
           if (res.success) {

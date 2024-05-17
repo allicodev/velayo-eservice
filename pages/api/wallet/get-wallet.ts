@@ -19,7 +19,7 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  return await Wallet.find()
+  return await Wallet.find(req.query._id ? { _id: req.query._id } : {})
     .then((e) => {
       return res.json({
         code: 200,

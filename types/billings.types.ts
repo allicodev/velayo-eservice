@@ -34,6 +34,7 @@ export interface SelectOptions {
 }
 
 export interface BillingsFormField {
+  key?: string;
   type: BillingOptionsType;
   name: string;
   slug_name?: string;
@@ -43,6 +44,10 @@ export interface BillingsFormField {
   selectOption?: SelectOptions;
 }
 
+export interface ExceptionItemProps {
+  name: string;
+  type: BillingOptionsType;
+}
 export interface BillingSettingsType {
   _id?: string;
   name: string;
@@ -50,6 +55,7 @@ export interface BillingSettingsType {
   threshold: number;
   additionalFee: number;
   formField?: BillingsFormField[];
+  exceptFormField?: ExceptionItemProps[];
   isDisabled?: boolean;
 }
 

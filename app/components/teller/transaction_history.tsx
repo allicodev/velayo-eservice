@@ -407,7 +407,7 @@ const TransactionHistory = ({
         let res = await _.getUsers({
           pageSize: 10,
           page: 1,
-          role: "teller",
+          role: ["teller"],
           searchKey: searchName,
         });
         if (res?.success ?? false) setTellers(res?.data ?? []);

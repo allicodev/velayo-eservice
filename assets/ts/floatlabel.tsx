@@ -9,6 +9,7 @@ export default function FloatLabel({
   bool,
   labelClassName,
   extra,
+  labelStyle,
 }: FloatLabelProps) {
   const [focus, setFocus] = useState(false);
 
@@ -30,7 +31,7 @@ export default function FloatLabel({
       style={style}
     >
       {children}
-      <label className={labelClass} style={{ color: "#aaa" }}>
+      <label className={labelClass} style={{ color: "#aaa", ...labelStyle }}>
         {label}
       </label>
       {extra && <div style={{ float: "right" }}>{extra}</div>}

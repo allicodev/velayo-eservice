@@ -9,16 +9,18 @@ import {
   TransactionHistoryStatus,
   OnlinePayment,
   TransactionType,
+  ExceptionItemProps,
 } from "@/types";
 import { Dayjs } from "dayjs";
 
 class BillService extends Loader {
   private readonly instance = new Api();
 
-  public async getBill() {
+  public async getBill(_id?: string | null) {
     this.loaderPush("get-bill");
     const response = await this.instance.get<BillingSettingsType[]>({
       endpoint: "/bill/get-bill",
+      query: { _id },
     });
     this.loaderPop("get-bill");
     return response;
@@ -122,7 +124,8 @@ class BillService extends Loader {
     fee: number,
     tellerId: string,
     branchId: string,
-    online?: OnlinePayment
+    online?: OnlinePayment,
+    billerId?: string
   ) {
     let transaction: Transaction = {
       type: "bills",
@@ -132,11 +135,13 @@ class BillService extends Loader {
       amount,
       tellerId,
       branchId,
+      billerId,
       ...(online ? online : {}),
       history: [
         {
           description: "First  Transaction requested",
           status: "pending",
+          createdAt: new Date(),
         },
       ],
     };
@@ -196,7 +201,7 @@ class BillService extends Loader {
     return response;
   }
 
-  public async updateTransaction(transaction: Transaction) {
+  public async updateTransaction(transaction: any) {
     this.loaderPush("get-transaction");
     const response = await this.instance.post<Response>({
       endpoint: "/transaction/update-transaction",
@@ -248,6 +253,7 @@ class BillService extends Loader {
         {
           description: "First  Transaction requested",
           status: "pending",
+          createdAt: new Date(),
         },
       ],
     };
@@ -279,6 +285,7 @@ class BillService extends Loader {
         {
           description: "Transaction Completed",
           status: "completed",
+          createdAt: new Date(),
         },
       ],
     };
@@ -297,6 +304,21 @@ class BillService extends Loader {
     const response = await this.instance.get<Response>({
       endpoint: "/bill/delete-biller",
       query: { _id },
+    });
+    this.loaderPop("delete-biller");
+    return response;
+  }
+
+  public async updateExceptionBiller(
+    _id: string,
+    direction: string,
+    excludeItems: ExceptionItemProps[]
+  ): Promise<Response> {
+    this.loaderPush("delete-biller");
+
+    const response = await this.instance.post<Response>({
+      endpoint: "/bill/update-exception",
+      payload: { _id, direction, excludeItems },
     });
     this.loaderPop("delete-biller");
     return response;
