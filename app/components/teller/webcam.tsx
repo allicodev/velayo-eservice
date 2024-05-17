@@ -348,7 +348,7 @@ const WebCamera = ({
     if (type == "in")
       (async (_) => {
         let res = await _.newLog({
-          userId: currentUser?._id ?? "",
+          userId: currentOpenedUser?._id ?? "",
           type: "attendance",
           timeInPhoto: imgSrc,
           timeIn: new Date(),
