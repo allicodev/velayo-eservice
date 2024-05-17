@@ -121,4 +121,4 @@ async function handler(
   }
 }
 
-export default ApiMiddleware(handler);
+export default handler;
