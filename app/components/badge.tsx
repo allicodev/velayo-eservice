@@ -18,6 +18,7 @@ import {
   LogoutOutlined,
   SettingOutlined,
   SearchOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import { CiLogin } from "react-icons/ci";
 
@@ -65,6 +66,8 @@ const UserBadge = ({
   // etcetera
   const [walletFilter, setWalletFilter] = useState("");
   const [billerFilter, setBillerFilter] = useState("");
+  const [origWallet, setOrigWallet] = useState<Wallet[]>([]);
+  const [origBills, setOrigBills] = useState<BillingSettingsType[]>([]);
 
   const getBillsAndWallets = () => {
     (async (_) => {
@@ -72,6 +75,7 @@ const UserBadge = ({
 
       if (res.success) {
         setBills(res.data ?? []);
+        setOrigBills(res?.data ?? []);
       }
     })(bill);
     (async (_) => {
@@ -79,6 +83,7 @@ const UserBadge = ({
 
       if (res.success) {
         setWallets(res.data ?? []);
+        setOrigWallet(res?.data ?? []);
       }
     })(wallet);
   };
@@ -89,6 +94,7 @@ const UserBadge = ({
 
       if (res.success) {
         message.success(res?.message ?? "Success");
+        setIsUpdated(false);
       }
     })(etc);
   };
@@ -255,6 +261,15 @@ const UserBadge = ({
               size="large"
               value={billerFilter}
               onChange={(e) => setBillerFilter(e.target.value)}
+              addonAfter={
+                <Tooltip title="Reset">
+                  <ReloadOutlined
+                    style={{ cursor: "pointer" }}
+                    onClick={() => setBills(origBills)}
+                  />
+                </Tooltip>
+              }
+              allowClear
             />
             <Row gutter={[16, 16]}>
               <Space
@@ -281,23 +296,27 @@ const UserBadge = ({
                       <Col
                         key={`bill-${i}`}
                         span={12}
-                        style={{ display: "flex", width: 250 }}
+                        style={{
+                          display: "flex",
+                          width: 250,
+                          cursor: "pointer",
+                        }}
+                        onClick={() => {
+                          setIsUpdated(true);
+                          setBills((prevItems) =>
+                            prevItems.map((item, _) => ({
+                              ...item,
+                              isDisabled:
+                                e._id == item._id
+                                  ? !item.isDisabled
+                                  : item.isDisabled,
+                            }))
+                          );
+                        }}
                       >
                         <Checkbox
                           checked={e.isDisabled}
                           style={{ marginRight: 10 }}
-                          onChange={(e) => {
-                            setIsUpdated(true);
-                            setBills((prevItems) => {
-                              if (prevItems) {
-                                return prevItems.map((item, _) => {
-                                  if (_ == i)
-                                    item.isDisabled = e.target.checked;
-                                  return item;
-                                });
-                              } else return [];
-                            });
-                          }}
                         />{" "}
                         <strong style={{ fontSize: "1.2em" }}>{e.name}</strong>
                       </Col>
@@ -318,6 +337,15 @@ const UserBadge = ({
               size="large"
               value={walletFilter}
               onChange={(e) => setWalletFilter(e.target.value)}
+              addonAfter={
+                <Tooltip title="Reset">
+                  <ReloadOutlined
+                    style={{ cursor: "pointer" }}
+                    onClick={() => setWallets(origWallet)}
+                  />
+                </Tooltip>
+              }
+              allowClear
             />
             <Row gutter={[16, 16]}>
               <Space
@@ -344,23 +372,27 @@ const UserBadge = ({
                       <Col
                         key={`wallet-${i}`}
                         span={12}
-                        style={{ display: "flex", width: 250 }}
+                        style={{
+                          display: "flex",
+                          width: 250,
+                          cursor: "pointer",
+                        }}
+                        onClick={() => {
+                          setIsUpdated(true);
+                          setWallets((prevItems) =>
+                            prevItems.map((item, _) => ({
+                              ...item,
+                              isDisabled:
+                                e._id == item._id
+                                  ? !item.isDisabled
+                                  : item.isDisabled,
+                            }))
+                          );
+                        }}
                       >
                         <Checkbox
                           checked={e.isDisabled}
                           style={{ marginRight: 10 }}
-                          onChange={(e) => {
-                            setIsUpdated(true);
-                            setWallets((prevItems) => {
-                              if (prevItems) {
-                                return prevItems.map((item, _) => {
-                                  if (_ == i)
-                                    item.isDisabled = e.target.checked;
-                                  return item;
-                                });
-                              } else return [];
-                            });
-                          }}
                         />{" "}
                         <strong style={{ fontSize: "1.2em" }}>{e.name}</strong>
                       </Col>

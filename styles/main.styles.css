@@ -541,7 +541,7 @@ label.customCheckbox span span.ant-checkbox-inner::after {
 }
 
 .disable-content::before {
-  content: "DISABLED";
+  content: "DISABLED BY ENCODER";
   position: absolute;
   font-size: 2.5em;
   left: 50%;

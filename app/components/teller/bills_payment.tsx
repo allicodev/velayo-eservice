@@ -30,6 +30,7 @@ import BillService from "@/provider/bill.service";
 import { FloatLabel } from "@/assets/ts";
 import { useUserStore } from "@/provider/context";
 import EtcService from "@/provider/etc.service";
+import { Pusher } from "@/provider/utils/pusher";
 
 // TODO: auto disabled billing if disabled by encoder
 // TODO: auto disabled wallet if disabled by encoder
@@ -52,11 +53,12 @@ const BillButton = ({
           height: 70,
           ...(isSelected
             ? {
-                background: "#294B0F",
+                background: disabled ? "#294B0FAA" : "#294B0F",
               }
             : {
                 background: "#fff",
               }),
+          ...(disabled ? { color: "#CCCCCC" } : {}),
         }}
         onClick={() => onSelected(bill)}
         disabled={disabled}
@@ -108,6 +110,8 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
   const etc = new EtcService();
 
   const { currentUser, currentBranch } = useUserStore();
+
+  let channel = new Pusher().subscribe("teller-general");
 
   const getFee = () => {
     if (selectedBill) {
@@ -789,6 +793,36 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
     })(billService);
   };
 
+  const handleNotifyDisable = async ({ data }: { data: any[] }) => {
+    setBills(
+      bills.map((e) => {
+        data.forEach((_) => {
+          if (_._id == e._id) e.isDisabled = _.isDisabled;
+        });
+        return e;
+      })
+    );
+    if (data.map((_) => _._id).includes(selectedBill?._id ?? "")) {
+      message.warning("This biller has been updated");
+    }
+  };
+
+  const initPusherProvider = () => {
+    // unbind before rebinding
+    try {
+      channel.unbind("notify-disabled-wallet");
+    } catch {}
+
+    channel.bind("notify-disabled-wallet", handleNotifyDisable);
+    return () => {
+      channel.unsubscribe();
+    };
+  };
+
+  useEffect(() => {
+    return initPusherProvider();
+  }, [selectedBill, bills]);
+
   useEffect(() => {
     if (open) getBills();
   }, [open]);
@@ -921,6 +955,12 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             display: "flex",
             justifyContent: "center",
           }}
+          className={
+            bills.filter((e) => selectedBill?._id == e._id).length > 0 &&
+            bills.filter((e) => selectedBill?._id == e._id)[0].isDisabled
+              ? "disable-content"
+              : ""
+          }
         >
           {selectedBill && renderSelectedBill(selectedBill)}
         </Col>

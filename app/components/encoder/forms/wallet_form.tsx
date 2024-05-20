@@ -28,7 +28,6 @@ import {
 
 import {
   BillingsFormField,
-  DrawerBasicProps,
   GcashCollapseItemButtonProps,
   Wallet,
   WalletType,
@@ -40,8 +39,9 @@ import WalletService from "@/provider/wallet.service";
 import EtcService from "@/provider/etc.service";
 import { FloatLabel } from "@/assets/ts";
 import { useUserStore } from "@/provider/context";
+import { Pusher } from "@/provider/utils/pusher";
 
-const WalletForm = ({ open, close }: DrawerBasicProps) => {
+const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
   const wallet = new WalletService();
   const etc = new EtcService();
 
@@ -60,19 +60,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
 
   const { currentUser, currentBranch } = useUserStore();
 
-  (WalletForm as any).updateWallet = (ids: string[]) => {
-    console.log(ids);
-    setWallets(
-      wallets.map((e) => {
-        if (ids.includes(e?._id ?? "")) return { ...e, isDisabled: true };
-        return e;
-      })
-    );
-
-    if (ids.includes(selectedWallet?._id ?? "")) {
-      message.warning("This wallet has been disabled");
-    }
-  };
+  let channel = new Pusher().subscribe("teller-general");
 
   // for dynamic formfields
   const selectedFormFields = () =>
@@ -174,14 +162,13 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
           <Button
             style={{
               width: 300,
-
               paddingTop: 10,
               paddingBottom: 10,
               height: 70,
               fontWeight: "bolder",
               ...(selectedWallet?._id == wallet._id
                 ? {
-                    background: "#294B0F",
+                    background: wallet.isDisabled ? "#294B0FAA" : "#294B0F",
                     color: "#fff",
                   }
                 : {
@@ -232,15 +219,17 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                 fontWeight: "bolder",
                 ...(walletType == "cash-in"
                   ? {
-                      background: "#294B0F",
+                      background: wallet.isDisabled ? "#294B0FAA" : "#294B0F",
                       color: "#fff",
                     }
                   : {
-                      background: "#fff",
-                      color: "#000",
+                      background: wallet.isDisabled ? "#EEE" : "#fff",
+                      color: wallet.isDisabled ? "#aaa" : "#000",
                     }),
+                ...(wallet.isDisabled ? { color: "#CCCCCC" } : {}),
               }}
               onClick={onClickCashIn}
+              disabled={wallet.isDisabled}
             >
               cash-in
             </Button>
@@ -255,15 +244,17 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                 fontWeight: "bolder",
                 ...(walletType == "cash-out"
                   ? {
-                      background: "#294B0F",
+                      background: wallet.isDisabled ? "#294B0FAA" : "#294B0F",
                       color: "#fff",
                     }
                   : {
-                      background: "#fff",
-                      color: "#000",
+                      background: wallet.isDisabled ? "#EEE" : "#fff",
+                      color: wallet.isDisabled ? "#aaa" : "#000",
                     }),
+                ...(wallet.isDisabled ? { color: "#CCCCCC" } : {}),
               }}
               onClick={onClickCashOut}
+              disabled={wallet.isDisabled}
             >
               cash-out
             </Button>
@@ -563,21 +554,49 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
       walletType == "cash-in" ? "Cash-in" : "Cash-out"
     }`;
 
-  const getWallets = () => {
-    (async (_) => {
-      let res = await _.getWallet();
+  const getWallets = async () =>
+    await new Promise(async (resolve, reject) => {
+      let res = await wallet.getWallet();
 
-      if (res.success) {
+      if (res?.success ?? false) {
         setWallets(res?.data ?? []);
-      }
-    })(wallet);
+        resolve({ wallets: res?.data ?? [], s: selectedWallet });
+      } else reject();
+    });
+
+  const handleNotifyDisable = async ({ data }: { data: any[] }) => {
+    setWallets(
+      wallets.map((e) => {
+        data.forEach((_) => {
+          if (_._id == e._id) e.isDisabled = _.isDisabled;
+        });
+        return e;
+      })
+    );
+    if (data.map((_) => _._id).includes(selectedWallet?._id ?? "")) {
+      message.warning("This wallet has been updated");
+    }
+  };
+
+  const initPusherProvider = () => {
+    // unbind before rebinding
+    try {
+      channel.unbind("notify-disabled-wallet");
+    } catch {}
+
+    channel.bind("notify-disabled-wallet", handleNotifyDisable);
+    return () => {
+      channel.unsubscribe();
+    };
   };
 
   useEffect(() => {
-    setWindow(window);
-  }, []);
+    return initPusherProvider();
+  }, [selectedWallet, wallets]);
 
   useEffect(() => {
+    setWindow(window);
+
     if (open) getWallets();
   }, [open]);
 
@@ -695,7 +714,12 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
         </Col>
         <Col
           span={17}
-          className={selectedWallet?.isDisabled ? "disable-content" : ""}
+          className={
+            wallets.filter((e) => selectedWallet?._id == e._id).length > 0 &&
+            wallets.filter((e) => selectedWallet?._id == e._id)[0].isDisabled
+              ? "disable-content"
+              : ""
+          }
           style={{
             display: "flex",
             justifyContent: "center",

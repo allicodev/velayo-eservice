@@ -23,34 +23,36 @@ async function handler(
 
   try {
     let { wallets, bills } = req.body;
+    let _wallets: any[] = [],
+      _bills: any[] = [];
 
-    Promise.all(
+    await Promise.all(
       wallets.map(async (e: any) => {
         return await Wallet.findOneAndUpdate(
           { _id: e.id },
           { $set: { isDisabled: e.isDisabled } }
-        );
+        ).then((_) => {
+          if ((_?.isDisabled ?? null) != e.isDisabled) _wallets.push(e);
+        });
       })
     );
 
-    Promise.all(
+    await Promise.all(
       bills.map(async (e: any) => {
         return await Bill.findOneAndUpdate(
           { _id: e.id },
           { $set: { isDisabled: e.isDisabled } }
-        );
+        ).then((_) => {
+          if ((_?.isDisabled ?? null) != e.isDisabled) _bills.push(e);
+        });
       })
     );
 
-    if (
-      wallets.filter((e: any) => e.isDisabled).length +
-        bills.filter((e: any) => e.isDisabled).length >
-      0
-    )
+    if (_wallets.length + _bills.length > 0)
       await new Pusher2().emit("teller-general", "notify-disabled-wallet", {
-        ids: [
-          ...wallets.filter((e: any) => e.isDisabled).map((e: any) => e.id),
-          ...bills.filter((e: any) => e.isDisabled).map((e: any) => e.id),
+        data: [
+          ..._bills.map((e) => ({ _id: e.id, isDisabled: e.isDisabled })),
+          ..._wallets.map((e) => ({ _id: e.id, isDisabled: e.isDisabled })),
         ],
       });
 
