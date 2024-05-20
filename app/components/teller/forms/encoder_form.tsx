@@ -160,6 +160,7 @@ const EncoderForm = ({
             message.success(res?.message ?? "Success");
             if (refresh) refresh();
             setRefNumber(null);
+            setIsFailed(false);
             close();
           }
         }
@@ -184,6 +185,7 @@ const EncoderForm = ({
             message.success(res?.message ?? "Success");
             if (refresh) refresh();
             close();
+            setIsFailed(false);
           }
         }
       })(bill);

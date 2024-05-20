@@ -799,23 +799,28 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                 })
                 .map((e, i) => (
                   <Tooltip
-                    title={e.name.length > 20 ? e.name : ""}
+                    title={
+                      e.isDisabled
+                        ? "This Wallet is under maintenance"
+                        : e.name.length > 20
+                        ? e.name
+                        : ""
+                    }
                     key={`btn-btn-${i}`}
                   >
                     <Button
                       key={`wallet-btn-${i}`}
+                      disabled={e.isDisabled}
                       style={{
                         width: 300,
                         paddingTop: 8,
                         paddingBottom: 8,
                         height: 60,
-                        ...(selectedWallet?._id == e._id ?? false
-                          ? {
-                              background: "#294B0F",
-                            }
-                          : {
-                              background: "#fff",
-                            }),
+                        background: e.isDisabled
+                          ? "#eee"
+                          : selectedWallet?._id == e._id ?? false
+                          ? "#294B0F"
+                          : "#fff",
                       }}
                       onClick={() => {
                         setSelectedTabs("cashin-settings-tabs");
@@ -825,13 +830,11 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                       <Typography.Text
                         style={{
                           fontSize: 30,
-                          ...(selectedWallet?._id == e._id ?? false
-                            ? {
-                                color: "#fff",
-                              }
-                            : {
-                                color: "#000",
-                              }),
+                          color: e.isDisabled
+                            ? "#aaa"
+                            : selectedWallet?._id == e._id ?? false
+                            ? "#fff"
+                            : "#000",
                           maxWidth: 270,
                         }}
                         ellipsis

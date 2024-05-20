@@ -636,21 +636,28 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                       .includes(searchKey.toLocaleLowerCase());
                 })
                 .map((e, i) => (
-                  <Tooltip title={e.name.length > 20 ? e.name : ""}>
+                  <Tooltip
+                    title={
+                      e.isDisabled
+                        ? "This Biller is under maintenance"
+                        : e.name.length > 20
+                        ? e.name
+                        : ""
+                    }
+                  >
                     <Button
                       key={`billing-btn-${i}`}
+                      disabled={e.isDisabled}
                       style={{
                         width: 300,
                         paddingTop: 8,
                         paddingBottom: 8,
                         height: 60,
-                        ...(selectedBiller?._id == e._id ?? false
-                          ? {
-                              background: "#294B0F",
-                            }
-                          : {
-                              background: "#fff",
-                            }),
+                        background: e.isDisabled
+                          ? "#eee"
+                          : selectedBiller?._id == e._id ?? false
+                          ? "#294B0F"
+                          : "#fff",
                       }}
                       onClick={() => {
                         setSelectedBiller(e);
@@ -660,13 +667,11 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                       <Typography.Text
                         style={{
                           fontSize: 30,
-                          ...(selectedBiller?._id == e._id ?? false
-                            ? {
-                                color: "#fff",
-                              }
-                            : {
-                                color: "#000",
-                              }),
+                          color: e.isDisabled
+                            ? "#aaa"
+                            : selectedBiller?._id == e._id ?? false
+                            ? "#fff"
+                            : "#000",
                           maxWidth: 270,
                         }}
                         ellipsis

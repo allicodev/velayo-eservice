@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Col, Row, Tag, Typography, notification } from "antd";
+import { Button, Col, Row, Tag, Typography, message, notification } from "antd";
 import { WalletOutlined } from "@ant-design/icons";
 import { MdOutlineSendToMobile } from "react-icons/md";
 import { FaMoneyBills } from "react-icons/fa6";
@@ -99,10 +99,12 @@ const Teller = () => {
     let channel = new Pusher().subscribe(
       `teller-${currentUser?._id.slice(-5)}`
     );
+    let channel2 = new Pusher().subscribe("teller-general");
     channel.bind("notify", handleNotify);
-
+    channel2.bind("notify-disabled-wallet", handleNotifyDisable);
     return () => {
       channel.unsubscribe();
+      channel2.unsubscribe();
     };
   };
 
@@ -125,6 +127,19 @@ const Teller = () => {
         </Button>
       ),
     });
+  };
+
+  const handleNotifyDisable = ({ ids }: { ids: string[] }) => {
+    if (openedMenu == "")
+      message.warning("Some Biller/Wallet has been disabled");
+
+    // new Promise<void>((resolve, reject) => {
+    //   setOpenedMenu("th");
+    //   resolve();
+    // }).then(async () => {
+    //   await (TransactionHistory as any).openTransaction(id);
+    // });
+    (WalletForm as any).updateWallet(ids);
   };
 
   const openTransaction = (id: string) => {
@@ -158,7 +173,7 @@ const Teller = () => {
         },
         currentBranch
       );
-      if (res.success) return true;
+      return res.success ?? false;
     })(bill);
   };
 

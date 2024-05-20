@@ -39,6 +39,8 @@ const User = ({
   const [openedUser, setOpenedUser] = useState<NewUserProp | null>(null);
   const [users, setUsers] = useState<ProtectedUser[]>([]);
   const [trigger, setTrigger] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
   const user = new UserService();
 
@@ -143,15 +145,45 @@ const User = ({
     })(user);
   };
 
-  useEffect(() => {
-    (async (_) => {
-      let res = await _.getUsers({ page: 1, pageSize: 10 });
+  const getUsers = ({
+    role,
+    page,
+    pageSize,
+    updateUsers = true,
+  }: {
+    role?: string | null;
+    page: number;
+    pageSize?: number;
+    updateUsers?: boolean;
+  }): Promise<ProtectedUser[] | any | void> =>
+    new Promise(async (resolve, reject) => {
+      // setFetching(true);
+      if (!pageSize) pageSize = 10;
 
-      if (res.success) {
-        setUsers(res.data ?? []);
+      let res = await user.getUsers({
+        role: role ? [role.toLocaleLowerCase()] : undefined,
+        page,
+        pageSize,
+      });
+
+      if (res?.success ?? false) {
+        if (!updateUsers) {
+          return resolve(res.data);
+        }
+
+        // setFetching(false);
+        setUsers(res?.data ?? []);
+        setTotal(res.meta?.total ?? 10);
+        resolve(res.data);
+      } else {
+        // setFetching(false);
+        reject();
       }
-    })(user);
-  }, [trigger, open]);
+    });
+
+  useEffect(() => {
+    getUsers({ page: 1, pageSize: 10, role: selectedRole });
+  }, [trigger, open, selectedRole]);
 
   return (
     <>
@@ -197,6 +229,16 @@ const User = ({
             return {
               onClick: () => (onCellClick ? onCellClick(data) : null),
             };
+          }}
+          pagination={{
+            defaultPageSize: 10,
+            total,
+            onChange: (page, pageSize) =>
+              getUsers({
+                page,
+                pageSize,
+                role: selectedRole,
+              }),
           }}
         />
       </Drawer>

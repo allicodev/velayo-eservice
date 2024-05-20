@@ -283,7 +283,6 @@ const Encoder = () => {
     new Promise(async (resolve, reject) => {
       setFetching(true);
       if (!pageSize) pageSize = 10;
-
       let res = await bill.getAllTransaction({
         page,
         pageSize,
@@ -296,7 +295,7 @@ const Encoder = () => {
         fromDate,
         toDate,
         order:
-          status && ["completed", "failed"].includes(status[0])
+          status && ["completed", "failed"].includes(status)
             ? "descending"
             : "ascending",
       });

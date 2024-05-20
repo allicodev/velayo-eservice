@@ -17,6 +17,7 @@ export interface UpdateFeeProps {
 
 export interface UpdateBillWallet {
   id: string;
+  name: string;
   isDisabled: boolean;
 }
 

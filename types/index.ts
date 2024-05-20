@@ -71,7 +71,7 @@ interface PageProps {
   page?: number;
   _id?: string;
   total?: number;
-  role?: string[];
+  role?: string[] | undefined;
   searchKey?: string;
   [key: string]: any;
 }

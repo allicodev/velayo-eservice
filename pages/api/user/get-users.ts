@@ -67,6 +67,12 @@ async function handler(
   } else {
     const _page = Number.parseInt(page!.toString()) - 1;
 
+    const total = await User.countDocuments(
+      searchKey
+        ? { role: { $ne: "admin" }, name: { $regex: re } }
+        : { role: { $ne: "admin" } }
+    );
+
     return await User.find(
       searchKey
         ? { role: { $ne: "admin" }, name: { $regex: re } }
@@ -80,6 +86,9 @@ async function handler(
           success: true,
           message: "Fetched Successfully",
           data: doc,
+          meta: {
+            total,
+          },
         });
       })
       .catch((e) => {

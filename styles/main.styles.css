@@ -529,3 +529,23 @@ label.customCheckbox span span.ant-checkbox-inner::after {
 .custom-select-new-user .ant-select-selection-item {
   font-size: 1.5em !important;
 }
+
+.disable-content::after {
+  content: "";
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(200, 200, 200, 0.2);
+  backdrop-filter: blur(10px);
+  z-index: 999999;
+}
+
+.disable-content::before {
+  content: "DISABLED";
+  position: absolute;
+  font-size: 2.5em;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999999;
+}

@@ -60,6 +60,20 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
 
   const { currentUser, currentBranch } = useUserStore();
 
+  (WalletForm as any).updateWallet = (ids: string[]) => {
+    console.log(ids);
+    setWallets(
+      wallets.map((e) => {
+        if (ids.includes(e?._id ?? "")) return { ...e, isDisabled: true };
+        return e;
+      })
+    );
+
+    if (ids.includes(selectedWallet?._id ?? "")) {
+      message.warning("This wallet has been disabled");
+    }
+  };
+
   // for dynamic formfields
   const selectedFormFields = () =>
     walletType == "cash-in"
@@ -681,6 +695,7 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
         </Col>
         <Col
           span={17}
+          className={selectedWallet?.isDisabled ? "disable-content" : ""}
           style={{
             display: "flex",
             justifyContent: "center",
@@ -763,7 +778,19 @@ const WalletForm = ({ open, close }: DrawerBasicProps) => {
                 requiredMark={"optional"}
                 onFinish={handleFinish}
               >
-                {selectedFormFields()?.map((e) => renderFormFieldSpecific(e))}
+                <div
+                  style={
+                    selectedWallet?.isDisabled
+                      ? {
+                          pointerEvents: "none",
+                          userSelect: "none",
+                          touchAction: "none",
+                        }
+                      : {}
+                  }
+                >
+                  {selectedFormFields()?.map((e) => renderFormFieldSpecific(e))}
+                </div>
                 {walletType == "cash-out" && (
                   <div>
                     <div

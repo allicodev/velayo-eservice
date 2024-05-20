@@ -12,6 +12,7 @@ import {
   Checkbox,
   message,
   Space,
+  Input,
 } from "antd";
 import {
   LogoutOutlined,
@@ -60,6 +61,10 @@ const UserBadge = ({
 
   const { setItems } = useItemStore();
   const { removeUser, removeBranch } = useUserStore();
+
+  // etcetera
+  const [walletFilter, setWalletFilter] = useState("");
+  const [billerFilter, setBillerFilter] = useState("");
 
   const getBillsAndWallets = () => {
     (async (_) => {
@@ -220,6 +225,11 @@ const UserBadge = ({
         open={openDisableBill}
         onCancel={() => setOpenDisbaleBill(false)}
         closable={false}
+        styles={{
+          body: {
+            maxHeight: "70vh",
+          },
+        }}
         footer={[
           <Button
             key="btn-disabled"
@@ -239,34 +249,59 @@ const UserBadge = ({
             <Typography.Title level={3} style={{ fontWeight: "bolder" }}>
               Bills
             </Typography.Title>
+            <Input
+              style={{ marginBottom: 10 }}
+              placeholder="Type a biller here..."
+              size="large"
+              value={billerFilter}
+              onChange={(e) => setBillerFilter(e.target.value)}
+            />
             <Row gutter={[16, 16]}>
-              <Space direction="vertical">
+              <Space
+                direction="vertical"
+                className="no-scrollbar"
+                style={{
+                  maxHeight: "55vh",
+                  overflow: "scroll",
+                }}
+              >
                 {bills &&
-                  bills.length > 0 &&
-                  bills.map((e, i) => (
-                    <Col
-                      key={`bill-${i}`}
-                      span={12}
-                      style={{ display: "flex", width: 250 }}
-                    >
-                      <Checkbox
-                        checked={e.isDisabled}
-                        style={{ marginRight: 10 }}
-                        onChange={(e) => {
-                          setIsUpdated(true);
-                          setBills((prevItems) => {
-                            if (prevItems) {
-                              return prevItems.map((item, _) => {
-                                if (_ == i) item.isDisabled = e.target.checked;
-                                return item;
-                              });
-                            } else return [];
-                          });
-                        }}
-                      />{" "}
-                      <strong style={{ fontSize: "1.2em" }}>{e.name}</strong>
-                    </Col>
-                  ))}
+                  bills.filter((e) =>
+                    e.name
+                      .toLocaleLowerCase()
+                      .includes(billerFilter.toLocaleLowerCase())
+                  ).length > 0 &&
+                  bills
+                    .filter((e) =>
+                      e.name
+                        .toLocaleLowerCase()
+                        .includes(billerFilter.toLocaleLowerCase())
+                    )
+                    .map((e, i) => (
+                      <Col
+                        key={`bill-${i}`}
+                        span={12}
+                        style={{ display: "flex", width: 250 }}
+                      >
+                        <Checkbox
+                          checked={e.isDisabled}
+                          style={{ marginRight: 10 }}
+                          onChange={(e) => {
+                            setIsUpdated(true);
+                            setBills((prevItems) => {
+                              if (prevItems) {
+                                return prevItems.map((item, _) => {
+                                  if (_ == i)
+                                    item.isDisabled = e.target.checked;
+                                  return item;
+                                });
+                              } else return [];
+                            });
+                          }}
+                        />{" "}
+                        <strong style={{ fontSize: "1.2em" }}>{e.name}</strong>
+                      </Col>
+                    ))}
               </Space>
             </Row>
           </Col>
@@ -277,34 +312,59 @@ const UserBadge = ({
             <Typography.Title level={3} style={{ fontWeight: "bolder" }}>
               Wallets
             </Typography.Title>
+            <Input
+              style={{ marginBottom: 10 }}
+              placeholder="Type a wallet here..."
+              size="large"
+              value={walletFilter}
+              onChange={(e) => setWalletFilter(e.target.value)}
+            />
             <Row gutter={[16, 16]}>
-              <Space direction="vertical">
+              <Space
+                direction="vertical"
+                className="no-scrollbar"
+                style={{
+                  maxHeight: "55vh",
+                  overflow: "scroll",
+                }}
+              >
                 {wallets &&
-                  wallets.length > 0 &&
-                  wallets.map((e, i) => (
-                    <Col
-                      key={`wallet-${i}`}
-                      span={12}
-                      style={{ display: "flex", width: 250 }}
-                    >
-                      <Checkbox
-                        checked={e.isDisabled}
-                        style={{ marginRight: 10 }}
-                        onChange={(e) => {
-                          setIsUpdated(true);
-                          setWallets((prevItems) => {
-                            if (prevItems) {
-                              return prevItems.map((item, _) => {
-                                if (_ == i) item.isDisabled = e.target.checked;
-                                return item;
-                              });
-                            } else return [];
-                          });
-                        }}
-                      />{" "}
-                      <strong style={{ fontSize: "1.2em" }}>{e.name}</strong>
-                    </Col>
-                  ))}
+                  wallets.filter((e) =>
+                    e.name
+                      .toLocaleLowerCase()
+                      .includes(walletFilter.toLocaleLowerCase())
+                  ).length > 0 &&
+                  wallets
+                    .filter((e) =>
+                      e.name
+                        .toLocaleLowerCase()
+                        .includes(walletFilter.toLocaleLowerCase())
+                    )
+                    .map((e, i) => (
+                      <Col
+                        key={`wallet-${i}`}
+                        span={12}
+                        style={{ display: "flex", width: 250 }}
+                      >
+                        <Checkbox
+                          checked={e.isDisabled}
+                          style={{ marginRight: 10 }}
+                          onChange={(e) => {
+                            setIsUpdated(true);
+                            setWallets((prevItems) => {
+                              if (prevItems) {
+                                return prevItems.map((item, _) => {
+                                  if (_ == i)
+                                    item.isDisabled = e.target.checked;
+                                  return item;
+                                });
+                              } else return [];
+                            });
+                          }}
+                        />{" "}
+                        <strong style={{ fontSize: "1.2em" }}>{e.name}</strong>
+                      </Col>
+                    ))}
               </Space>
             </Row>
           </Col>

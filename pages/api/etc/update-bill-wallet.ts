@@ -1,6 +1,7 @@
 import dbConnect from "@/database/dbConnect";
 import Bill from "@/database/models/bill.schema";
 import Wallet from "@/database/models/wallet.schema";
+import { Pusher2 } from "@/provider/utils/pusher";
 import { ExtendedResponse, BillingSettingsType } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -40,6 +41,18 @@ async function handler(
         );
       })
     );
+
+    if (
+      wallets.filter((e: any) => e.isDisabled).length +
+        bills.filter((e: any) => e.isDisabled).length >
+      0
+    )
+      await new Pusher2().emit("teller-general", "notify-disabled-wallet", {
+        ids: [
+          ...wallets.filter((e: any) => e.isDisabled).map((e: any) => e.id),
+          ...bills.filter((e: any) => e.isDisabled).map((e: any) => e.id),
+        ],
+      });
 
     return res.json({
       code: 200,

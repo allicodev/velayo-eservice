@@ -19,12 +19,20 @@ class EtcService extends Loader {
 
     bills.forEach((e) => {
       if (e)
-        _bills.push({ id: e._id ?? "", isDisabled: e.isDisabled ?? false });
+        _bills.push({
+          id: e._id ?? "",
+          isDisabled: e.isDisabled ?? false,
+          name: e.name,
+        });
     });
 
     wallets.forEach((e, i) => {
       if (e)
-        _wallets.push({ id: e._id ?? "", isDisabled: e.isDisabled ?? false });
+        _wallets.push({
+          id: e._id ?? "",
+          isDisabled: e.isDisabled ?? false,
+          name: e.name,
+        });
     });
     this.loaderPush("update-wallet-bill");
     const response = await this.instance.post<Response>({

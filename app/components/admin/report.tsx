@@ -5,11 +5,12 @@ import {
   BarChartOutlined,
   CalendarOutlined,
 } from "@ant-design/icons";
+import { GrTransaction } from "react-icons/gr";
 
 import { Transaction, TransactionReportProps } from "@/types";
 import BillService from "@/provider/bill.service";
-import ReportDashboard from "./components/dashboard";
 import Attendance from "./components/attendance";
+import TransactionHistory from "./components/transaction_history";
 
 const Report = ({ open, close }: TransactionReportProps) => {
   const [recentTransaction, setRecentTransction] = useState<Transaction[]>([]);
@@ -63,6 +64,11 @@ const Report = ({ open, close }: TransactionReportProps) => {
                     key: "attendance",
                     icon: <CalendarOutlined />,
                   },
+                  {
+                    label: "Transactions",
+                    key: "transactions",
+                    icon: <GrTransaction />,
+                  },
                 ]}
                 // defaultSelectedKeys="dashboard"
                 style={{
@@ -88,6 +94,7 @@ const Report = ({ open, close }: TransactionReportProps) => {
               </Typography.Title>
             </div>
             {activeKey == "attendance" ? <Attendance /> : null}
+            {activeKey == "transactions" ? <TransactionHistory /> : null}
           </Layout>
         </Layout>
       </Drawer>
