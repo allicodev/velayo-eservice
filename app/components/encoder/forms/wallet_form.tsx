@@ -60,8 +60,6 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
 
   const { currentUser, currentBranch } = useUserStore();
 
-  let channel = new Pusher().subscribe("teller-general");
-
   // for dynamic formfields
   const selectedFormFields = () =>
     walletType == "cash-in"
@@ -579,6 +577,7 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
   };
 
   const initPusherProvider = () => {
+    let channel = new Pusher().subscribe("teller-general");
     // unbind before rebinding
     try {
       channel.unbind("notify-disabled-wallet");

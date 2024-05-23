@@ -15,6 +15,7 @@ import {
 } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { CopyOutlined } from "@ant-design/icons";
+import Excel from "exceljs";
 
 import {
   TransactionOptProps,
@@ -22,6 +23,7 @@ import {
   TransactionHistoryStatus,
   TransactionType,
   User,
+  Branch,
 } from "@/types";
 import notifSound from "../../public/notif.mp3";
 
@@ -70,6 +72,186 @@ const Encoder = () => {
     fromDate: null,
     toDate: null,
   });
+
+  const exportExcel = (trans: Transaction[]) => {
+    const workbook = new Excel.Workbook();
+    const sheet = workbook.addWorksheet("My Sheet");
+
+    // * set the first row to be the title uwu :3
+    sheet.mergeCells("A1:J1");
+    sheet.getCell("A1").alignment = {
+      horizontal: "center",
+      vertical: "middle",
+    };
+    sheet.getCell("A1").font = {
+      family: 4,
+      size: 18,
+      bold: true,
+    };
+    sheet.getCell("A1").value = "Transaction Report";
+    sheet.getRow(2).values = [
+      "Ref Code",
+      "Branch Name",
+      "Date/Time",
+      "Transaction Type",
+      "Biller Name / Product Code",
+      "Amount",
+      "Service Fee",
+      "Amount + Service Fee",
+      "User",
+      "Status",
+    ];
+    sheet.properties.defaultRowHeight = 20;
+
+    const getTransactionLabel = (c: TransactionType): string => {
+      switch (c) {
+        case "bills":
+          return "Bills Payment";
+        case "eload":
+          return "E-Load";
+        case "wallet":
+          return "Online Wallet";
+        case "shopee":
+          return "Shoppe Self Collect";
+        case "miscellaneous":
+          return "miscellaneous";
+      }
+    };
+
+    // Design the header chuyyy
+    sheet.columns = [
+      {
+        key: "refCode",
+        width: 30,
+      },
+      {
+        key: "branchName",
+        width: 20,
+      },
+      {
+        key: "dateTime",
+        width: 20,
+      },
+      {
+        key: "transactionType",
+        width: 20,
+      },
+      {
+        key: "billerName",
+        width: 30,
+      },
+      {
+        key: "amount",
+        width: 15,
+      },
+      {
+        key: "serviceFee",
+        width: 15,
+      },
+      {
+        key: "total",
+        width: 23,
+      },
+      {
+        key: "user",
+        width: 25,
+      },
+      {
+        key: "status",
+        width: 12,
+      },
+    ];
+
+    trans.map((e) => {
+      sheet.addRow({
+        refCode: e.reference,
+        branchName: (e.branchId as Branch)?.name ?? "No Branch",
+        dateTime: dayjs(e.createdAt).format("MM/DD/YYYY HH:mm"),
+        transactionType: getTransactionLabel(e.type),
+        billerName: e.sub_type?.toLocaleUpperCase() ?? "N/A",
+        amount:
+          e.type == "wallet" && e.sub_type!.split(" ")[1] == "cash-out"
+            ? -e.amount!
+            : e.amount,
+        serviceFee: e.fee,
+        total:
+          e?.sub_type ?? false
+            ? ((e.type == "wallet" && e.sub_type!.split(" ")[1] == "cash-out"
+                ? -e.amount!
+                : e.amount) ?? 0) + (e.fee ?? 0)
+            : e.amount,
+        user: typeof e.tellerId == "object" ? e.tellerId.name : "",
+        status: (e.history.at(-1)?.status ?? "").toLocaleUpperCase(),
+      });
+    });
+
+    let s = (str: string) =>
+      sheet.getCell(`${str.toLocaleUpperCase()}${trans.length + 3}`);
+    s("e").font = {
+      family: 4,
+      size: 14,
+      bold: true,
+    };
+    s("e").value = "TOTAL";
+    s("f").alignment = {
+      horizontal: "right",
+    };
+    s("g").alignment = {
+      horizontal: "right",
+    };
+    s("h").alignment = {
+      horizontal: "right",
+    };
+
+    const totalAmount = trans.reduce(
+      (p, n) =>
+        p +
+        (n?.sub_type ?? false
+          ? n.type == "wallet" && n.sub_type!.split(" ")[1] == "cash-out"
+            ? -n.amount!
+            : n?.amount ?? 0
+          : n.amount!),
+      0
+    );
+    const totalFee = trans.reduce((p, n) => p + (n?.fee ?? 0), 0);
+
+    const parseToMoney = (num: number) =>
+      num
+        .toFixed(2)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+    s("f").value = parseToMoney(totalAmount);
+    s("g").value = parseToMoney(totalFee);
+    s("h").value = parseToMoney(totalAmount + totalFee);
+
+    // * styles the headers
+    ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"].map((c) => {
+      sheet.getCell(`${c}2`).alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+      sheet.getCell(`${c}2`).font = {
+        family: 4,
+        size: 12,
+        bold: true,
+      };
+    });
+
+    workbook.xlsx.writeBuffer().then((data) => {
+      const blob = new Blob([data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheet.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `REPORT-${dayjs().format("MM/DD/YYYY")}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+
+      message.success("Exported to Excel successfully");
+    });
+  };
 
   const getStatusBadge = (str: TransactionHistoryStatus | null) => {
     switch (str) {
@@ -245,7 +427,7 @@ const Encoder = () => {
               fromDate: filter.fromDate ?? null,
               toDate: filter.toDate ?? null,
             }).then((e) => {
-              // if (typeof e == "object" && e.length > 0) exportExcel(e);
+              if (typeof e == "object" && e.length > 0) exportExcel(e);
             });
           })();
         }}
@@ -328,7 +510,6 @@ const Encoder = () => {
     //   message: "There is a new request transaction",
     //   duration: 0,
     // });
-
     audioRef.current?.play();
     getTransactions({
       page: 1,
@@ -354,6 +535,7 @@ const Encoder = () => {
       toDate: filter.toDate ?? null,
     });
     setIsMobile(typeof window !== "undefined" ? window.innerWidth < 768 : null);
+
     return initPusherProvider();
   }, [trigger, filter]);
 

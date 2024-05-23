@@ -111,8 +111,6 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
 
   const { currentUser, currentBranch } = useUserStore();
 
-  let channel = new Pusher().subscribe("teller-general");
-
   const getFee = () => {
     if (selectedBill) {
       const { threshold, additionalFee, fee } = selectedBill;
@@ -808,6 +806,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
   };
 
   const initPusherProvider = () => {
+    let channel = new Pusher().subscribe("teller-general");
     // unbind before rebinding
     try {
       channel.unbind("notify-disabled-wallet");
