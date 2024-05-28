@@ -312,11 +312,9 @@ const UserBadge = ({
         setIsUpdated(false);
       }
 
-      if (eload.length > 0) {
-        let res2 = await _.updateEloadSettings(eload);
+      let res2 = await _.updateEloadSettings(eload);
 
-        if (res2?.success ?? false) setTrigger(trigger + 1);
-      }
+      if (res2?.success ?? false) setTrigger(trigger + 1);
     })(etc);
   };
 
