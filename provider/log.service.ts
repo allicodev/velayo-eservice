@@ -1,13 +1,15 @@
 import Loader from "./utils/loader";
 import Api from "./api.service";
-import { ExtendedResponse, LogData, NewLog, Response } from "@/types";
+import { ExtendedResponse, Log, LogData, NewLog, Response } from "@/types";
 
 class LogService extends Loader {
   private readonly instance = new Api();
 
-  public async newLog({ ...props }: NewLog): Promise<Response> {
+  public async newLog({
+    ...props
+  }: NewLog): Promise<ExtendedResponse<LogData>> {
     this.loaderPush("new-log");
-    const response = await this.instance.post<Response>({
+    const response = await this.instance.post<LogData>({
       endpoint: "/log",
       payload: {
         postType: "new",
@@ -29,8 +31,8 @@ class LogService extends Loader {
     return response;
   }
 
-  public async getLog(props: any): Promise<ExtendedResponse<LogData[]>> {
-    const response = await this.instance.get<LogData[]>({
+  public async getLog(props: any): Promise<ExtendedResponse<any[]>> {
+    const response = await this.instance.get<any[]>({
       endpoint: "/log",
       query: props,
     });

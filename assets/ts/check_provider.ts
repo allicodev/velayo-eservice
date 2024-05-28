@@ -4,7 +4,7 @@ export const checkProvider = (phone: string): string => {
   if (phone == "") return "No Provider";
   if (/[a-zA-Z]/.test(phone)) return "Invalid Number";
 
-  const netProvider = jason.provider;
+  const netProvider = jason.provider_prefix;
   const toCheckNum = phone.slice(0, 3);
 
   if (netProvider.CHERRY.split(" ").includes(toCheckNum)) return "CHERRY";

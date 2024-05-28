@@ -151,7 +151,8 @@ export interface BranchData extends Branch {
 }
 
 // * Log
-export type LogType = "attendance" | "stock";
+export type LogType = "attendance" | "stock" | "credit" | "debit";
+export type LogBalanceType = "bills" | "wallet" | "eload";
 export interface Log {
   type: LogType;
   userId: User;
@@ -162,9 +163,29 @@ export interface Log {
   timeOut?: Date;
   timeInPhoto?: string;
   timeOutPhoto?: string;
+
+  createdAt?: Date;
+}
+
+export interface LogBalance extends Pick<Log, "type" | "userId" | "createdAt"> {
+  amount: number; // for credit, kay pwede ma kuhaon sa transaction.amount ang amount sa debit
+  balanceType: LogBalanceType; // for credit
+  status: "pending" | "completed"; // for credit
+
+  transactionId: Transaction; // for debit, if encoder approve the teller transact request
 }
 
 export interface LogData extends Log {
   _id: string;
+  createdAt?: Date;
+}
+
+// notification
+export interface Notification {
+  _id?: string;
+  from: User | string;
+  description: string;
+  isRead?: Boolean;
+  extra?: Record<any, any>;
   createdAt?: Date;
 }

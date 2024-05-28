@@ -1,7 +1,7 @@
 import { ApiMiddleware } from "@/assets/ts";
 import dbConnect from "@/database/dbConnect";
-import Log from "@/database/models/log.schema";
-import { ExtendedResponse, LogData } from "@/types";
+import Notification from "@/database/models/notification.schema";
+import { ExtendedResponse, Notification as NotificationProp } from "@/types";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -12,27 +12,18 @@ dayjs.extend(timezone);
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import mongoose from "mongoose";
+import { Pusher2 } from "@/provider/utils/pusher";
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ExtendedResponse<LogData[]>>
+  res: NextApiResponse<ExtendedResponse<NotificationProp[]>>
 ) {
   await dbConnect();
 
   const { method } = req;
 
   if (method == "GET") {
-    let {
-      page,
-      pageSize,
-      type,
-      userId,
-      fromDate,
-      toDate,
-      project,
-      balanceType,
-      _id,
-    } = req.query;
+    let { page, pageSize, fromDate, toDate, from, project } = req.query;
 
     const _page = Number.parseInt(page!.toString()) - 1;
 
@@ -65,29 +56,21 @@ async function handler(
         },
       });
 
-    if (userId)
-      query.push({ userId: new mongoose.Types.ObjectId(userId as any) });
+    if (from) query.push({ userId: new mongoose.Types.ObjectId(from as any) });
 
-    if (_id) query.push({ _id: new mongoose.Types.ObjectId(_id as any) });
-
-    if (type) {
-      if (Array.isArray(type)) query.push({ type: { $in: type } });
-      else query.push({ type });
-    }
-
-    if (balanceType) query.push({ balanceType });
-
-    const total = await Log.countDocuments(
+    const total = await Notification.countDocuments(
       query.length > 0 ? { $and: query } : {}
     );
 
     if (project) project = JSON.parse(project as string);
 
-    return await Log.find(query.length > 0 ? { $and: query } : {}, project)
+    return await Notification.find(
+      query.length > 0 ? { $and: query } : {},
+      project
+    )
       .skip(_page * Number.parseInt(pageSize!.toString()))
       .limit(Number.parseInt(pageSize!.toString()))
-      .populate("userId branchId")
-      .sort({ createdAt: -1 })
+      .populate("from")
       .then((e: any[]) => {
         return res.json({
           code: 200,
@@ -108,35 +91,20 @@ async function handler(
         });
       });
   } else {
-    let { postType } = req.body;
-
-    if (postType == "new")
-      return await Log.create(req.body)
-        .then((e) => res.json({ code: 200, success: true, data: e }))
-        .catch((e) => {
-          console.log(e);
-          return res.json({
-            code: 500,
-            success: false,
-            message: "There is an error in the Server.",
-          });
+    return await Notification.create(req.body)
+      .then(async () => {
+        await new Pusher2().emit("admin", "notify", {});
+        return res.json({ code: 200, success: true });
+      })
+      .catch((e) => {
+        console.log(e);
+        return res.json({
+          code: 500,
+          success: false,
+          message: "There is an error in the Server.",
         });
-    else {
-      return await Log.findOneAndUpdate(
-        { _id: req.body._id },
-        { $set: req.body }
-      )
-        .then(() => res.json({ code: 200, success: true }))
-        .catch((e) => {
-          console.log(e);
-          return res.json({
-            code: 500,
-            success: false,
-            message: "There is an error in the Server.",
-          });
-        });
-    }
+      });
   }
 }
 
-export default handler;
+export default ApiMiddleware(handler);
