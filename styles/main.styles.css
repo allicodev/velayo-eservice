@@ -549,3 +549,33 @@ label.customCheckbox span span.ant-checkbox-inner::after {
   transform: translate(-50%, -50%);
   z-index: 9999999;
 }
+
+.header {
+  align-items: center !important;
+}
+
+.card-link .content div.image {
+  display: none !important;
+}
+
+.card-link .content div.text {
+  font-size: 1.5em !important;
+}
+
+.notif-list {
+  display: flex !important;
+  justify-content: space-between;
+}
+
+.notif-list:hover .notif-delete-btn {
+  display: block;
+}
+
+.notif-list:hover {
+  background-color: #00ff0011;
+  cursor: pointer;
+}
+
+.ant-collapse-header div.ant-collapse-expand-icon {
+  margin-top: 3px;
+}

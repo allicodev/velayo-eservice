@@ -11,6 +11,7 @@ import BillingSettings from "@/app/components/admin/billing_settings";
 import { useUserStore } from "@/provider/context";
 import { UserBadge, DashboardBtn } from "@/app/components";
 import { BranchData } from "@/types";
+import { Pusher } from "@/provider/utils/pusher";
 
 const Home = () => {
   const [openedMenu, setOpenedMenu] = useState("");
@@ -36,12 +37,29 @@ const Home = () => {
     { title: "Receipt Format", onPress: () => setOpenedMenu("branch") },
   ];
 
+  const refresh = () => {
+    alert("Admin is notified");
+  };
+
+  const initPusherProvider = () => {
+    let channel = new Pusher().subscribe("admin");
+    channel.bind("notify", refresh);
+
+    return () => {
+      channel.unsubscribe();
+    };
+  };
+
   useEffect(() => {
     (async (_) => {
       let res2 = await _.getBranch({});
       if (res2?.success ?? false) setBranches(res2?.data ?? []);
     })(branch);
   }, [trigger]);
+
+  useEffect(() => {
+    return initPusherProvider();
+  }, []);
 
   return (
     <>

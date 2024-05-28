@@ -225,6 +225,9 @@ const User = ({
           columns={columns}
           style={style}
           rowKey={(e) => e.username}
+          scroll={{
+            y: "58vh",
+          }}
           onRow={(data) => {
             return {
               onClick: () => (onCellClick ? onCellClick(data) : null),

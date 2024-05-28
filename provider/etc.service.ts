@@ -1,13 +1,15 @@
-import Loader from "./utils/loader";
 import Api from "./api.service";
 import {
   BillingSettingsType,
+  EloadSettings,
+  Notification,
+  Response,
   Transaction,
   UpdateBillWallet,
   Wallet,
 } from "@/types";
 
-class EtcService extends Loader {
+class EtcService {
   private readonly instance = new Api();
 
   public async disableWalletBills(
@@ -34,42 +36,72 @@ class EtcService extends Loader {
           name: e.name,
         });
     });
-    this.loaderPush("update-wallet-bill");
-    const response = await this.instance.post<Response>({
+    return await this.instance.post<Response>({
       endpoint: "/etc/update-bill-wallet",
       payload: {
         wallets: _wallets,
         bills: _bills,
       },
     });
-    this.loaderPop("update-wallet-bill");
-
-    return response;
   }
 
   public async checkIfDisabled(type: string, id: string) {
-    this.loaderPush("check-disabled");
-    const response = await this.instance.get<Response>({
+    return await this.instance.get<Response>({
       endpoint: "/etc/check-disabled",
       query: {
         type,
         id,
       },
     });
-    this.loaderPop("check-disabled");
-    return response;
   }
 
   public async getTransactionFromTraceId(traceId: string) {
-    this.loaderPush("get-trans");
-    const response = await this.instance.get<Transaction>({
+    return await this.instance.get<Transaction>({
       endpoint: "/transaction/search-transaction",
       query: {
         traceId,
       },
     });
-    this.loaderPop("get-trans");
-    return response;
+  }
+
+  public async newNotif(payload: Notification) {
+    return await this.instance.post({
+      endpoint: "/notification",
+      payload,
+    });
+  }
+
+  public async getNotif(query: any) {
+    return await this.instance.get<Notification[]>({
+      endpoint: "/notification",
+      query,
+    });
+  }
+
+  public async seenNotif(id: string) {
+    return await this.instance.get<Response>({
+      endpoint: "/notification/read",
+      query: { _id: id },
+    });
+  }
+
+  public async checkSettings() {
+    return await this.instance.get<Response>({
+      endpoint: "/etc/check-settings",
+    });
+  }
+
+  public async getEloadSettings() {
+    return await this.instance.get<EloadSettings>({
+      endpoint: "/etc/eload-settings",
+    });
+  }
+
+  public async updateEloadSettings(settings: string[]) {
+    return await this.instance.post<Response>({
+      endpoint: "/etc/eload-settings-update",
+      payload: { settings },
+    });
   }
 }
 

@@ -53,3 +53,8 @@ export interface TransactionPrinterPOS {
   receiptNo: string;
   refNo: string;
 }
+
+export interface EloadSettings {
+  _id: string;
+  disabled_eload: string[];
+}

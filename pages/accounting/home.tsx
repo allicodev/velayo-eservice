@@ -35,6 +35,7 @@ interface FilterProps {
   status?: TransactionHistoryStatus | null;
   type?: TransactionType | null;
   tellerId?: string | null;
+  encoderId?: string | null;
   sub_type?: string | null;
   fromDate?: Dayjs | null;
   toDate?: Dayjs | null;
@@ -55,6 +56,7 @@ const Accounting = () => {
     status: "completed",
     type: null,
     tellerId: null,
+    encoderId: null,
     sub_type: null,
     fromDate: null,
     toDate: null,
@@ -163,11 +165,19 @@ const Accounting = () => {
           options={tellers.map((e) => ({
             label: e.name,
             value: e.name,
-            key: e._id,
+            key: `${e._id}_${e.role}`,
           }))}
-          onChange={(_, e: any) =>
-            setFilter({ ...filter, tellerId: e?.key ?? null })
-          }
+          onChange={(_, e: any) => {
+            if (e) {
+              let [id, role] = e?.key.split("_");
+              setFilter({
+                ...filter,
+                [role == "teller" ? "tellerId" : "encoderId"]: id ?? null,
+              });
+            } else {
+              setFilter({ ...filter, tellerId: null, encoderId: null });
+            }
+          }}
           allowClear
         />
         <DatePicker.RangePicker
@@ -247,6 +257,7 @@ const Accounting = () => {
     page,
     pageSize,
     tellerId,
+    encoderId,
     branchId,
     type,
     status,
@@ -259,6 +270,7 @@ const Accounting = () => {
     page: number;
     pageSize?: number;
     tellerId?: string;
+    encoderId?: string;
     branchId?: string;
     type?: TransactionType | null;
     status?: TransactionHistoryStatus | null;
@@ -277,6 +289,7 @@ const Accounting = () => {
         pageSize,
         order: "descending",
         tellerId,
+        encoderId,
         branchId,
         type,
         status: status ? [status] : null,
@@ -524,6 +537,7 @@ const Accounting = () => {
     getTransaction({
       page: 1,
       tellerId: filter.tellerId ?? "",
+      encoderId: filter.encoderId ?? "",
       type: filter.type ?? undefined,
       status: filter.status,
       sub_type: filter.sub_type ?? null,
@@ -540,7 +554,11 @@ const Accounting = () => {
 
     // get tellers
     (async (_) => {
-      let res = await _.getUsers({ page: 1, pageSize: 9999, role: ["teller"] });
+      let res = await _.getUsers({
+        page: 1,
+        pageSize: 9999,
+        role: ["teller", "encoder"],
+      });
 
       if (res?.success ?? false) setTellers((res?.data as User[]) ?? []);
     })(user);

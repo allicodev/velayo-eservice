@@ -19,8 +19,10 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  const { page, pageSize, employeeId, role, searchKey } = req.query;
+  let { page, pageSize, employeeId, role, searchKey } = req.query;
   var re;
+
+  if (role) role = JSON.parse(role as string);
 
   if (searchKey && searchKey != "") {
     re = new RegExp(searchKey!.toString().trim(), "i");

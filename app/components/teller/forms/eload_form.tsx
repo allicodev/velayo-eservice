@@ -10,12 +10,17 @@ import {
   Typography,
   message,
 } from "antd";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import jason from "@/assets/json/constant.json";
+import EtcService from "@/provider/etc.service";
 
 // lodash
 const _ = (__: any) => [null, undefined, ""].includes(__);
 
 const Eload = ({ open, close, onSubmit }: EloadProps) => {
+  const [disabledEload, setDisabledEload] = useState<string[]>([]);
+  const etc = new EtcService();
+
   const [eload, setEload] = useState<Eload>({
     provider: null,
     phone: null,
@@ -91,6 +96,14 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
     })();
   };
 
+  useEffect(() => {
+    (async (_) => {
+      let res2 = await _.getEloadSettings();
+      if (res2?.success ?? false)
+        setDisabledEload(res2?.data?.disabled_eload ?? []);
+    })(etc);
+  }, []);
+
   return (
     <Modal
       open={open}
@@ -119,12 +132,11 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
           marginBottom: 10,
           fontSize: "2em",
         }}
-        options={["TM", "GLOBE", "SMART", "TNT", "DITO", "GOMO"].map((e) => {
-          return {
-            label: e,
-            value: e,
-          };
-        })}
+        options={jason.provider.map((e) => ({
+          label: `${e} ${disabledEload.includes(e) ? "(disabled)" : ""}`,
+          value: e,
+          disabled: disabledEload.includes(e),
+        }))}
         onChange={(e) => update("provider", e)}
       />
 

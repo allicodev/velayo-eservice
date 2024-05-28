@@ -43,9 +43,11 @@ class UserService {
   public async getUsers(
     prop: PageProps
   ): Promise<ExtendedResponse<ProtectedUser[] | User[]>> {
+    let role: any = prop.role;
+    if (prop.role) role = JSON.stringify(prop.role);
     const response = await this.instance.get<ProtectedUser[] | User[]>({
       endpoint: "/user/get-users",
-      query: prop,
+      query: { ...prop, role },
     });
     return response;
   }

@@ -2,14 +2,19 @@ import React, { useEffect, useRef, useState } from "react";
 
 import {
   Button,
+  Card,
+  Col,
   DatePicker,
+  Divider,
   Input,
   Modal,
+  Row,
   Select,
   Space,
   Table,
   TableProps,
   Tag,
+  Tooltip,
   Typography,
   message,
 } from "antd";
@@ -32,6 +37,8 @@ import { EncoderForm } from "@/app/components/teller";
 import { useUserStore } from "@/provider/context";
 import { Pusher } from "@/provider/utils/pusher";
 import BillService from "@/provider/bill.service";
+import BalanceHistory from "@/app/components/encoder/balance_history";
+import EtcService from "@/provider/etc.service";
 
 interface FilterProps {
   status?: TransactionHistoryStatus | null;
@@ -57,12 +64,19 @@ const Encoder = () => {
   const { currentUser } = useUserStore();
 
   const bill = new BillService();
+  const etc = new EtcService();
 
   // const [play] = useSound(notifSound);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [api, contextHolder] = Modal.useModal();
   const [fetching, setFetching] = useState(false);
   const [tellers, setTellers] = useState<User[]>([]);
+
+  let isLow = false;
+  const [openBalanceHistory, setOpenBalanceHistory] = useState({
+    open: false,
+    type: "",
+  });
 
   const [filter, setFilter] = useState<FilterProps>({
     status: "pending",
@@ -540,12 +554,10 @@ const Encoder = () => {
   }, [trigger, filter]);
 
   useEffect(() => {
-    // api.confirm({
-    //   title: "Turn on notification sound?",
-    //   okText: "YES",
-    //   onOk: () => Modal.destroyAll(),
-    //   onCancel: () => Modal.destroyAll(),
-    // });
+    // check if there is a settings init, otherwise, create an empty one;
+    (async (_) => {
+      await etc.checkSettings();
+    })(etc);
   }, []);
 
   return (
@@ -574,6 +586,77 @@ const Encoder = () => {
             }}
           />
 
+          {/* <Row
+            style={{
+              marginLeft: 10,
+              marginRight: 10,
+              marginBottom: 10,
+            }}
+            gutter={[16, 16]}
+          >
+            {["Biller", "Wallet", "E-Load"].map((e) => (
+              <Col
+                span={3}
+                onClick={(_) =>
+                  setOpenBalanceHistory({
+                    open: true,
+                    type: e.toLocaleLowerCase(),
+                  })
+                }
+              >
+                <Tooltip
+                  title={
+                    isLow ? "Balance is too low. Please make a request." : ""
+                  }
+                >
+                  <Card
+                    styles={{
+                      body: {
+                        padding: 10,
+                      },
+                    }}
+                    style={{
+                      borderRadius: "0 0 8px 8px",
+                      border: isLow ? "1px solid #ff000055" : "",
+                    }}
+                    hoverable
+                  >
+                    <Typography.Title
+                      level={3}
+                      style={{
+                        marginBottom: 0,
+                        color: isLow ? "#ff0000aa" : "",
+                      }}
+                    >
+                      {e} Balance
+                    </Typography.Title>
+                    <Divider
+                      style={{
+                        margin: "10px 0",
+                        borderBlockStart: isLow ? "1px solid #ff0000aa" : "",
+                      }}
+                    />
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Typography.Title
+                        level={4}
+                        style={{
+                          color: isLow ? "#ff0000aa" : "",
+                        }}
+                      >
+                        PHP 40,000
+                      </Typography.Title>
+                    </div>
+                  </Card>
+                </Tooltip>
+              </Col>
+            ))}
+          </Row> */}
           <Table
             title={() =>
               isMobile ? (
@@ -660,6 +743,17 @@ const Encoder = () => {
         refresh={() => setTrigger(trigger + 1)}
         isMobile={isMobile}
         {...billsOption}
+      />
+      <BalanceHistory
+        open={openBalanceHistory.open}
+        balanceType={openBalanceHistory.type}
+        close={() =>
+          setOpenBalanceHistory({
+            open: false,
+            type: "",
+          })
+        }
+        user={currentUser}
       />
     </>
   );

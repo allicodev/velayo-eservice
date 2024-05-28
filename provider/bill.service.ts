@@ -163,6 +163,7 @@ class BillService extends Loader {
     fromDate,
     toDate,
     tellerId,
+    encoderId,
     branchId,
     type,
     sub_type,
@@ -175,13 +176,13 @@ class BillService extends Loader {
     fromDate?: Dayjs | null;
     toDate?: Dayjs | null;
     tellerId?: string;
+    encoderId?: string;
     branchId?: string;
     type?: TransactionType | null;
     sub_type?: string | null;
     project?: Record<any, any>;
   }) {
-    this.loaderPush("get-transaction");
-    const response = await this.instance.get<Transaction[]>({
+    return await this.instance.get<Transaction[]>({
       endpoint: "/transaction/get-transactions",
       query: {
         page,
@@ -191,24 +192,20 @@ class BillService extends Loader {
         fromDate,
         toDate,
         tellerId,
+        encoderId,
         branchId,
         type,
         sub_type,
         project: JSON.stringify(project),
       },
     });
-    this.loaderPop("get-transaction");
-    return response;
   }
 
   public async updateTransaction(transaction: any) {
-    this.loaderPush("get-transaction");
-    const response = await this.instance.post<Response>({
+    return await this.instance.post<Response>({
       endpoint: "/transaction/update-transaction",
       payload: transaction,
     });
-    this.loaderPop("get-transaction");
-    return response;
   }
 
   public async markMainAmount(billId: string, index: number) {

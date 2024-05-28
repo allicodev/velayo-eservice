@@ -35,6 +35,7 @@ async function handler(
     fromDate,
     toDate,
     tellerId,
+    encoderId,
     branchId,
     type,
     sub_type,
@@ -90,6 +91,8 @@ async function handler(
 
   if (tellerId)
     query.push({ tellerId: new mongoose.Types.ObjectId(tellerId as any) });
+  if (encoderId)
+    query.push({ encoderId: new mongoose.Types.ObjectId(encoderId as any) });
   if (branchId)
     query.push({ branchId: new mongoose.Types.ObjectId(branchId as any) });
   if (type) query.push({ type });
