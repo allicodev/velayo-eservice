@@ -19,7 +19,7 @@ import {
 
 // TODO: auto disable wallet of biller settings in teller if encoder disable the wallet or biller
 
-import { BillsPaymentProps, Branch, BranchData, Portal, User } from "@/types";
+import { BillsPaymentProps, Branch, Portal, User } from "@/types";
 import { FloatLabel } from "@/assets/ts";
 import BillService from "@/provider/bill.service";
 import EtcService from "@/provider/etc.service";
@@ -235,7 +235,7 @@ const EncoderForm = ({
         : transaction?.type == "wallet"
         ? "wallet"
         : "eload";
-    console.log(_);
+
     let res = await portal.getPortal({
       assignTo: [_],
       project: {
@@ -250,6 +250,41 @@ const EncoderForm = ({
 
       // if (res?.data && res?.data?.length > 0) setSelectedPortal(res?.data[0]);
     }
+  };
+
+  const checkIfValid = () => {
+    if (isDisabled) return true;
+    if (isFailed) return false;
+    if (
+      transaction &&
+      transaction.type == "wallet" &&
+      transaction.sub_type?.split(" ")[1] == "cash-out"
+    )
+      return false;
+
+    if (!isFailed && ["", null].includes(refNumber)) return true;
+
+    if (!["shopee", "miscellaneous"].includes(transaction?.type ?? "")) {
+      if (
+        selectedPortal == null ||
+        (transaction &&
+          transaction.type == "wallet" &&
+          !transaction.sub_type?.includes("cash-out") &&
+          (selectedPortal.currentBalance <= 0 ||
+            selectedPortal.currentBalance < (transaction.amount ?? 0)))
+      ) {
+        return true;
+      }
+
+      if (
+        transaction &&
+        transaction.type != "wallet" &&
+        ((rebate ?? 0) <= 0 || rebate == null)
+      )
+        return true;
+    }
+
+    return false;
   };
 
   useEffect(() => {
@@ -614,6 +649,7 @@ const EncoderForm = ({
               onClick={() => {
                 setIsFailed(!isFailed);
                 setIsReceived(false);
+                setRebate(null);
               }}
             >
               <Checkbox checked={isFailed} style={{ marginRight: 5 }} /> Set
@@ -700,9 +736,10 @@ const EncoderForm = ({
                       value: e?._id ?? "",
                     }))}
                     value={selectedPortal?._id}
-                    onChange={(_) =>
-                      setSelectedPortal(portals.filter((e) => e._id == _)[0])
-                    }
+                    onChange={(_) => {
+                      setSelectedPortal(portals.filter((e) => e._id == _)[0]);
+                      setRebate(null);
+                    }}
                     showSearch
                     allowClear
                   />
@@ -762,23 +799,7 @@ const EncoderForm = ({
             type="primary"
             block
             onClick={handleUpdate}
-            disabled={
-              isDisabled ||
-              ((transaction.type == "wallet" &&
-                transaction.sub_type?.split(" ")[1] == "cash-out") ||
-              transaction.type == "miscellaneous"
-                ? false
-                : !isFailed && ["", null].includes(refNumber)) ||
-              (!["shopee", "miscellaneous"].includes(transaction?.type ?? "") &&
-                (selectedPortal == null ||
-                  (transaction.type == "wallet" &&
-                    !transaction.sub_type?.includes("cash-out") &&
-                    (selectedPortal.currentBalance <= 0 ||
-                      selectedPortal.currentBalance <
-                        (transaction.amount ?? 0))))) ||
-              (transaction.type != "wallet" &&
-                ((rebate ?? 0) <= 0 || rebate == null))
-            }
+            disabled={checkIfValid()}
             style={{
               marginTop: 10,
               height: 50,
