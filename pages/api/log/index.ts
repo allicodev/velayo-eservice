@@ -12,6 +12,7 @@ dayjs.extend(timezone);
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import mongoose from "mongoose";
+import authMiddleware from "@/assets/ts/apiMiddleware";
 
 async function handler(
   req: NextApiRequest,
@@ -31,6 +32,9 @@ async function handler(
       toDate,
       project,
       balanceType,
+      branchId,
+      stockType,
+      portalId,
       _id,
     } = req.query;
 
@@ -67,8 +71,11 @@ async function handler(
 
     if (userId)
       query.push({ userId: new mongoose.Types.ObjectId(userId as any) });
-
     if (_id) query.push({ _id: new mongoose.Types.ObjectId(_id as any) });
+    if (branchId)
+      query.push({ branchId: new mongoose.Types.ObjectId(branchId as any) });
+    if (stockType) query.push({ stockType });
+    if (portalId) query.push({ portalId });
 
     if (type) {
       if (Array.isArray(type)) query.push({ type: { $in: type } });
@@ -82,18 +89,17 @@ async function handler(
     );
 
     if (project) project = JSON.parse(project as string);
-
     return await Log.find(query.length > 0 ? { $and: query } : {}, project)
       .skip(_page * Number.parseInt(pageSize!.toString()))
       .limit(Number.parseInt(pageSize!.toString()))
-      .populate("userId branchId")
+      .populate("userId branchId items.itemId")
       .sort({ createdAt: -1 })
-      .then((e: any[]) => {
+      .then((e) => {
         return res.json({
           code: 200,
           success: true,
           message: "Successfully fetched",
-          data: e,
+          data: e as any,
           meta: {
             total,
           },
@@ -112,7 +118,14 @@ async function handler(
 
     if (postType == "new")
       return await Log.create(req.body)
-        .then((e) => res.json({ code: 200, success: true, data: e }))
+        .then((e) =>
+          res.json({
+            code: 200,
+            success: true,
+            data: e,
+            message: "Successfully added",
+          })
+        )
         .catch((e) => {
           console.log(e);
           return res.json({
@@ -139,4 +152,4 @@ async function handler(
   }
 }
 
-export default handler;
+export default authMiddleware(handler);

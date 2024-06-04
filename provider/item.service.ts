@@ -7,37 +7,29 @@ import {
   ItemData,
   TransactionPOS,
   OnlinePayment,
-  ExtendedResponse,
   Transaction,
   Response,
+  BranchData,
 } from "@/types";
 
 class ItemService extends Loader {
   private readonly instance = new Api();
 
-  public async getItems(isParent?: boolean) {
-    this.loaderPush("new-items");
-    const response = await this.instance.get<ItemData[]>({
+  public async getItems(query?: any) {
+    return await this.instance.get<BranchData[] | ItemData[]>({
       endpoint: "/item/all",
-      query: {
-        isParent,
-      },
+      query,
     });
-    this.loaderPop("new-items");
-    return response;
   }
 
   public async newItem(str: any, parentId?: string) {
-    this.loaderPush("new-items");
-    const response = await this.instance.post<Response>({
+    return await this.instance.post<Response>({
       endpoint: "/item/new",
       payload: {
         ...str,
         parentId,
       },
     });
-    this.loaderPop("new-items");
-    return response;
   }
 
   public async getLastItemcode() {
@@ -112,6 +104,7 @@ class ItemService extends Loader {
     transactionDetails: string,
     cash: number,
     amount: number,
+    fee: number,
     tellerId: string,
     branchId: string,
     reference: string,
@@ -125,6 +118,7 @@ class ItemService extends Loader {
       amount,
       tellerId,
       branchId,
+      fee,
       ...(online?.isOnlinePayment ?? false ? online : {}),
       history:
         online?.isOnlinePayment ?? false

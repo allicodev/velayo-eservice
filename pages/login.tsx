@@ -214,10 +214,12 @@ const BranchChoicer = ({
   open,
   branches,
   onSelectedBranch,
+  close,
 }: {
   open: boolean;
   branches: BranchData[];
   onSelectedBranch: (obj: BranchData) => void;
+  close?: () => void;
 }) => {
   return (
     <Modal
@@ -225,6 +227,7 @@ const BranchChoicer = ({
       closable={false}
       open={open}
       title={<Typography.Title level={3}>Select a Branch</Typography.Title>}
+      onCancel={close ? close : undefined}
       width={700}
       centered
     >
@@ -286,5 +289,7 @@ const BranchButton = ({
     </div>
   );
 };
+
+export { BranchChoicer };
 
 export default Login;

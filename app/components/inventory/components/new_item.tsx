@@ -175,27 +175,6 @@ const NewItem = ({ title, open, close, onSave }: NewItemProps) => {
             parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
           />
         </Form.Item>
-        <Form.Item
-          label={<span style={{ fontSize: "1.6em" }}>Quantity</span>}
-          name="quantity"
-          style={{ margin: 0, marginBottom: 5 }}
-          rules={[
-            {
-              required: true,
-              message: "Quantity is empty. Please Provide.",
-            },
-          ]}
-        >
-          <InputNumber
-            size="large"
-            className="align-end-input-num"
-            min={0}
-            style={{
-              width: 120,
-            }}
-            controls={false}
-          />
-        </Form.Item>
       </Form>
     </Modal>
   );

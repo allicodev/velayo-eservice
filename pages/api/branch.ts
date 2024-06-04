@@ -15,12 +15,13 @@ async function handler(
 
   if (method == "GET")
     return await Branch.find()
+      .populate("items.itemId")
       .then((e) => {
         return res.json({
           code: 200,
           success: true,
           message: "Successfully Fetched wallets",
-          data: e,
+          data: e as any,
         });
       })
       .catch((e) => {

@@ -1,12 +1,13 @@
+import authMiddleware from "@/assets/ts/apiMiddleware";
 import dbConnect from "@/database/dbConnect";
 import Branch from "@/database/models/branch.schema";
-import { BranchData, ExtendedResponse } from "@/types";
+import { ExtendedResponse, Response } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ExtendedResponse<BranchData>>
+  res: NextApiResponse<ExtendedResponse<Response>>
 ) {
   await dbConnect();
 
@@ -19,12 +20,23 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  return await Branch.findOne({ _id: req.query._id })
-    .populate("items.itemId")
+  let { branchId, itemId } = req.query;
+
+  return await Branch.findOneAndUpdate(
+    { _id: branchId },
+    {
+      $pull: {
+        items: {
+          itemId,
+        },
+      },
+    }
+  )
     .then((e) => {
       return res.json({
         code: 200,
         success: true,
+        message: "Successfully Deleted",
         data: e,
       });
     })
@@ -38,4 +50,4 @@ async function handler(
     });
 }
 
-export default handler;
+export default authMiddleware(handler);

@@ -68,6 +68,7 @@ type ItemStore = {
   lastDateUpdated: Dayjs | null;
   setLastDateUpdated: (token: Dayjs) => void;
   clearItems: () => void;
+  setUpdateQuantity: (id: string, quantity: number) => void;
 };
 
 type MyPersistItem = (
@@ -84,6 +85,14 @@ const useItemStore = create<ItemStore, []>(
       setLastDateUpdated: (token: Dayjs) =>
         set((state) => ({ lastDateUpdated: token })),
       clearItems: () => set(() => ({ items: [] })),
+      setUpdateQuantity: (id: string, quantity: number) =>
+        set((state) => {
+          state.items.map((e) => {
+            if (e._id == id) e.quantity += quantity;
+            return e;
+          });
+          return state;
+        }),
     }),
     {
       name: "items",

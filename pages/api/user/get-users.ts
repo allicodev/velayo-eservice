@@ -19,10 +19,11 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  let { page, pageSize, employeeId, role, searchKey } = req.query;
+  let { page, pageSize, employeeId, role, notRole, searchKey } = req.query;
   var re;
 
   if (role) role = JSON.parse(role as string);
+  if (notRole) notRole = JSON.parse(role as string);
 
   if (searchKey && searchKey != "") {
     re = new RegExp(searchKey!.toString().trim(), "i");
@@ -50,6 +51,24 @@ async function handler(
     return await User.find(
       searchKey ? { role, name: { $regex: re } } : { role: { $in: role } }
     )
+      .then((e) => {
+        return res.json({
+          code: 200,
+          success: true,
+          message: "Fetched Successfully",
+          data: e,
+        });
+      })
+      .catch((e) => {
+        console.log(e);
+        return res.json({
+          code: 500,
+          success: false,
+          message: "Error in the Server",
+        });
+      });
+  } else if (notRole) {
+    return await User.find({ role: { $nin: notRole } })
       .then((e) => {
         return res.json({
           code: 200,

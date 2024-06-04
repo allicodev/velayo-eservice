@@ -131,7 +131,7 @@ const NewUser2 = ({ open, close, onAdd, onSave, user }: NewUserProps) => {
       width={400}
       title={
         <Typography.Title level={3} style={{ margin: 0, textAlign: "center" }}>
-          New User Registration Form
+          {user ? "User Update Form" : "New User Registration Form"}
         </Typography.Title>
       }
       destroyOnClose
@@ -244,34 +244,35 @@ const NewUser2 = ({ open, close, onAdd, onSave, user }: NewUserProps) => {
               }}
             />
           </FloatLabel>
-          {!user && (
-            <>
-              <FloatLabel value={formInput.password} label="Password">
-                <Input.Password
-                  value={formInput.password}
-                  onChange={(e) =>
-                    setFormInput({ ...formInput, password: e.target.value })
-                  }
-                  style={{
-                    width: "100%",
-                    height: 50,
-                    fontSize: "1.5em",
-                  }}
-                />
-              </FloatLabel>
-              <FloatLabel value={confirmPassword} label="Confirm Password">
-                <Input.Password
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  style={{
-                    width: "100%",
-                    height: 50,
-                    fontSize: "1.5em",
-                  }}
-                />
-              </FloatLabel>
-            </>
-          )}
+          <>
+            <FloatLabel
+              value={formInput.password}
+              label={`${user ? "New " : ""}Password`}
+            >
+              <Input.Password
+                value={formInput.password}
+                onChange={(e) =>
+                  setFormInput({ ...formInput, password: e.target.value })
+                }
+                style={{
+                  width: "100%",
+                  height: 50,
+                  fontSize: "1.5em",
+                }}
+              />
+            </FloatLabel>
+            <FloatLabel value={confirmPassword} label="Confirm Password">
+              <Input.Password
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                style={{
+                  width: "100%",
+                  height: 50,
+                  fontSize: "1.5em",
+                }}
+              />
+            </FloatLabel>
+          </>
         </>
       )}
       {footerSteps()}

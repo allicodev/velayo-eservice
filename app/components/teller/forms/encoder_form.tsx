@@ -4,7 +4,9 @@ import {
   Button,
   Checkbox,
   Input,
+  InputNumber,
   Modal,
+  Select,
   Tag,
   Typography,
   message,
@@ -17,11 +19,13 @@ import {
 
 // TODO: auto disable wallet of biller settings in teller if encoder disable the wallet or biller
 
-import { BillsPaymentProps, Branch, BranchData, User } from "@/types";
+import { BillsPaymentProps, Branch, BranchData, Portal, User } from "@/types";
 import { FloatLabel } from "@/assets/ts";
 import BillService from "@/provider/bill.service";
 import EtcService from "@/provider/etc.service";
 import { useUserStore } from "@/provider/context";
+import PortalService from "@/provider/portal.service";
+import LogService from "@/provider/log.service";
 
 const EncoderForm = ({
   open,
@@ -37,11 +41,16 @@ const EncoderForm = ({
   const [reason, setReason] = useState("");
   const [refNumber, setRefNumber] = useState<string | null>("");
   const [isDisabled, setIsDisabled] = useState(false);
+  const [portals, setPortals] = useState<Portal[]>([]);
+  const [selectedPortal, setSelectedPortal] = useState<Portal | null>(null);
+  const [rebate, setRebate] = useState<number | null>(0);
 
   const { currentUser } = useUserStore();
 
   const bill = new BillService();
   const etc = new EtcService();
+  const portal = new PortalService();
+  const log = new LogService();
 
   const getTransactionType = () => {
     if (transaction) {
@@ -123,9 +132,19 @@ const EncoderForm = ({
   };
 
   const handleUpdate = () => {
-    // remove history so api can update it
     let _transaction: any = transaction;
     delete _transaction.history;
+
+    const getAmount = () => {
+      if (transaction?.type == "wallet")
+        return transaction.sub_type?.includes("cash-out")
+          ? transaction?.amount ?? 0
+          : -(transaction?.amount ?? 0);
+
+      return transaction?.isOnlinePayment
+        ? transaction.amount
+        : -(transaction?.amount ?? 0);
+    };
 
     if (!isFailed) {
       if (
@@ -156,12 +175,27 @@ const EncoderForm = ({
             },
           });
 
-          if (res.success) {
-            message.success(res?.message ?? "Success");
-            if (refresh) refresh();
-            setRefNumber(null);
-            setIsFailed(false);
-            close();
+          if (res?.success ?? false) {
+            // create a log that would negate the balance from portal balance
+
+            let res2 = await log.newLog({
+              userId: (transaction?.tellerId as any)?._id ?? "",
+              type: "portal",
+              portalId: selectedPortal?._id,
+              amount: getAmount(),
+              transactionId: transaction?._id,
+              rebate,
+            });
+
+            if (res2?.success ?? false) {
+              message.success(res?.message ?? "Success");
+              if (refresh) refresh();
+              setRefNumber(null);
+              setIsFailed(false);
+              setSelectedPortal(null);
+              setRebate(null);
+              close();
+            }
           }
         }
       })(bill);
@@ -185,10 +219,36 @@ const EncoderForm = ({
             message.success(res?.message ?? "Success");
             if (refresh) refresh();
             close();
+            setRebate(null);
+            setSelectedPortal(null);
             setIsFailed(false);
           }
         }
       })(bill);
+    }
+  };
+
+  const fetchPortals = async () => {
+    let _ =
+      transaction?.type == "bills"
+        ? "biller"
+        : transaction?.type == "wallet"
+        ? "wallet"
+        : "eload";
+    console.log(_);
+    let res = await portal.getPortal({
+      assignTo: [_],
+      project: {
+        name: 1,
+        _id: 1,
+        currentBalance: 1,
+      },
+    });
+
+    if (res?.success ?? false) {
+      setPortals(res?.data ?? []);
+
+      // if (res?.data && res?.data?.length > 0) setSelectedPortal(res?.data[0]);
     }
   };
 
@@ -302,7 +362,10 @@ const EncoderForm = ({
                     ).toLocaleString()}`;
                   return _[e];
                 }),
-              `₱${transaction.amount}`,
+              `₱${transaction.amount?.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}`,
               ...(transaction.isOnlinePayment
                 ? [
                     "",
@@ -338,14 +401,18 @@ const EncoderForm = ({
         else setIsDisabled(false);
       })(etc);
     }
+    if (open && !["shopee", "miscellaneous"].includes(transaction?.type ?? ""))
+      fetchPortals();
   }, [open]);
 
   return (
     <Modal
       open={open}
       onCancel={() => {
-        close();
+        setSelectedPortal(null);
         setRefNumber(null);
+        setRebate(null);
+        close();
       }}
       footer={null}
       width={700}
@@ -603,6 +670,94 @@ const EncoderForm = ({
               </div>
             )
           )}
+          {!["shopee", "miscellaneous"].includes(transaction?.type ?? "") &&
+            !isFailed && (
+              <>
+                <div
+                  style={{
+                    marginTop: 20,
+                    fontSize: "1.25em",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <label style={{ marginRight: 10, width: 85 }}>
+                    Portal Used:
+                  </label>
+                  <Select
+                    size="large"
+                    style={{ width: 150, marginRight: 25 }}
+                    filterOption={(
+                      input: string,
+                      option?: { label: string; value: string }
+                    ) =>
+                      (option?.label ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    options={portals.map((e) => ({
+                      label: e.name,
+                      value: e?._id ?? "",
+                    }))}
+                    value={selectedPortal?._id}
+                    onChange={(_) =>
+                      setSelectedPortal(portals.filter((e) => e._id == _)[0])
+                    }
+                    showSearch
+                    allowClear
+                  />
+                  {selectedPortal &&
+                    transaction.type == "wallet" &&
+                    !transaction.sub_type?.includes("cash-out") && (
+                      <Alert
+                        description={
+                          selectedPortal.currentBalance <= 0
+                            ? "Selected Portal has no Balance"
+                            : selectedPortal.currentBalance <
+                              (transaction.amount ?? 0)
+                            ? "Selected Portal has insufficient Balance"
+                            : ""
+                        }
+                        type={
+                          selectedPortal.currentBalance <= 0
+                            ? "error"
+                            : "warning"
+                        }
+                        style={{ height: 40, padding: 8 }}
+                      />
+                    )}
+                </div>
+                {selectedPortal && transaction.type != "wallet" && (
+                  <div
+                    style={{
+                      marginTop: 5,
+                      fontSize: "1.25em",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <label style={{ marginRight: 10, width: 85 }}>
+                      Rebate:
+                    </label>
+                    <InputNumber
+                      min={0}
+                      size="large"
+                      controls={false}
+                      prefix="₱"
+                      onChange={setRebate}
+                      style={{
+                        width: 150,
+                      }}
+                      formatter={(value: any) =>
+                        value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+
           <Button
             type="primary"
             block
@@ -613,7 +768,16 @@ const EncoderForm = ({
                 transaction.sub_type?.split(" ")[1] == "cash-out") ||
               transaction.type == "miscellaneous"
                 ? false
-                : !isFailed && ["", null].includes(refNumber))
+                : !isFailed && ["", null].includes(refNumber)) ||
+              (!["shopee", "miscellaneous"].includes(transaction?.type ?? "") &&
+                (selectedPortal == null ||
+                  (transaction.type == "wallet" &&
+                    !transaction.sub_type?.includes("cash-out") &&
+                    (selectedPortal.currentBalance <= 0 ||
+                      selectedPortal.currentBalance <
+                        (transaction.amount ?? 0))))) ||
+              (transaction.type != "wallet" &&
+                ((rebate ?? 0) <= 0 || rebate == null))
             }
             style={{
               marginTop: 10,

@@ -8,10 +8,12 @@ import Branch from "@/app/components/admin/components/branch";
 import EWalletSettings from "@/app/components/admin/ewallet_settings";
 import BillingSettings from "@/app/components/admin/billing_settings";
 
-import { useUserStore } from "@/provider/context";
+import { useItemStore, useUserStore } from "@/provider/context";
 import { UserBadge, DashboardBtn } from "@/app/components";
-import { BranchData } from "@/types";
+import { BranchData, ItemData } from "@/types";
 import { Pusher } from "@/provider/utils/pusher";
+import ItemService from "@/provider/item.service";
+import dayjs from "dayjs";
 
 const Home = () => {
   const [openedMenu, setOpenedMenu] = useState("");
@@ -19,8 +21,11 @@ const Home = () => {
   const [branches, setBranches] = useState<BranchData[]>([]);
 
   const { currentUser } = useUserStore();
+  const { setItems, lastDateUpdated, setLastDateUpdated, items } =
+    useItemStore();
 
   const branch = new BranchService();
+  const item = new ItemService();
 
   const menu = [
     { title: "Users", onPress: () => setOpenedMenu("user") },
@@ -51,10 +56,26 @@ const Home = () => {
   };
 
   useEffect(() => {
+    const minutes = 5; // change this to update the items per (x) minutes
     (async (_) => {
       let res2 = await _.getBranch({});
       if (res2?.success ?? false) setBranches(res2?.data ?? []);
     })(branch);
+
+    if (
+      Math.abs(dayjs(lastDateUpdated).diff(dayjs(), "minutes")) >= minutes ||
+      lastDateUpdated == null ||
+      items.length == 0
+    ) {
+      (async (_) => {
+        let res = await _.getItems();
+        if (res?.success ?? false) {
+          setItems((res?.data as ItemData[]) ?? []);
+          setLastDateUpdated(dayjs());
+          console.log("Items are refreshed");
+        }
+      })(item);
+    }
   }, [trigger]);
 
   useEffect(() => {

@@ -1,13 +1,15 @@
 import authMiddleware from "@/assets/ts/apiMiddleware";
 import dbConnect from "@/database/dbConnect";
+
+import Branch from "@/database/models/branch.schema";
 import Item from "@/database/models/item.schema";
-import { ExtendedResponse, ItemData } from "@/types";
+import { BranchData, ExtendedResponse } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ExtendedResponse<ItemData[]>>
+  res: NextApiResponse<ExtendedResponse<BranchData[]>>
 ) {
   await dbConnect();
 
@@ -19,6 +21,15 @@ async function handler(
       success: false,
       message: "Incorrect Request Method",
     });
+  let { _id } = req.query;
+
+  if (_id)
+    return await Branch.find(_id ? { _id } : {})
+      .populate("items.itemId")
+      .then((e) => res.json({ success: true, code: 200, data: e as any }))
+      .catch((e) =>
+        res.json({ success: false, code: 500, message: "Error in the Server" })
+      );
 
   return await Item.aggregate([
     {

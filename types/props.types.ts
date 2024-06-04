@@ -11,6 +11,8 @@ import {
   ItemUnit,
   LogType,
   TransactionPOS,
+  BranchData,
+  BranchItem,
 } from ".";
 import { Dayjs } from "dayjs";
 
@@ -27,6 +29,7 @@ export interface DrawerBasicProps {
   title?: string;
   style?: CSSProperties;
   extra?: ReactNode;
+  extraData?: any;
   onCellClick?: (str: any) => void;
   refresh?: number;
 }
@@ -222,8 +225,19 @@ export interface TrackerOptions {
 export interface StockProps {
   open: boolean;
   close: () => void;
-  type: string;
-  closeSelectedItem: () => void;
+  type: "stock-in" | "stock-out" | null;
+  branchId: string;
+  branchItems: BranchItem[];
+  onSubmit: (_: BranchData | null) => void;
+}
+
+export type StockType = "stock-in" | "stock-out" | "misc";
+export interface StockHistory {
+  _id?: string;
+  date?: Date;
+  type?: StockType;
+  quantity?: number;
+  name?: string;
 }
 
 // * LOG
@@ -233,4 +247,21 @@ export interface NewLog {
   type: LogType;
   branchId?: string;
   [key: string]: any;
+}
+
+// * PORTAL
+
+export interface NewPortalProps {
+  name: string;
+  assignTo: string[];
+  _id?: string;
+}
+
+export interface BalanceUpdaterProps {
+  open: boolean;
+  close?: () => void;
+  _id?: string | null;
+  name?: string | null;
+  type?: "add" | "subract" | null;
+  refresh?: () => void;
 }

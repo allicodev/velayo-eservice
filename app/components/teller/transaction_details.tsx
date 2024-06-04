@@ -178,7 +178,11 @@ const TransactionDetails = ({
                   <span>{`₱${e.price} x ${e.quantity}${e.unit}`}</span>
                 </div>
               )),
-              `₱${transaction.amount}`,
+              `₱${
+                transaction.type == "miscellaneous"
+                  ? (transaction.amount ?? 0) + (transaction.fee ?? 0)
+                  : transaction.amount
+              }`,
               ...(transaction.isOnlinePayment
                 ? [
                     "",
@@ -276,7 +280,7 @@ const TransactionDetails = ({
         </Typography.Title>
       }
       width={950}
-      zIndex={2}
+      zIndex={99}
     >
       <Row gutter={[4, 0]}>
         <Col span={14}>

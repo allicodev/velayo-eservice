@@ -115,4 +115,12 @@ export interface ItemState {
   quantity: number;
   parentName: string;
   price: number;
+  cost: number;
+}
+
+export interface ItemBranchState {
+  _id?: string;
+  name: string;
+  itemCode: number;
+  price: number;
 }

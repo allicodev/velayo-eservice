@@ -1,11 +1,15 @@
 import React, { useState } from "react";
-import { Button, Col, Row, Typography } from "antd";
+import { Col, Row, Typography } from "antd";
 import { AppstoreOutlined, HomeOutlined } from "@ant-design/icons";
 import POSButtons from "@/app/components/pos/components/buttons";
-import ItemsHome from "@/app/components/pos/ItemsHome";
+import ItemsHome from "@/app/components/inventory/ItemsHome";
 
 const POSSettings = () => {
-  const [openMenu, setOpenMenu] = useState("");
+  const [openMenu, setOpenMenu] = useState<{ key: string; extra: any }>({
+    key: "",
+    extra: null,
+  });
+
   const items = [
     {
       label: "BACK TO HOME",
@@ -49,7 +53,7 @@ const POSSettings = () => {
                 {...e}
                 onClick={(e) => {
                   if (e == "home") window.location.href = "/";
-                  setOpenMenu(e);
+                  setOpenMenu({ key: e, extra: null });
                 }}
               />
             </Col>
@@ -58,7 +62,12 @@ const POSSettings = () => {
       </div>
 
       {/* context */}
-      <ItemsHome open={openMenu == "items"} close={() => setOpenMenu("")} />
+
+      <ItemsHome
+        open={openMenu.key == "items"}
+        extraData={openMenu.extra}
+        close={() => setOpenMenu({ key: "", extra: null })}
+      />
     </div>
   );
 };

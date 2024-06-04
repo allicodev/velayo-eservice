@@ -101,6 +101,7 @@ const Teller = () => {
     );
     channel.bind("notify", handleNotify);
     return () => {
+      channel.unbind();
       channel.unsubscribe();
     };
   };
@@ -192,9 +193,20 @@ const Teller = () => {
       items.length == 0
     ) {
       (async (_) => {
-        let res = await _.getItems(false);
+        let res = await _.getItems({ _id: currentBranch });
+
         if (res?.success ?? false) {
-          setItems(res?.data?.filter((e) => !e.isParent) ?? []);
+          let items = (res.data as BranchData[])?.at(0)?.items;
+          let updatedData: any[] = [];
+
+          (items ?? []).map((e) => {
+            updatedData.push({
+              ...e.itemId,
+              quantity: e.stock_count,
+            });
+          });
+
+          setItems(updatedData);
           setLastDateUpdated(dayjs());
           console.log("Items are refreshed");
         }

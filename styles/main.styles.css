@@ -579,3 +579,9 @@ label.customCheckbox span span.ant-checkbox-inner::after {
 .ant-collapse-header div.ant-collapse-expand-icon {
   margin-top: 3px;
 }
+
+.selected-row,
+.selected-row .ant-table-cell-row-hover {
+  background-color: #98c04b !important;
+  color: #fff !important;
+}

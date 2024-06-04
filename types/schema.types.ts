@@ -132,6 +132,12 @@ export interface Item {
   cost: number;
 }
 
+export interface ItemWithStock {
+  itemId: ItemData;
+  stock_count: number;
+  createdAt: Date;
+}
+
 export interface ItemData extends Item {
   _id: string;
   parentName?: string;
@@ -143,6 +149,7 @@ export interface Branch {
   address: string;
   device: string;
   spm: string;
+  items?: BranchItem[];
 }
 
 export interface BranchData extends Branch {
@@ -150,13 +157,25 @@ export interface BranchData extends Branch {
   createdAt?: Date;
 }
 
+export interface BranchItem {
+  _id?: string;
+  itemId: ItemData;
+  stock_count: number;
+  createdAt: Date;
+}
+
+export interface BranchItemUpdate {
+  _id: string;
+  count: number;
+}
+
 // * Log
-export type LogType = "attendance" | "stock" | "credit" | "debit";
+export type LogType = "attendance" | "stock" | "credit" | "debit" | "portal";
 export type LogBalanceType = "bills" | "wallet" | "eload";
 export interface Log {
   type: LogType;
   userId: User;
-  branchId: Branch;
+  branchId?: Branch;
 
   // for attendance
   timeIn?: Date;
@@ -164,15 +183,16 @@ export interface Log {
   timeInPhoto?: string;
   timeOutPhoto?: string;
 
+  // for stock
+  stockType?: "stock-in" | "stock-out";
+  items?: ItemWithStock[];
+
+  // portal
+  portalId?: Portal;
+  amount?: number;
+  rebate?: number;
+
   createdAt?: Date;
-}
-
-export interface LogBalance extends Pick<Log, "type" | "userId" | "createdAt"> {
-  amount: number; // for credit, kay pwede ma kuhaon sa transaction.amount ang amount sa debit
-  balanceType: LogBalanceType; // for credit
-  status: "pending" | "completed"; // for credit
-
-  transactionId: Transaction; // for debit, if encoder approve the teller transact request
 }
 
 export interface LogData extends Log {
@@ -181,11 +201,23 @@ export interface LogData extends Log {
 }
 
 // notification
-export interface Notification {
+
+// * PORTAL
+export interface Portal {
   _id?: string;
-  from: User | string;
-  description: string;
-  isRead?: Boolean;
-  extra?: Record<any, any>;
-  createdAt?: Date;
+  name: string;
+  currentBalance: number;
+  assignTo: string[];
+  requests?: BalanceRequest[];
+}
+
+export type BalanceRequestType = "balance_request";
+export interface BalanceRequest {
+  _id: string;
+  type: BalanceRequestType;
+  amount: Number;
+  portalId: Portal;
+  encoderId: User;
+  status: "pending" | "completed";
+  createdAt: Date;
 }

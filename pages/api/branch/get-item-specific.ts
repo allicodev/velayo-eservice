@@ -1,33 +1,33 @@
 import dbConnect from "@/database/dbConnect";
-import User from "@/database/models/user.schema";
-import { Response } from "@/types";
-import bcrypt from "bcryptjs";
+import Branch from "@/database/models/branch.schema";
+import { BranchData, ExtendedResponse } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
-async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
+async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<ExtendedResponse<BranchData>>
+) {
   await dbConnect();
 
   const { method } = req;
 
-  if (method != "POST")
+  if (method != "GET")
     res.json({
       code: 405,
       success: false,
       message: "Incorrect Request Method",
     });
 
-  req.body.password = req.body.password = await bcrypt.hash(
-    req.body.password,
-    8
-  );
+  const { branchId } = req.query;
 
-  return await User.findOneAndUpdate({ _id: req.body._id }, { $set: req.body })
-    .then(() => {
+  return await Branch.findOne({ _id: branchId })
+    .populate("items.itemId")
+    .then((e) => {
       return res.json({
         code: 200,
         success: true,
-        message: "User Updated Successfully",
+        data: e,
       });
     })
     .catch((e) => {
@@ -35,7 +35,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
       return res.json({
         code: 500,
         success: false,
-        message: "Error in the Server",
+        message: "There is an error in the Server.",
       });
     });
 }

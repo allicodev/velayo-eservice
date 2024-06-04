@@ -29,6 +29,7 @@ interface FilterProps {
   status?: TransactionHistoryStatus | null;
   type?: TransactionType | null;
   tellerId?: string | null;
+  encoderId?: string | null;
   sub_type?: string | null;
   fromDate?: Dayjs | null;
   toDate?: Dayjs | null;
@@ -44,11 +45,13 @@ const TransactionHistory = () => {
   const [tellers, setTellers] = useState<User[]>([]);
   const [branches, setBranches] = useState<BranchData[]>([]);
   const [fetching, setFetching] = useState(false);
+  const [tellerName, setTellerName] = useState("");
 
   const [filter, setFilter] = useState<FilterProps>({
     status: "completed",
     type: null,
     tellerId: null,
+    encoderId: null,
     sub_type: null,
     fromDate: null,
     toDate: null,
@@ -107,7 +110,19 @@ const TransactionHistory = () => {
       render: (_) => _?.toFixed(2) ?? "0.00",
     },
     {
-      title: "Amount + Service Fee",
+      title: (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+          }}
+        >
+          <span>Amount</span>
+          <span>+</span> <span>Service Fee</span>
+        </div>
+      ),
       align: "end",
       render: (_, row) => (row?.amount ?? 0) + (row?.fee ?? 0),
     },
@@ -152,14 +167,26 @@ const TransactionHistory = () => {
           size="large"
           style={{ width: 200 }}
           placeholder="Select a Teller"
+          value={tellerName}
           options={tellers.map((e) => ({
-            label: e.name,
+            label: `[${e.role.toLocaleUpperCase()}] ${e.name}`,
             value: e.name,
-            key: e._id,
+            key: `${e._id}_${e.role}`,
           }))}
-          onChange={(_, e: any) =>
-            setFilter({ ...filter, tellerId: e?.key ?? null })
-          }
+          onChange={(_, e: any) => {
+            // setFilter({ ...filter, tellerId: e?.key ?? null });
+            if (e) {
+              let [id, role] = e?.key.split("_");
+              setFilter({
+                ...filter,
+                [role == "teller" ? "tellerId" : "encoderId"]: id ?? null,
+              });
+            } else {
+              setFilter({ ...filter, tellerId: null, encoderId: null });
+            }
+
+            setTellerName(e?.label.split("]")[1]);
+          }}
           allowClear
         />
         <DatePicker.RangePicker
@@ -239,6 +266,7 @@ const TransactionHistory = () => {
     page,
     pageSize,
     tellerId,
+    encoderId,
     branchId,
     type,
     status,
@@ -251,6 +279,7 @@ const TransactionHistory = () => {
     page: number;
     pageSize?: number;
     tellerId?: string;
+    encoderId?: string;
     branchId?: string;
     type?: TransactionType | null;
     status?: TransactionHistoryStatus | null;
@@ -269,6 +298,7 @@ const TransactionHistory = () => {
         pageSize,
         order: "descending",
         tellerId,
+        encoderId,
         branchId,
         type,
         status: status ? [status] : null,
@@ -516,6 +546,7 @@ const TransactionHistory = () => {
     getTransaction({
       page: 1,
       tellerId: filter.tellerId ?? "",
+      encoderId: filter.encoderId ?? "",
       type: filter.type ?? undefined,
       status: filter.status,
       sub_type: filter.sub_type ?? null,
@@ -532,7 +563,11 @@ const TransactionHistory = () => {
 
     // get tellers
     (async (_) => {
-      let res = await _.getUsers({ page: 1, pageSize: 9999, role: ["teller"] });
+      let res = await _.getUsers({
+        page: 1,
+        pageSize: 9999,
+        role: ["teller", "encoder"],
+      });
 
       if (res?.success ?? false) setTellers((res?.data as User[]) ?? []);
     })(user);
@@ -591,7 +626,7 @@ const TransactionHistory = () => {
                         fontSize: "1.1em",
                       }}
                     >
-                      <span>TOTAL:</span>
+                      <span style={{ marginRight: 5 }}>TOTAL:</span>
                       <span style={{ fontWeight: 900 }}>
                         {totalOpt.amount
                           .toFixed(2)
@@ -607,7 +642,7 @@ const TransactionHistory = () => {
                         fontSize: "1.1em",
                       }}
                     >
-                      <span>TOTAL:</span>
+                      <span style={{ marginRight: 5 }}>TOTAL:</span>
                       <span style={{ fontWeight: 900 }}>
                         {totalOpt.fee
                           .toFixed(2)
@@ -623,7 +658,7 @@ const TransactionHistory = () => {
                         fontSize: "1.1em",
                       }}
                     >
-                      <span>TOTAL:</span>
+                      <span style={{ marginRight: 5 }}>TOTAL:</span>
                       <span style={{ fontWeight: 900 }}>
                         {(totalOpt.amount + totalOpt.fee)
                           .toFixed(2)

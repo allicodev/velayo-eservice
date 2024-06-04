@@ -23,24 +23,19 @@ import {
   EditOutlined,
   CloseOutlined,
   SaveOutlined,
-  VerticalAlignBottomOutlined,
-  VerticalAlignTopOutlined,
 } from "@ant-design/icons";
+import axios from "axios";
 
 // TODO: remove white space, connect them into 1 or add smart search (smart via word and not a whole sentence)
 
-import { DrawerBasicProps, InputProps, ItemData } from "@/types";
+import { BranchData, DrawerBasicProps, InputProps, ItemData } from "@/types";
+import { parseTree, TreeNode, findAllIndicesOfSubstring } from "@/assets/ts";
+import { BranchChoicer } from "@/pages/login";
 import NewItem from "./components/new_item";
 import ItemService from "@/provider/item.service";
-import {
-  parseTree,
-  TreeNode,
-  findAllIndicesOfSubstring,
-  parseKeyToTree,
-} from "@/assets/ts";
-import Stock from "./components/stock";
+import BranchItemHome from "./branch_items_home";
 
-const ItemsHome = ({ open, close }: DrawerBasicProps) => {
+const ItemsHome = ({ open, close, extraData }: DrawerBasicProps) => {
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [items, setItems] = useState<ItemData[]>([]);
   const [selectedNode, setSelectedNode] = useState<TreeNode | null>(null);
@@ -59,19 +54,33 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
   const [_window, setWindow] = useState({ innerHeight: 0 });
   const [isUpdating, setIsUpdating] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
-  const [openStock, setOpenStock] = useState({ open: false, type: "stock-in" });
   const [isUpdate, setIsUpdate] = useState(false);
   const [input, setInput] = useState<InputProps>({
     name: "",
     unit: undefined,
     price: 0,
-    quantity: 0,
     cost: 0,
   });
   const itemService = new ItemService();
 
   // * onclick utils variables
   const [selectedKey, setSelectedKey] = useState<React.Key | null>(null);
+
+  const [openBranchChoicer, setOpenBranchChoicer] = useState<{
+    open: boolean;
+    branches: BranchData[];
+  }>({
+    open: false,
+    branches: [],
+  });
+
+  const [openItemBranch, setOpenItemBranch] = useState<{
+    open: boolean;
+    selectedBranch: BranchData | null;
+  }>({
+    open: false,
+    selectedBranch: null,
+  });
 
   const getItemName = (id: string) => items.filter((e) => e._id == id)[0].name;
 
@@ -91,13 +100,12 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
         message.success(res?.message ?? "Success");
         setSelectedItem(res?.data ?? null);
 
-        let { name, unit, price, quantity, cost } = res?.data ?? {};
+        let { name, unit, price, cost } = res?.data ?? {};
         if (!name) name = "";
         if (!unit) unit = undefined;
         if (!price) price = 0;
-        if (!quantity) quantity = 0;
         if (!cost) cost = 0;
-        setInput({ name, unit, price, quantity, cost });
+        setInput({ name, unit, price, cost });
         fetchItems();
         setIsUpdating(false);
         setIsUpdate(false);
@@ -128,13 +136,13 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
 
   const fetchItems = () => {
     (async (_) => {
-      let res = await _.getItems();
+      let res = await _.getItems({ branchId: extraData?._id });
       if (res.success) {
         if (res?.data) {
-          setItems(res?.data ?? []);
+          setItems((res?.data as ItemData[]) ?? []);
           setTreeNodes(
             buildTree(
-              parseTree(res.data, null),
+              parseTree(res.data as ItemData[], null),
               null,
               handleItemOnAddClick,
               handlePurgeItem
@@ -163,13 +171,12 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
       if (res?.success ?? false) {
         setSelectedItem(res?.data ?? null);
 
-        let { name, unit, price, quantity, cost } = res?.data ?? {};
+        let { name, unit, price, cost } = res?.data ?? {};
         if (!name) name = "";
         if (!unit) unit = undefined;
         if (!price) price = 0;
-        if (!quantity) quantity = 0;
         if (!cost) cost = 0;
-        setInput({ name, unit, price, quantity, cost });
+        setInput({ name, unit, price, cost });
       }
     })(itemService);
   };
@@ -360,27 +367,6 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
           />
         );
 
-      if (index == 5)
-        _ = (
-          <InputNumber
-            size="large"
-            defaultValue={item.quantity}
-            style={{
-              height: 50,
-              border: "none",
-              borderRadius: 0,
-              fontSize: "2em",
-              width: "100%",
-              padding: 5,
-            }}
-            controls={false}
-            min={0}
-            onChange={(e) => {
-              setIsUpdate(true);
-              setInput({ ...input, quantity: e ?? 0 });
-            }}
-          />
-        );
       return _;
     };
     return (
@@ -444,21 +430,19 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                 flexDirection: "column",
               }}
             >
-              {["Item Code", "Name", "Unit", "Cost", "Price", "Quantity"].map(
-                (e, i) => (
-                  <strong
-                    key={e}
-                    style={{
-                      fontSize: "2em",
-                      borderBottom: i == 6 ? "" : "1px solid #aaa",
-                      padding: 5,
-                      height: 50,
-                    }}
-                  >
-                    {e.toLocaleUpperCase()}
-                  </strong>
-                )
-              )}
+              {["Item Code", "Name", "Unit", "Cost", "Price"].map((e, i) => (
+                <strong
+                  key={e}
+                  style={{
+                    fontSize: "2em",
+                    borderBottom: i == 6 ? "" : "1px solid #aaa",
+                    padding: 5,
+                    height: 50,
+                  }}
+                >
+                  {e.toLocaleUpperCase()}
+                </strong>
+              ))}
             </div>
           </Col>
           <Col
@@ -483,7 +467,6 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                 item.unit,
                 item.cost,
                 item.price,
-                item.quantity,
               ].map((e, i) =>
                 isUpdating ? (
                   renderUpdatingCell(i, e)
@@ -554,14 +537,12 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
                 type="primary"
                 onClick={() => {
                   if (isUpdating) {
-                    let { name, unit, price, quantity, cost } =
-                      selectedItem ?? {};
+                    let { name, unit, price, cost } = selectedItem ?? {};
                     if (!name) name = "";
                     if (!unit) unit = undefined;
                     if (!price) price = 0;
-                    if (!quantity) quantity = 0;
                     if (!cost) cost = 0;
-                    setInput({ name, unit, price, quantity, cost });
+                    setInput({ name, unit, price, cost });
                     setIsUpdate(false);
                   }
                   setIsUpdating(!isUpdating);
@@ -614,28 +595,30 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
           <Space key="extra-btns">
             <Button
               size="large"
-              icon={<VerticalAlignBottomOutlined />}
               style={{
-                width: 130,
+                width: 180,
                 fontSize: "1.2em",
                 padding: 0,
               }}
-              onClick={() => setOpenStock({ open: true, type: "stock-in" })}
-            >
-              STOCK IN
-            </Button>
-            <Button
-              size="large"
-              icon={<VerticalAlignTopOutlined />}
-              style={{
-                width: 130,
-                fontSize: "1.2em",
-                padding: 0,
+              onClick={() => {
+                setSelectedKey(null);
+                setExpandedKeys([]);
+                setAutoExpandParent(false);
+                setSearchValue("");
+                setSelectedNode(null);
+                setSelectedItem(null);
+                highlightSearchItems("");
+                new Promise(async (resolve) => {
+                  let { data } = await axios.get("/api/branch");
+                  if (data?.success ?? false) resolve(data?.data);
+                }).then((_: any) =>
+                  setOpenBranchChoicer({ open: true, branches: _ })
+                );
               }}
-              onClick={() => setOpenStock({ open: true, type: "stock-out" })}
             >
-              STOCK OUT
+              Select a Branch
             </Button>
+
             <Button
               type="primary"
               size="large"
@@ -758,11 +741,21 @@ const ItemsHome = ({ open, close }: DrawerBasicProps) => {
         close={() => setOpenNewItem({ open: false, parentId: "" })}
         onSave={handleNewParentItem}
       />
-      <Stock
-        open={openStock.open}
-        close={() => setOpenStock({ open: false, type: "stock-in" })}
-        type={openStock.type}
-        closeSelectedItem={() => setSelectedItem(null)}
+      <BranchChoicer
+        {...openBranchChoicer}
+        onSelectedBranch={(e) => {
+          setOpenBranchChoicer({ open: false, branches: [] });
+          setOpenItemBranch({ open: true, selectedBranch: e });
+        }}
+        close={() => setOpenBranchChoicer({ open: false, branches: [] })}
+      />
+      <BranchItemHome
+        open={openItemBranch.open}
+        branch={openItemBranch.selectedBranch!}
+        close={() => setOpenItemBranch({ open: false, selectedBranch: null })}
+        updateBranch={(e) => {
+          if (e) setOpenItemBranch({ open: true, selectedBranch: e });
+        }}
       />
     </>
   );

@@ -2,18 +2,19 @@ import mongoose from "mongoose";
 import "@/database/models/user.schema";
 import "@/database/models/branch.schema";
 import "@/database/models/transaction.schema";
+import "@/database/models/portal.schema";
+import { ItemWithStockSchema } from "@/database/models/branch.schema";
 
 const LogSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["attendance", "stock", "credit", "debit"],
+      enum: ["attendance", "stock", "credit", "debit", "portal"],
       required: true,
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
     branchId: String,
 
@@ -22,7 +23,20 @@ const LogSchema = new mongoose.Schema(
     timeOut: Date,
     timeInPhoto: String,
     timeOutPhoto: String,
+
     // for item stock-in | stock-out
+    stockType: {
+      type: String,
+      enum: ["stock-in", "stock-out", "misc"],
+    },
+    items: [ItemWithStockSchema],
+
+    // portal
+    portalId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Portal",
+    },
+    rebate: Number,
 
     // for encoder
     amount: Number,
@@ -32,7 +46,6 @@ const LogSchema = new mongoose.Schema(
       enum: ["bills", "wallet", "eload"],
     },
     transactionId: {
-      // for debit, if encoder approve the teller transact request
       type: mongoose.Schema.Types.ObjectId,
       ref: "Transaction",
     },

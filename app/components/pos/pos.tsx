@@ -23,20 +23,21 @@ import {
   EditOutlined,
   CloseOutlined,
 } from "@ant-design/icons";
+
 import { useDispatch, useSelector } from "react-redux";
 import { TbCurrencyPeso } from "react-icons/tb";
 
 import { useItemStore, useUserStore } from "@/provider/context";
 import ItemService from "@/provider/item.service";
 import { BranchData, ItemData, OnlinePayment } from "@/types";
-import { AppDispatch, RootState } from "./state/store";
+import { AppDispatch, RootState } from "../../state/store";
 import {
   removeItem,
   updateQuantity,
   newItem,
   incrementQuantity,
   purgeItems,
-} from "./state/counterSlice";
+} from "../../state/counterSlice";
 import BranchService from "@/provider/branch.service";
 import { FloatLabel } from "@/assets/ts";
 import PrinterService from "@/provider/printer.service";
@@ -52,7 +53,8 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
     open: boolean;
     data: ItemData | null;
     mode: "new" | "update" | "";
-  }>({ open: false, data: null, mode: "" });
+    id: string;
+  }>({ open: false, data: null, mode: "", id: "" });
   const [openTender, setOpenTender] = useState(false);
 
   // refs
@@ -74,12 +76,13 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
 
   // context store
   const { currentUser, currentBranch } = useUserStore();
-  const { items } = useItemStore();
+  const { items, setUpdateQuantity } = useItemStore();
 
   // provider
   const item = new ItemService();
   const branch = new BranchService();
   const printer = new PrinterService();
+
   const etc = new EtcService();
 
   // redux
@@ -128,7 +131,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
     let res = await item.getItemSpecific(id);
 
     if (res?.success ?? false) {
-      setOpenItemOpt({ open: true, data: res?.data ?? null, mode: "new" });
+      setOpenItemOpt({ open: true, data: res?.data ?? null, mode: "new", id });
       quantityRef.current?.focus();
     }
   };
@@ -136,13 +139,27 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
   const updateOP = (key: string, value: any) =>
     setOnlinePaymentInput({ ...onlinePaymentInput, [key]: value });
 
-  const confirmQuantity = () => {
+  const confirmQuantity = async () => {
     if ([null, 0, undefined].includes(inputQuantity)) {
       message.warning("Cannot Add an Item. Quantity should be greater than 0");
       return;
     }
+    let res2 = await branch.getItemSpecific(currentBranch, openItemOpt.id);
+    const stock_count = (res2 as any[])[0]?.stock_count ?? 0;
+    const item: ItemData = (res2 as any[])[0]?.itemId;
 
-    setOpenItemOpt({ open: false, data: null, mode: "" });
+    if (
+      stock_count <
+      (inputQuantity ?? 0) +
+        selectedItem.filter((e) => e._id == openItemOpt.id)[0]?.quantity
+    ) {
+      message.warning(
+        "Cannot Add an Item. Quantity should be lesser than current item quantity"
+      );
+      return;
+    }
+
+    setOpenItemOpt({ open: false, data: null, mode: "", id: "" });
     setInputSearch("");
     setInputQuantity(null);
     if (openItemOpt.mode == "new") {
@@ -155,15 +172,8 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
         );
       } else {
         if (openItemOpt.data) {
-          const {
-            _id,
-            name,
-            itemCode,
-            unit,
-            quantity: currentQuantity,
-            parentName,
-            price,
-          } = openItemOpt.data;
+          const { _id, name, itemCode, unit, parentName, price } =
+            openItemOpt.data;
 
           dispatch(
             newItem({
@@ -171,10 +181,11 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
               name,
               itemCode,
               unit: unit!,
-              currentQuantity,
+              currentQuantity: (res2 as any[])[0].stock_count ?? 0,
               price,
               parentName: parentName!,
               quantity: inputQuantity!,
+              cost: item.cost,
             })
           );
 
@@ -203,6 +214,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
         price: e.price,
         quantity: e.quantity,
         unit: e.unit,
+        cost: e.cost,
       }))
     );
     let cash = amount;
@@ -212,10 +224,15 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
     let online = onlinePaymentInput;
 
     const func /* a newbie function */ = async () => {
+      const fee = selectedItem.reduce(
+        (p, n) => p + (n.price - n.cost) * n.quantity,
+        0
+      );
       let res = await item.requestTransaction(
         transactionDetails,
         cash!,
-        _amount,
+        _amount - fee,
+        fee,
         tellerId,
         branchId,
         "",
@@ -223,6 +240,16 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
       );
 
       if (res?.success ?? false) {
+        await branch.updateItemBranch(
+          branchId,
+          "misc",
+          selectedItem.map((e) => ({
+            _id: e._id ?? "",
+            count: -e.quantity,
+          })),
+          (res.data as any)._id
+        );
+
         if (!online.isOnlinePayment)
           modal.confirm({
             title: "Do you want to print the receipt ?",
@@ -266,13 +293,20 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
                 message.success(res?.message ?? "Success");
                 setOpenTender(false);
                 setAmount(null);
+                selectedItem.map((e) => {
+                  setUpdateQuantity(e?._id ?? "", -e.quantity);
+                });
                 dispatch(purgeItems());
               });
             },
             onCancel: () => {
               setOpenTender(false);
               setAmount(null);
+              selectedItem.map((e) => {
+                setUpdateQuantity(e?._id ?? "", -e.quantity);
+              });
               dispatch(purgeItems());
+              message.success("New Transaction Successfully Added");
             },
           });
         else {
@@ -333,7 +367,10 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
       <Drawer
         open={open}
         maskClosable={false}
-        onClose={close}
+        onClose={() => {
+          dispatch(purgeItems());
+          close();
+        }}
         placement="bottom"
         height="100%"
         // keyboard={false}
@@ -466,127 +503,136 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
             value={inputSearch}
             ref={searchRef}
             onSelect={(_, e) => getItem(e.key)}
-            dropdownStyle={{
-              width: 1100,
-            }}
+            dropdownStyle={{ width: 1100 }}
             filterOption={(inputValue, option) =>
               option!
                 .value!.toString()
                 .toUpperCase()
                 .indexOf(inputValue.toUpperCase()) !== -1
             }
-            options={[
-              {
-                label: (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      background: "#c5d9ef",
-                      height: 35,
-                      cursor: "default",
-                    }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: "1.5em",
-                        width: 600,
-                        borderTop: "1px solid #000",
-                        borderRight: "1px solid #000",
-                        borderLeft: "1px solid #000",
-                        display: "block",
-                        textAlign: "center",
-                      }}
-                    >
-                      Item
-                    </span>
-                    <span
-                      style={{
-                        width: 250,
-                        fontSize: "1.5em",
-                        borderTop: "1px solid #000",
-                        borderRight: "1px solid #000",
-                        display: "block",
-                        textAlign: "center",
-                      }}
-                    >
-                      Price
-                    </span>
-                    <span
-                      style={{
-                        width: 250,
-                        fontSize: "1.5em",
-                        borderTop: "1px solid #000",
-                        borderRight: "1px solid #000",
-                        textAlign: "center",
-                      }}
-                    >
-                      On Hand Quantity
-                    </span>
-                  </div>
-                ),
-                className: "custom-select",
-                value: "none",
-                key: "none",
-              },
-              ...popupItem.map((e, i) => ({
-                label: (
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <span
-                      style={{
-                        fontSize: "1.5em",
-                        width: 590.5,
-                        borderTop: "1px solid #000",
-                        borderRight: "1px solid #000",
-                        borderLeft: "1px solid #000",
-                        borderBottom:
-                          i == popupItem.length - 1 ? "1px solid #000" : "",
-                        paddingLeft: 10,
-                      }}
-                    >{`${"00000".slice(e.itemCode?.toString().length)}${
-                      e.itemCode
-                    }: ${e.name}`}</span>
-                    <span
-                      style={{
-                        fontSize: "1.5em",
-                        width: 245.5,
-                        borderTop: "1px solid #000",
-                        borderRight: "1px solid #000",
-                        borderBottom:
-                          i == popupItem.length - 1 ? "1px solid #000" : "",
-                        paddingLeft: 10,
-                        textAlign: "end",
-                        paddingRight: 10,
-                      }}
-                    >
-                      {e.price.toFixed(2)}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "1.5em",
-                        width: 246,
-                        borderTop: "1px solid #000",
-                        borderRight: "1px solid #000",
-                        borderBottom:
-                          i == popupItem.length - 1 ? "1px solid #000" : "",
-                        paddingLeft: 10,
-                        textAlign: "end",
-                        paddingRight: 10,
-                      }}
-                    >
-                      {e.quantity}
-                    </span>
-                  </div>
-                ),
-                className: "custom-select",
-                value: e.name,
-                key: e._id,
-              })),
-            ]}
+            options={
+              popupItem.length > 0
+                ? [
+                    {
+                      label: (
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            background: "#c5d9ef",
+                            height: 35,
+                            cursor: "default",
+                          }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "1.5em",
+                              width: 600,
+                              borderTop: "1px solid #000",
+                              borderRight: "1px solid #000",
+                              borderLeft: "1px solid #000",
+                              display: "block",
+                              textAlign: "center",
+                            }}
+                          >
+                            Item
+                          </span>
+                          <span
+                            style={{
+                              width: 250,
+                              fontSize: "1.5em",
+                              borderTop: "1px solid #000",
+                              borderRight: "1px solid #000",
+                              display: "block",
+                              textAlign: "center",
+                            }}
+                          >
+                            Price
+                          </span>
+                          <span
+                            style={{
+                              width: 250,
+                              fontSize: "1.5em",
+                              borderTop: "1px solid #000",
+                              borderRight: "1px solid #000",
+                              textAlign: "center",
+                            }}
+                          >
+                            On Hand Quantity
+                          </span>
+                        </div>
+                      ),
+                      className: "custom-select",
+                      value: "none",
+                      key: "none",
+                    },
+                    ...popupItem.map((e, i) => ({
+                      label: (
+                        <div style={{ display: "flex", alignItems: "center" }}>
+                          <span
+                            style={{
+                              fontSize: "1.5em",
+                              width: 590.5,
+                              borderTop: "1px solid #000",
+                              borderRight: "1px solid #000",
+                              borderLeft: "1px solid #000",
+                              borderBottom:
+                                i == popupItem.length - 1
+                                  ? "1px solid #000"
+                                  : "",
+                              paddingLeft: 10,
+                            }}
+                          >{`${"00000".slice(e.itemCode?.toString().length)}${
+                            e.itemCode
+                          }: ${e.name}`}</span>
+                          <span
+                            style={{
+                              fontSize: "1.5em",
+                              width: 245.5,
+                              borderTop: "1px solid #000",
+                              borderRight: "1px solid #000",
+                              borderBottom:
+                                i == popupItem.length - 1
+                                  ? "1px solid #000"
+                                  : "",
+                              paddingLeft: 10,
+                              textAlign: "end",
+                              paddingRight: 10,
+                            }}
+                          >
+                            {e.price?.toFixed(2)}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "1.5em",
+                              width: 246,
+                              borderTop: "1px solid #000",
+                              borderRight: "1px solid #000",
+                              borderBottom:
+                                i == popupItem.length - 1
+                                  ? "1px solid #000"
+                                  : "",
+                              paddingLeft: 10,
+                              textAlign: "end",
+                              paddingRight: 10,
+                            }}
+                          >
+                            {e.quantity}
+                          </span>
+                        </div>
+                      ),
+                      className: "custom-select",
+                      value: e.name,
+                      key: e._id,
+                      disabled: e.quantity == 0,
+                    })),
+                  ]
+                : []
+            }
           />
           <Button
             size="large"
@@ -605,6 +651,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
             dataSource={selectedItem}
             pagination={false}
             rowKey={(e) => e._id}
+            bordered
             style={{
               width: "60vw",
             }}
@@ -617,7 +664,11 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
                 render: (_) => `${"00000".slice(_.toString().length)}${_}`,
               },
               { title: "Name", dataIndex: "name", width: 300 },
-              { title: "Category", dataIndex: "parentName", width: 300 },
+              {
+                title: "Current Quantity",
+                dataIndex: "currentQuantity",
+                width: 300,
+              },
               {
                 title: "Price",
                 width: 100,
@@ -651,6 +702,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
                             open: true,
                             data: row,
                             mode: "update",
+                            id: "",
                           });
                         }}
                       />
@@ -668,7 +720,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
       <Modal
         open={openItemOpt.open}
         onCancel={() => {
-          setOpenItemOpt({ open: false, data: null, mode: "" });
+          setOpenItemOpt({ open: false, data: null, mode: "", id: "" });
           setInputQuantity(null);
         }}
         zIndex={2}

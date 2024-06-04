@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   AutoComplete,
   Button,
@@ -12,42 +12,35 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { DeleteOutlined } from "@ant-design/icons";
 
-import { AppDispatch, RootState } from "../state/store";
+import { AppDispatch, RootState } from "../../../state/store";
 import {
   newItem,
   removeItem,
   updateQuantity,
   purgeItems,
-} from "../state/counterSlice";
+} from "../../../state/counterSlice";
 import { ItemData, StockProps } from "@/types";
-import ItemService from "@/provider/item.service";
+import { useItemStore } from "@/provider/context";
+import BranchService from "@/provider/branch.service";
 
-const Stock = ({ open, close, type, closeSelectedItem }: StockProps) => {
+const Stock = ({
+  open,
+  close,
+  type,
+  branchId,
+  branchItems,
+  onSubmit,
+}: StockProps) => {
   const [items, setItems] = useState<ItemData[]>([]);
   const [input, setInput] = useState("");
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const { items: lcItems } = useItemStore();
 
-  const item = new ItemService();
+  const branch = new BranchService();
 
   // * redux
   const selectedItem = useSelector((state: RootState) => state.item);
   const dispatch = useDispatch<AppDispatch>();
-
-  const runTimer = (key: string) => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-
-    timerRef.current = setTimeout(function () {
-      searchItem(key);
-    }, 500);
-  };
-
-  const searchItem = async (key: string) => {
-    let res = await item.searchItem(key);
-    if (res?.success ?? false) setItems(res?.data ?? []);
-  };
 
   const handleSave = async () => {
     if (selectedItem.map((e) => e.quantity).some((e) => e == 0)) {
@@ -56,10 +49,15 @@ const Stock = ({ open, close, type, closeSelectedItem }: StockProps) => {
       );
       return;
     }
+
     if (
       type == "stock-out" &&
       selectedItem
-        .map((e) => e.quantity > e.currentQuantity)
+        .map(
+          (e) =>
+            e.quantity >
+            branchItems.filter((_) => _.itemId._id == e._id)[0].stock_count
+        )
         .some((e) => e == true)
     ) {
       message.warning(
@@ -68,36 +66,40 @@ const Stock = ({ open, close, type, closeSelectedItem }: StockProps) => {
       return;
     }
 
-    Promise.all(
-      selectedItem.map(
-        (_item) =>
-          new Promise(async (resolve, reject) => {
-            let res = await item.updateItem(_item?._id ?? "", {
-              quantity:
-                (type == "stock-in" ? _item.quantity : -_item.quantity) +
-                _item.currentQuantity,
-            });
-
-            if (res?.success ?? false) resolve("Success");
-          })
+    await branch
+      .updateItemBranch(
+        branchId,
+        type ?? "",
+        selectedItem.map((e) => ({
+          _id: e._id ?? "",
+          count: type == "stock-in" ? e.quantity : -e.quantity,
+        }))
       )
-    ).then(() => {
-      message.success("Successfully Added");
-      dispatch(purgeItems());
-      closeSelectedItem();
-      close();
-    });
+      .then(async (e) => {
+        let res = await branch.getBranchSpecific(branchId);
+        if (e?.success ?? false) {
+          message.success("Successfully Added");
+          dispatch(purgeItems());
+
+          if (res?.success ?? false) onSubmit(res?.data ?? null);
+          close();
+        } else message.error(e?.message ?? "Error");
+      });
   };
 
   return (
     <Modal
       title={
         <Typography.Title level={3}>
-          STOCK UPDATE ({type.toLocaleUpperCase()})
+          STOCK UPDATE ({type?.toLocaleUpperCase()})
         </Typography.Title>
       }
       open={open}
-      onCancel={close}
+      onCancel={() => {
+        setInput("");
+        dispatch(purgeItems());
+        close();
+      }}
       closable={false}
       width={900}
       footer={[
@@ -105,19 +107,28 @@ const Stock = ({ open, close, type, closeSelectedItem }: StockProps) => {
           key="submit-btn"
           size="large"
           type="primary"
-          style={{ height: 50, width: 120, fontSize: "1.8em" }}
+          style={{ height: 50, width: 120, fontSize: "1.6em" }}
           onClick={handleSave}
           disabled={selectedItem.length == 0}
         >
           SUBMIT
         </Button>,
       ]}
+      destroyOnClose
     >
       <AutoComplete
         className="stock-item-select"
         onChange={(_) => {
+          setItems(
+            lcItems
+              .filter((e) =>
+                branchItems.map((_) => _.itemId._id).includes(e._id)
+              )
+              .filter((e) =>
+                e.name.toLocaleLowerCase().includes(_.toLocaleLowerCase())
+              )
+          );
           setInput(_);
-          if (_ != "") runTimer(_);
         }}
         value={input}
         style={{
@@ -143,8 +154,16 @@ const Stock = ({ open, close, type, closeSelectedItem }: StockProps) => {
             return;
           } else {
             const _selectedItem = items.filter((_) => _._id == e.key)[0];
-            const { _id, name, itemCode, unit, quantity, price, parentName } =
-              _selectedItem;
+            const {
+              _id,
+              name,
+              itemCode,
+              unit,
+              quantity,
+              price,
+              parentName,
+              cost,
+            } = _selectedItem;
 
             dispatch(
               newItem({
@@ -156,6 +175,7 @@ const Stock = ({ open, close, type, closeSelectedItem }: StockProps) => {
                 quantity: 0,
                 parentName: parentName?.split("-").reverse().join("-") ?? "",
                 price,
+                cost,
               })
             );
 
@@ -187,7 +207,6 @@ const Stock = ({ open, close, type, closeSelectedItem }: StockProps) => {
               align: "center",
               render: (_) => `${"00000".slice(_.toString().length)}${_}`,
             },
-            { title: "Category", dataIndex: "parentName" },
             {
               title: "C. Price",
               width: 80,

@@ -42,6 +42,7 @@ const Attendance = () => {
     src: string | undefined;
     details?: string;
   }>({ open: false, src: "", details: undefined });
+  const [tellerName, setTellerName] = useState("");
 
   const [total, setTotal] = useState(0);
 
@@ -158,14 +159,16 @@ const Attendance = () => {
           size="large"
           style={{ width: 250 }}
           placeholder="Select a Teller"
+          value={tellerName}
           options={tellers.map((e) => ({
-            label: e.name,
+            label: `[${e.role.toLocaleUpperCase()}] ${e.name}`,
             value: e.name,
             key: e._id,
           }))}
-          onChange={(_, e: any) =>
-            setFilter({ ...filter, tellerId: e?.key ?? null })
-          }
+          onChange={(_, e: any) => {
+            setFilter({ ...filter, tellerId: e?.key ?? null });
+            setTellerName(e.label.split("]")[1]);
+          }}
           filterOption={(
             input: string,
             option?: { label: string; value: string }
@@ -389,7 +392,7 @@ const Attendance = () => {
       let res = await _.getUsers({
         page: 1,
         pageSize: 9999,
-        role: ["teller", "encoder"],
+        notRole: ["admin"],
       });
 
       if (res?.success ?? false) setTellers((res?.data as User[]) ?? []);

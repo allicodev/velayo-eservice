@@ -27,6 +27,8 @@ import BillService from "@/provider/bill.service";
 import BranchService from "@/provider/branch.service";
 import UserService from "@/provider/user.service";
 import { useUserStore } from "@/provider/context";
+import { TransactionDetails } from "@/app/components/teller";
+import TransactionViewer from "@/app/components/accounting/transaction_viewer";
 
 // TODO: exportable via excel
 // TODO: Excel Fix User to Teller
@@ -51,6 +53,14 @@ const Accounting = () => {
   const [tellers, setTellers] = useState<User[]>([]);
   const [branches, setBranches] = useState<BranchData[]>([]);
   const [fetching, setFetching] = useState(false);
+  const [tellerName, setTellerName] = useState("");
+  const [transactionOpt, setTransactionOpt] = useState<{
+    open: boolean;
+    transaction: Transaction | null;
+  }>({
+    open: false,
+    transaction: null,
+  });
 
   const [filter, setFilter] = useState<FilterProps>({
     status: "completed",
@@ -162,8 +172,9 @@ const Accounting = () => {
           size="large"
           style={{ width: 200 }}
           placeholder="Select a Teller"
+          value={tellerName}
           options={tellers.map((e) => ({
-            label: e.name,
+            label: `[${e.role.toLocaleUpperCase()}] ${e.name}`,
             value: e.name,
             key: `${e._id}_${e.role}`,
           }))}
@@ -177,6 +188,8 @@ const Accounting = () => {
             } else {
               setFilter({ ...filter, tellerId: null, encoderId: null });
             }
+
+            setTellerName(e?.label?.split("]")[1]);
           }}
           allowClear
         />
@@ -604,6 +617,14 @@ const Accounting = () => {
                   y: "calc(100vh - 30em)",
                   x: "100%",
                 }}
+                onRow={(e) => {
+                  return {
+                    onClick: () =>
+                      e.type == "miscellaneous"
+                        ? setTransactionOpt({ open: true, transaction: e })
+                        : null,
+                  };
+                }}
                 pagination={{
                   defaultPageSize: 10,
                   total,
@@ -685,6 +706,12 @@ const Accounting = () => {
           </div>
         </div>
       </div>
+
+      {/* context */}
+      <TransactionViewer
+        {...transactionOpt}
+        close={() => setTransactionOpt({ open: false, transaction: null })}
+      />
     </>
   );
 };

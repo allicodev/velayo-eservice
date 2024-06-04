@@ -2,7 +2,6 @@ import Api from "./api.service";
 import {
   BillingSettingsType,
   EloadSettings,
-  Notification,
   Response,
   Transaction,
   UpdateBillWallet,
@@ -61,27 +60,6 @@ class EtcService {
       query: {
         traceId,
       },
-    });
-  }
-
-  public async newNotif(payload: Notification) {
-    return await this.instance.post({
-      endpoint: "/notification",
-      payload,
-    });
-  }
-
-  public async getNotif(query: any) {
-    return await this.instance.get<Notification[]>({
-      endpoint: "/notification",
-      query,
-    });
-  }
-
-  public async seenNotif(id: string) {
-    return await this.instance.get<Response>({
-      endpoint: "/notification/read",
-      query: { _id: id },
     });
   }
 

@@ -49,6 +49,7 @@ const WebCamera = ({
   const [currentOpenedUser, setCurrentOpenedUser] =
     useState<ProtectedUser | null>(null);
   const [step, setStep] = useState(0);
+  const [loader, setLoader] = useState("");
 
   // important details
   const [employeeId, setEmployeeId] = useState("");
@@ -273,7 +274,8 @@ const WebCamera = ({
           <Button
             type="primary"
             onClick={() => handleTimeUpdate("in")}
-            disabled={disableTime.disableTimeIn}
+            disabled={disableTime.disableTimeIn || loader == "out"}
+            loading={loader == "in"}
             style={{
               height: 70,
               fontSize: "2.5em",
@@ -300,8 +302,9 @@ const WebCamera = ({
         >
           <Button
             type="primary"
-            disabled={disableTime.disableTimeOut}
+            disabled={disableTime.disableTimeOut || loader == "in"}
             onClick={() => handleTimeUpdate("out")}
+            loading={loader == "out"}
             style={{
               height: 70,
               fontSize: "2.5em",
@@ -345,13 +348,18 @@ const WebCamera = ({
   };
 
   const handleTimeUpdate = (type: "in" | "out") => {
-    if (type == "in")
+    if (type == "in") {
+      setLoader("in");
+      let timeIn = new Date();
+
+      if (timeIn.getHours() < 7) timeIn.setHours(7);
+
       (async (_) => {
         let res = await _.newLog({
           userId: currentOpenedUser?._id ?? "",
           type: "attendance",
           timeInPhoto: imgSrc,
-          timeIn: new Date(),
+          timeIn,
           postType: "new",
           ...(["admin", "encoder"].includes(currentUser?.role!)
             ? {}
@@ -366,13 +374,22 @@ const WebCamera = ({
           setImgSrc(null);
           setTimeout(close, 1);
           setStep(0);
-        }
+          setLoader("");
+        } else setLoader("");
       })(log);
-    else
+    } else {
+      setLoader("out");
+      let timeOut = new Date();
+      if (
+        timeOut.getHours() > 20 ||
+        (timeOut.getHours() === 20 && timeOut.getMinutes() >= 30)
+      ) {
+        timeOut.setHours(20, 30, 0);
+      }
       (async (_) => {
         let res = await _.updateLog({
           _id: disableTime.logId,
-          timeOut: new Date(),
+          timeOut,
           timeOutPhoto: imgSrc,
         });
 
@@ -382,8 +399,10 @@ const WebCamera = ({
           setImgSrc(null);
           setTimeout(close, 1);
           setStep(0);
-        }
+          setLoader("");
+        } else setLoader("");
       })(log);
+    }
   };
 
   const checkIfTimeIsDone = () => {

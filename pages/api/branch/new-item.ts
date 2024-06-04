@@ -12,19 +12,36 @@ async function handler(
 
   const { method } = req;
 
-  if (method != "GET")
+  if (method != "POST")
     res.json({
       code: 405,
       success: false,
       message: "Incorrect Request Method",
     });
 
-  return await Branch.findOne({ _id: req.query._id })
+  let { _id, itemIds } = req.body;
+
+  return await Branch.findOneAndUpdate(
+    { _id },
+    {
+      $push: {
+        items: itemIds.map((e: any) => ({
+          itemId: e,
+          stock_count: 0,
+          createdAt: new Date().toISOString(),
+        })),
+      },
+    },
+    {
+      returnOriginal: false,
+    }
+  )
     .populate("items.itemId")
     .then((e) => {
       return res.json({
         code: 200,
         success: true,
+        message: "Successfully Added",
         data: e,
       });
     })

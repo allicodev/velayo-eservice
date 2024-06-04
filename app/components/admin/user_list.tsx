@@ -251,6 +251,7 @@ const User = ({
         open={openedNewUser}
         close={() => {
           setOpenedNewUser(false);
+          setOpenedUser(null);
         }}
         onAdd={handleNewUser}
         onSave={handleSaveUser}

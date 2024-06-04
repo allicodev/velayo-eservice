@@ -1,4 +1,23 @@
 import mongoose from "mongoose";
+import "./item.schema";
+
+const ItemWithStockSchema = new mongoose.Schema(
+  {
+    itemId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Item",
+    },
+    stock_count: {
+      type: Number,
+      default: 0,
+    },
+    createdAt: {
+      type: Date,
+      required: true,
+    },
+  },
+  { _id: false }
+);
 
 const BranchSchema = new mongoose.Schema(
   {
@@ -15,6 +34,7 @@ const BranchSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    items: [ItemWithStockSchema],
   },
   { timestamps: true }
 );
@@ -36,4 +56,5 @@ BranchSchema.pre("save", async function (next) {
 const BranchModel =
   mongoose.models.Branch || mongoose.model("Branch", BranchSchema);
 
+export { ItemWithStockSchema };
 export default BranchModel;

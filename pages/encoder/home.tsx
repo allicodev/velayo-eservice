@@ -6,6 +6,7 @@ import {
   Col,
   DatePicker,
   Divider,
+  Flex,
   Input,
   Modal,
   Row,
@@ -29,6 +30,7 @@ import {
   TransactionType,
   User,
   Branch,
+  Portal,
 } from "@/types";
 import notifSound from "../../public/notif.mp3";
 
@@ -37,8 +39,10 @@ import { EncoderForm } from "@/app/components/teller";
 import { useUserStore } from "@/provider/context";
 import { Pusher } from "@/provider/utils/pusher";
 import BillService from "@/provider/bill.service";
-import BalanceHistory from "@/app/components/encoder/balance_history";
+import PortalBalanceHistory from "@/app/components/encoder/portal_balance_history";
 import EtcService from "@/provider/etc.service";
+import UserService from "@/provider/user.service";
+import PortalService from "@/provider/portal.service";
 
 interface FilterProps {
   status?: TransactionHistoryStatus | null;
@@ -54,10 +58,18 @@ const Encoder = () => {
     open: false,
     transaction: null,
   });
+  const [openPortalHistory, setOpenPortalHistory] = useState<{
+    open: boolean;
+    portal: Portal | null;
+  }>({
+    open: false,
+    portal: null,
+  });
 
   const [trigger, setTrigger] = useState(0);
   const [total, setTotal] = useState(0);
   const [transactions, setTransaction] = useState<Transaction[]>([]);
+  const [portals, setPortals] = useState<Portal[]>([]);
 
   const [isMobile, setIsMobile] = useState<any>();
 
@@ -65,18 +77,14 @@ const Encoder = () => {
 
   const bill = new BillService();
   const etc = new EtcService();
+  const user = new UserService();
+  const portal = new PortalService();
 
   // const [play] = useSound(notifSound);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [api, contextHolder] = Modal.useModal();
   const [fetching, setFetching] = useState(false);
   const [tellers, setTellers] = useState<User[]>([]);
-
-  let isLow = false;
-  const [openBalanceHistory, setOpenBalanceHistory] = useState({
-    open: false,
-    type: "",
-  });
 
   const [filter, setFilter] = useState<FilterProps>({
     status: "pending",
@@ -391,8 +399,8 @@ const Encoder = () => {
         />
         <Select
           size="large"
-          style={{ width: 200 }}
-          placeholder="Select a Transaction Type"
+          style={{ width: 150 }}
+          placeholder="Select a Type"
           options={["bills", "wallet", "eload", "miscellaneous", "shopee"].map(
             (e) => ({
               label: e.toLocaleUpperCase(),
@@ -406,7 +414,7 @@ const Encoder = () => {
         />
         <Select
           size="large"
-          style={{ width: 200 }}
+          style={{ width: 150 }}
           placeholder="Select a Status"
           value={filter.status}
           options={["all", "completed", "failed", "pending"].map((e) => ({
@@ -420,7 +428,7 @@ const Encoder = () => {
         />
         <Input
           size="large"
-          style={{ width: 300 }}
+          style={{ width: 250 }}
           placeholder="Search a Biller"
           onChange={(e) => setFilter({ ...filter, sub_type: e.target.value })}
           allowClear
@@ -558,7 +566,19 @@ const Encoder = () => {
     (async (_) => {
       await etc.checkSettings();
     })(etc);
-  }, []);
+
+    (async (_) => {
+      let res = await _.getUsers({ page: 1, pageSize: 9999, role: ["teller"] });
+
+      if (res?.success ?? false) setTellers((res?.data as User[]) ?? []);
+    })(user);
+
+    (async (_) => {
+      let res = await _.getPortal({ sort: 1 });
+
+      if (res?.success ?? false) setPortals(res?.data ?? []);
+    })(portal);
+  }, [trigger]);
 
   return (
     <>
@@ -586,152 +606,188 @@ const Encoder = () => {
             }}
           />
 
-          {/* <Row
-            style={{
-              marginLeft: 10,
-              marginRight: 10,
-              marginBottom: 10,
-            }}
-            gutter={[16, 16]}
-          >
-            {["Biller", "Wallet", "E-Load"].map((e) => (
-              <Col
-                span={3}
-                onClick={(_) =>
-                  setOpenBalanceHistory({
-                    open: true,
-                    type: e.toLocaleLowerCase(),
-                  })
-                }
-              >
-                <Tooltip
-                  title={
-                    isLow ? "Balance is too low. Please make a request." : ""
-                  }
-                >
-                  <Card
-                    styles={{
-                      body: {
-                        padding: 10,
-                      },
-                    }}
-                    style={{
-                      borderRadius: "0 0 8px 8px",
-                      border: isLow ? "1px solid #ff000055" : "",
-                    }}
-                    hoverable
-                  >
-                    <Typography.Title
-                      level={3}
-                      style={{
-                        marginBottom: 0,
-                        color: isLow ? "#ff0000aa" : "",
-                      }}
-                    >
-                      {e} Balance
-                    </Typography.Title>
-                    <Divider
-                      style={{
-                        margin: "10px 0",
-                        borderBlockStart: isLow ? "1px solid #ff0000aa" : "",
-                      }}
-                    />
+          <Row>
+            <Col span={isMobile ? 24 : 21}>
+              <Table
+                title={() =>
+                  isMobile ? (
                     <div
                       style={{
                         display: "flex",
                         justifyContent: "space-between",
-                        alignItems: "center",
                       }}
                     >
-                      <Typography.Title
-                        level={4}
-                        style={{
-                          color: isLow ? "#ff0000aa" : "",
-                        }}
+                      <Typography.Text
+                        style={{ fontSize: 25, marginLeft: 10 }}
+                        onClick={() => handleNotify()}
                       >
-                        PHP 40,000
-                      </Typography.Title>
+                        Transactions
+                      </Typography.Text>
+                      <Select
+                        key="status-filter"
+                        defaultValue="pending"
+                        onChange={(e: any) =>
+                          setFilter({ ...filter, status: e })
+                        }
+                        style={{
+                          width: 100,
+                          marginRight: 10,
+                        }}
+                        options={[
+                          {
+                            label: "All",
+                            value: null,
+                          },
+                          {
+                            label: "Pending",
+                            value: "pending",
+                          },
+                          {
+                            label: "Completed",
+                            value: "completed",
+                          },
+                          {
+                            label: "Failed",
+                            value: "failed",
+                          },
+                        ]}
+                      />
                     </div>
-                  </Card>
-                </Tooltip>
-              </Col>
-            ))}
-          </Row> */}
-          <Table
-            title={() =>
-              isMobile ? (
-                <div
+                  ) : (
+                    getHeader()
+                  )
+                }
+                dataSource={transactions}
+                columns={columns}
+                rowKey={(e) => e._id ?? e.type}
+                style={{
+                  marginLeft: 10,
+                  marginRight: 10,
+                }}
+                pagination={{
+                  total,
+                  onChange: (page, pageSize) =>
+                    getTransactions({
+                      page: 1,
+                      pageSize: 10,
+                      tellerId: filter.tellerId ?? "",
+                      type: filter.type ?? null,
+                      status: filter.status ?? null,
+                      sub_type: filter.sub_type ?? null,
+                      fromDate: filter.fromDate ?? null,
+                      toDate: filter.toDate ?? null,
+                    }),
+                }}
+                onRow={(data) => {
+                  return {
+                    onClick: () =>
+                      setBillsOption({ open: true, transaction: data }),
+                  };
+                }}
+              />
+            </Col>
+            {!isMobile && (
+              <Col span={3}>
+                <Flex
+                  gap={10}
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
+                    marginRight: 10,
+                    maxHeight: "80vh",
+                    overflowY: "scroll",
                   }}
+                  vertical
                 >
-                  <Typography.Text
-                    style={{ fontSize: 25, marginLeft: 10 }}
-                    onClick={() => handleNotify()}
-                  >
-                    Transactions
-                  </Typography.Text>
-                  <Select
-                    key="status-filter"
-                    defaultValue="pending"
-                    onChange={(e: any) => setFilter({ ...filter, status: e })}
-                    style={{
-                      width: 100,
-                      marginRight: 10,
-                    }}
-                    options={[
-                      {
-                        label: "All",
-                        value: null,
-                      },
-                      {
-                        label: "Pending",
-                        value: "pending",
-                      },
-                      {
-                        label: "Completed",
-                        value: "completed",
-                      },
-                      {
-                        label: "Failed",
-                        value: "failed",
-                      },
-                    ]}
-                  />
-                </div>
-              ) : (
-                getHeader()
-              )
-            }
-            dataSource={transactions}
-            columns={columns}
-            rowKey={(e) => e._id ?? e.type}
-            style={{
-              marginLeft: 10,
-              marginRight: 10,
-            }}
-            pagination={{
-              total,
-              onChange: (page, pageSize) =>
-                getTransactions({
-                  page: 1,
-                  pageSize: 10,
-                  tellerId: filter.tellerId ?? "",
-                  type: filter.type ?? null,
-                  status: filter.status ?? null,
-                  sub_type: filter.sub_type ?? null,
-                  fromDate: filter.fromDate ?? null,
-                  toDate: filter.toDate ?? null,
-                }),
-            }}
-            onRow={(data) => {
-              return {
-                onClick: () =>
-                  setBillsOption({ open: true, transaction: data }),
-              };
-            }}
-          />
+                  {portals.map((e, i) => {
+                    const isLow = e.currentBalance < 2000;
+
+                    return (
+                      <Tooltip
+                        key={`${e._id}-${i}`}
+                        title={
+                          e.currentBalance <= 0
+                            ? "Balance is 0. Please make a request."
+                            : isLow
+                            ? "Balance is too low. Please make a request."
+                            : ""
+                        }
+                      >
+                        <Card
+                          styles={{
+                            body: {
+                              padding: 10,
+                            },
+                          }}
+                          style={{
+                            border:
+                              e.currentBalance <= 0
+                                ? "1px solid #ff000055"
+                                : isLow
+                                ? "1px solid #e69b0055"
+                                : "",
+                          }}
+                          onClick={() =>
+                            setOpenPortalHistory({ open: true, portal: e })
+                          }
+                          hoverable
+                        >
+                          <Typography.Title
+                            level={3}
+                            style={{
+                              marginBottom: 0,
+                              color:
+                                e.currentBalance <= 0
+                                  ? "#ff0000aa"
+                                  : isLow
+                                  ? "#e69b00aa"
+                                  : "",
+                            }}
+                          >
+                            {e.name} Balance
+                          </Typography.Title>
+                          <Divider
+                            style={{
+                              margin: "10px 0",
+                              borderBlockStart:
+                                e.currentBalance <= 0
+                                  ? "#ff0000aa"
+                                  : isLow
+                                  ? "1px solid #e69b00aa"
+                                  : "",
+                            }}
+                          />
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Typography.Title
+                              level={4}
+                              style={{
+                                color:
+                                  e.currentBalance <= 0
+                                    ? "#ff0000aa"
+                                    : isLow
+                                    ? "#e69b00aa"
+                                    : "",
+                              }}
+                            >
+                              ₱
+                              {e.currentBalance.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </Typography.Title>
+                          </div>
+                        </Card>
+                      </Tooltip>
+                    );
+                  })}
+                </Flex>
+              </Col>
+            )}
+          </Row>
         </div>
       </div>
 
@@ -744,16 +800,14 @@ const Encoder = () => {
         isMobile={isMobile}
         {...billsOption}
       />
-      <BalanceHistory
-        open={openBalanceHistory.open}
-        balanceType={openBalanceHistory.type}
+      <PortalBalanceHistory
+        {...openPortalHistory}
         close={() =>
-          setOpenBalanceHistory({
+          setOpenPortalHistory({
             open: false,
-            type: "",
+            portal: null,
           })
         }
-        user={currentUser}
       />
     </>
   );
