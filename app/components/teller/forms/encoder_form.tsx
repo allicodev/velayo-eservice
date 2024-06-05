@@ -255,12 +255,14 @@ const EncoderForm = ({
   const checkIfValid = () => {
     if (isDisabled) return true;
     if (isFailed) return false;
-    if (
-      transaction &&
-      transaction.type == "wallet" &&
-      transaction.sub_type?.split(" ")[1] == "cash-out"
-    )
-      return false;
+    if (transaction && transaction.type == "wallet") {
+      if (
+        transaction.sub_type?.split(" ")[1] == "cash-out" &&
+        selectedPortal == null
+      )
+        return true;
+      else return false;
+    }
 
     if (!isFailed && ["", null].includes(refNumber)) return true;
 
