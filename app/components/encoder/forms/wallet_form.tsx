@@ -77,8 +77,9 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
       return selectedWallet?.cashoutType == "fixed"
         ? selectedWallet?.cashoutFeeValue!
         : includeFee
-        ? amount -
-          Math.ceil(amount / (1 + selectedWallet?.cashoutFeeValue! / 100))
+        ? Math.ceil(
+            amount - amount / (1 + selectedWallet?.cashoutFeeValue! / 100)
+          )
         : Math.ceil(amount * (selectedWallet?.cashoutFeeValue! / 100));
     }
   };

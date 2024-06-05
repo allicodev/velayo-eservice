@@ -712,7 +712,11 @@ const ItemsHome = ({ open, close, extraData }: DrawerBasicProps) => {
                   }
                 }}
                 selectedKeys={[selectedKey ? selectedKey : ""]}
-                treeData={treeNodes}
+                treeData={treeNodes.filter((e) =>
+                  e.rawTitle
+                    .toLocaleLowerCase()
+                    .includes(searchValue.toLocaleLowerCase())
+                )}
               />
             </div>
           </Col>
