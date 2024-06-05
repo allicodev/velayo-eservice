@@ -261,7 +261,15 @@ const EncoderForm = ({
         selectedPortal == null
       )
         return true;
-      else return false;
+      else {
+        if (
+          transaction.sub_type?.split(" ")[1] == "cash-in" &&
+          (selectedPortal == null ||
+            selectedPortal.currentBalance <= (transaction.amount ?? 0))
+        )
+          return true;
+        return false;
+      }
     }
 
     if (!isFailed && ["", null].includes(refNumber)) return true;
@@ -745,26 +753,28 @@ const EncoderForm = ({
                     showSearch
                     allowClear
                   />
-                  {selectedPortal &&
-                    transaction.type == "wallet" &&
-                    !transaction.sub_type?.includes("cash-out") && (
-                      <Alert
-                        description={
-                          selectedPortal.currentBalance <= 0
-                            ? "Selected Portal has no Balance"
-                            : selectedPortal.currentBalance <
-                              (transaction.amount ?? 0)
-                            ? "Selected Portal has insufficient Balance"
-                            : ""
-                        }
-                        type={
-                          selectedPortal.currentBalance <= 0
-                            ? "error"
-                            : "warning"
-                        }
-                        style={{ height: 40, padding: 8 }}
-                      />
-                    )}
+                  {selectedPortal
+                    ? (selectedPortal.currentBalance <= 0 ||
+                        selectedPortal.currentBalance <
+                          (transaction.amount ?? 0)) && (
+                        <Alert
+                          description={
+                            selectedPortal.currentBalance <= 0
+                              ? "Selected Portal has no Balance"
+                              : selectedPortal.currentBalance <
+                                (transaction.amount ?? 0)
+                              ? "Selected Portal has insufficient Balance"
+                              : ""
+                          }
+                          type={
+                            selectedPortal.currentBalance <= 0
+                              ? "error"
+                              : "warning"
+                          }
+                          style={{ height: 40, padding: 8 }}
+                        />
+                      )
+                    : null}
                 </div>
                 {selectedPortal && transaction.type != "wallet" && (
                   <div
