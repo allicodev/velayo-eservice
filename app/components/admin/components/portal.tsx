@@ -368,6 +368,7 @@ const Portal = () => {
                 dataSource={logs}
                 pagination={{
                   size: "small",
+                  pageSize: 8,
                 }}
                 loading={fetching}
               />
