@@ -265,7 +265,8 @@ const EncoderForm = ({
         if (
           transaction.sub_type?.split(" ")[1] == "cash-in" &&
           (selectedPortal == null ||
-            selectedPortal.currentBalance <= (transaction.amount ?? 0))
+            selectedPortal.currentBalance < (transaction.amount ?? 0) ||
+            ["", null].includes(refNumber))
         )
           return true;
         return false;
