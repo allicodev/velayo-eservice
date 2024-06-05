@@ -337,6 +337,29 @@ const TransactionDetails = ({
               </div>
             </div>
           ) : null}
+
+          {transaction?.type == "wallet" &&
+            transaction.sub_type?.includes("cash-in") && (
+              <div style={{ display: "flex", marginTop: 15 }}>
+                <div
+                  style={{
+                    width: 350,
+                    fontSize: 20,
+                  }}
+                >
+                  Reference Number:
+                </div>
+                <div
+                  style={{
+                    width: 300,
+                    fontSize: 20,
+                  }}
+                >
+                  {transaction.reference}
+                </div>
+              </div>
+            )}
+
           {latestHistory()?.status == "completed" && (
             <Button
               onClick={handlePrint}
