@@ -98,10 +98,7 @@ const TransactionHistory = () => {
     {
       title: "Amount",
       align: "end",
-      render: (_, e) =>
-        e?.sub_type && e.sub_type?.toLocaleLowerCase().includes("cash-out")
-          ? -(e?.amount ?? 0).toFixed(2)
-          : e.amount,
+      dataIndex: "amount",
     },
     {
       title: "Service Fee",
@@ -346,13 +343,7 @@ const TransactionHistory = () => {
 
     if (totals && totals.length > 0) {
       setTotalOpt({
-        amount: totals.reduce(
-          (p: any, n: any) =>
-            n.type == "wallet" && n.sub_type!.split(" ")[1] == "cash-out"
-              ? p - n.amount
-              : p + n.amount,
-          0
-        ),
+        amount: totals.reduce((p: any, n: any) => p + n.amount, 0),
         fee: totals
           .filter((e: any) => e?.fee != undefined)
           .reduce((p: any, n: any) => p + n?.fee ?? 0, 0),
