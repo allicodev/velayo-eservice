@@ -129,8 +129,10 @@ const TransactionHistory = ({
     },
     {
       title: "Amount",
-      dataIndex: "amount",
-      render: (_) => `₱${_}`,
+      render: (_, row) =>
+        row.type == "miscellaneous"
+          ? `₱${(row.amount ?? 0) + (row.fee ?? 0)}`
+          : `₱${row.amount}`,
     },
     {
       title: "Date Requested",

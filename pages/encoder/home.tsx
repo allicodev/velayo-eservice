@@ -668,8 +668,8 @@ const Encoder = () => {
                   total,
                   onChange: (page, pageSize) =>
                     getTransactions({
-                      page: 1,
-                      pageSize: 10,
+                      page,
+                      pageSize,
                       tellerId: filter.tellerId ?? "",
                       type: filter.type ?? null,
                       status: filter.status ?? null,
