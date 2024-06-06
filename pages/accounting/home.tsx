@@ -462,17 +462,9 @@ const Accounting = () => {
         dateTime: dayjs(e.createdAt).format("MM/DD/YYYY HH:mm"),
         transactionType: getTransactionLabel(e.type),
         billerName: e.sub_type?.toLocaleUpperCase() ?? "N/A",
-        amount:
-          e.type == "wallet" && e.sub_type!.split(" ")[1] == "cash-out"
-            ? -e.amount!
-            : e.amount,
+        amount: e.amount,
         serviceFee: e.fee,
-        total:
-          e?.sub_type ?? false
-            ? ((e.type == "wallet" && e.sub_type!.split(" ")[1] == "cash-out"
-                ? -e.amount!
-                : e.amount) ?? 0) + (e.fee ?? 0)
-            : e.amount,
+        total: e?.sub_type ?? false ? (e.amount ?? 0) + (e.fee ?? 0) : e.amount,
         user: typeof e.tellerId == "object" ? e.tellerId.name : "",
         status: (e.history.at(-1)?.status ?? "").toLocaleUpperCase(),
       });
@@ -497,13 +489,7 @@ const Accounting = () => {
     };
 
     const totalAmount = trans.reduce(
-      (p, n) =>
-        p +
-        (n?.sub_type ?? false
-          ? n.type == "wallet" && n.sub_type!.split(" ")[1] == "cash-out"
-            ? -n.amount!
-            : n?.amount ?? 0
-          : n.amount!),
+      (p, n) => p + (n?.sub_type ?? false ? n?.amount ?? 0 : n.amount!),
       0
     );
     const totalFee = trans.reduce((p, n) => p + (n?.fee ?? 0), 0);

@@ -162,10 +162,7 @@ const EncoderForm = ({
             ..._transaction,
             type: _transaction.type,
             encoderId: currentUser?._id ?? "",
-            reference:
-              _transaction?.sub_type?.includes("cash-out") ?? false
-                ? "RECEIVED"
-                : refNumber!,
+            reference: refNumber!,
             $push: {
               history: {
                 description: "Transaction completed",
@@ -258,7 +255,7 @@ const EncoderForm = ({
     if (transaction && transaction.type == "wallet") {
       if (
         transaction.sub_type?.split(" ")[1] == "cash-out" &&
-        selectedPortal == null
+        ([null, ""].includes(refNumber) || selectedPortal == null)
       )
         return true;
       else {
@@ -693,7 +690,6 @@ const EncoderForm = ({
               />
             </FloatLabel>
           ) : (
-            !transaction?.sub_type?.includes("cash-out") &&
             transaction.type != "miscellaneous" && (
               <div style={{ marginTop: 20 }}>
                 <FloatLabel label="Reference Number" value={refNumber!}>
