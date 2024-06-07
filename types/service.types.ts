@@ -57,4 +57,7 @@ export interface TransactionPrinterPOS {
 export interface EloadSettings {
   _id: string;
   disabled_eload: string[];
+  fee?: number | undefined;
+  threshold?: number | undefined;
+  additionalFee?: number | undefined;
 }

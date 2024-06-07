@@ -21,8 +21,15 @@ async function handler(
 
   return await Settings.findOneAndUpdate(
     { _id: "eload_settings" },
-    { $set: { disabled_eload: req.body.settings } }
-  ).then((e) => res.json({ code: 200, success: true, data: e }));
+    { $set: req.body }
+  ).then((e) =>
+    res.json({
+      code: 200,
+      success: true,
+      data: e,
+      message: "E-Load Settings Updated",
+    })
+  );
 }
 
 export default handler;

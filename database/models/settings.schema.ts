@@ -6,7 +6,12 @@ const SettingsSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    // for eload
     disabled_eload: [{ type: String }],
+    fee: Number,
+    threshold: Number,
+    additionalFee: Number,
   },
   { timestamps: false }
 );

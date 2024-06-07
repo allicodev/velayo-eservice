@@ -585,3 +585,11 @@ label.customCheckbox span span.ant-checkbox-inner::after {
   background-color: #98c04b !important;
   color: #fff !important;
 }
+
+.ant-float-btn-icon {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 15px !important;
+}

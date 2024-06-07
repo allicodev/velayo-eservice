@@ -148,6 +148,7 @@ export interface Eload {
   amount: number | null;
   type: ELoadType | null;
   promo?: string | null;
+  fee?: number;
 }
 
 // backend stuffs

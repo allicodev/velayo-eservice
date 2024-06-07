@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Drawer, Layout, Affix, Menu, Typography } from "antd";
+import { Drawer, Layout, Affix, Menu, Typography, Button } from "antd";
 import {
   DownOutlined,
   BarChartOutlined,
   CalendarOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { GrTransaction } from "react-icons/gr";
 import { GoCreditCard } from "react-icons/go";
@@ -14,6 +15,7 @@ import { TransactionReportProps } from "@/types";
 import Attendance from "./components/attendance";
 import TransactionHistory from "./components/transaction_history";
 import Portal from "./components/portal";
+import Settings from "./settings";
 
 dayjs.extend(relativeTime);
 
@@ -72,6 +74,11 @@ const Report = ({ open, close }: TransactionReportProps) => {
                     key: "portal",
                     icon: <GoCreditCard />,
                   },
+                  {
+                    label: "Settings",
+                    key: "settings",
+                    icon: <SettingOutlined />,
+                  },
                 ]}
                 // defaultSelectedKeys="dashboard"
                 style={{
@@ -99,6 +106,7 @@ const Report = ({ open, close }: TransactionReportProps) => {
             {activeKey == "attendance" ? <Attendance /> : null}
             {activeKey == "transactions" ? <TransactionHistory /> : null}
             {activeKey == "portal" ? <Portal /> : null}
+            {activeKey == "settings" ? <Settings /> : null}
           </Layout>
         </Layout>
       </Drawer>

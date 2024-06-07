@@ -243,7 +243,7 @@ class BillService extends Loader {
       sub_type: `${provider} LOAD` ?? "",
       transactionDetails: JSON.stringify(eload),
       amount,
-      fee: 2,
+      fee: eload.fee,
       tellerId: eload.tellerId,
       branchId,
       history: [

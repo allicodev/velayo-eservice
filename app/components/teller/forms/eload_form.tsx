@@ -1,5 +1,5 @@
 import { FloatLabel, checkProvider } from "@/assets/ts";
-import type { Eload, EloadProps } from "@/types";
+import type { Eload, EloadProps, EloadSettings } from "@/types";
 import {
   Button,
   Input,
@@ -18,7 +18,9 @@ import EtcService from "@/provider/etc.service";
 const _ = (__: any) => [null, undefined, ""].includes(__);
 
 const Eload = ({ open, close, onSubmit }: EloadProps) => {
-  const [disabledEload, setDisabledEload] = useState<string[]>([]);
+  const [disabledEload, setDisabledEload] = useState<EloadSettings | null>(
+    null
+  );
   const etc = new EtcService();
 
   const [eload, setEload] = useState<Eload>({
@@ -80,6 +82,7 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
         ...(eload.type == "promo" ? { promo: eload.promo } : {}),
         phone: eload?.phone,
         amount: eload.amount,
+        fee: getFee(),
       });
 
       if (a) {
@@ -96,11 +99,22 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
     })();
   };
 
+  const getFee = () => {
+    if (disabledEload?.additionalFee) {
+      const { threshold, additionalFee, fee } = disabledEload;
+
+      if ((eload.amount ?? 0) / (threshold ?? 1) > 0) {
+        let multiplier = Math.floor((eload.amount ?? 0) / (threshold ?? 1));
+        return (fee ?? 0) + additionalFee * multiplier;
+      } else return fee;
+    }
+    return 0;
+  };
+
   useEffect(() => {
     (async (_) => {
       let res2 = await _.getEloadSettings();
-      if (res2?.success ?? false)
-        setDisabledEload(res2?.data?.disabled_eload ?? []);
+      if (res2?.success ?? false) setDisabledEload(res2?.data ?? null);
     })(etc);
   }, []);
 
@@ -133,9 +147,11 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
           fontSize: "2em",
         }}
         options={jason.provider.map((e) => ({
-          label: `${e} ${disabledEload.includes(e) ? "(disabled)" : ""}`,
+          label: `${e} ${
+            disabledEload?.disabled_eload.includes(e) ? "(disabled)" : ""
+          }`,
           value: e,
-          disabled: disabledEload.includes(e),
+          disabled: disabledEload?.disabled_eload.includes(e),
         }))}
         onChange={(e) => update("provider", e)}
       />
@@ -166,21 +182,43 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
         {checkProvider(eload.phone ?? "")}
       </span> */}
 
-      <InputNumber
-        size="large"
-        className="customInput size-70"
-        placeholder="Amount"
+      <FloatLabel
+        value={eload.amount?.toString()}
+        label="Amount"
         style={{
-          width: "100%",
-          height: 70,
-          alignItems: "center",
-          fontSize: "2em",
+          marginTop: 10,
         }}
-        prefix="₱"
-        min={1}
-        onChange={(e) => update("amount", e)}
-        controls={false}
-      />
+        extra={
+          <span
+            style={{
+              float: "right",
+              marginBottom: 10,
+              fontSize: "1.8em",
+            }}
+          >
+            +₱{getFee()} (fee)
+          </span>
+        }
+      >
+        <InputNumber
+          size="large"
+          className="customInput size-70"
+          style={{
+            width: "100%",
+            height: 70,
+            alignItems: "center",
+            fontSize: "2em",
+          }}
+          prefix="₱"
+          min={1}
+          onChange={(e) => update("amount", e)}
+          controls={false}
+          formatter={(value: any) =>
+            value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
+          parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
+        />
+      </FloatLabel>
       <Radio.Group
         onChange={(e) => update("type", e.target.value)}
         className="custom-radio"

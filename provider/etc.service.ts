@@ -75,10 +75,10 @@ class EtcService {
     });
   }
 
-  public async updateEloadSettings(settings: string[]) {
+  public async updateEloadSettings(payload: any) {
     return await this.instance.post<Response>({
       endpoint: "/etc/eload-settings-update",
-      payload: { settings },
+      payload,
     });
   }
 }
