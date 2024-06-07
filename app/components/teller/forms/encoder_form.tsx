@@ -254,20 +254,20 @@ const EncoderForm = ({
     if (isFailed) return false;
     if (transaction && transaction.type == "wallet") {
       if (
-        transaction.sub_type?.split(" ")[1] == "cash-out" &&
-        ([null, ""].includes(refNumber) || selectedPortal == null)
+        transaction.sub_type?.split(" ")[1] == "cash-in" &&
+        (selectedPortal == null ||
+          selectedPortal.currentBalance < (transaction.amount ?? 0) ||
+          ["", null].includes(refNumber) ||
+          [0, null].includes(rebate))
       )
         return true;
-      else {
-        if (
-          transaction.sub_type?.split(" ")[1] == "cash-in" &&
-          (selectedPortal == null ||
-            selectedPortal.currentBalance < (transaction.amount ?? 0) ||
-            ["", null].includes(refNumber))
-        )
-          return true;
-        return false;
-      }
+
+      if (
+        transaction.sub_type?.split(" ")[1] == "cash-out" &&
+        (selectedPortal == null || [0, null].includes(rebate))
+      )
+        return true;
+      return false;
     }
 
     if (!isFailed && ["", null].includes(refNumber)) return true;
@@ -773,7 +773,7 @@ const EncoderForm = ({
                       )
                     : null}
                 </div>
-                {selectedPortal && transaction.type != "wallet" && (
+                {selectedPortal && (
                   <div
                     style={{
                       marginTop: 5,
