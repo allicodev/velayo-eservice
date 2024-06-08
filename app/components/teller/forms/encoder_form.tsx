@@ -139,11 +139,12 @@ const EncoderForm = ({
       if (transaction?.type == "wallet")
         return transaction.sub_type?.includes("cash-out")
           ? transaction?.amount ?? 0
-          : -(transaction?.amount ?? 0);
+          : -((transaction?.amount ?? 0) + (transaction.fee ?? 0));
 
-      return transaction?.isOnlinePayment
-        ? transaction.amount
-        : -(transaction?.amount ?? 0);
+      return (
+        (transaction?.amount ?? 0) +
+        (transaction?.fee ?? 0) * (transaction?.isOnlinePayment ? 1 : -1)
+      );
     };
 
     if (!isFailed) {

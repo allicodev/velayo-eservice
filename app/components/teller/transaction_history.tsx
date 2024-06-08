@@ -269,7 +269,7 @@ const TransactionHistory = ({
         billerName: e.sub_type?.toLocaleUpperCase() ?? "N/A",
         amount: e.amount,
         serviceFee: e.fee,
-        total: e?.sub_type ?? false ? (e.amount ?? 0) + (e.fee ?? 0) : e.amount,
+        total: (e.amount ?? 0) + (e.fee ?? 0),
         user: typeof e.tellerId == "object" ? e.tellerId.name : "",
         status: (e.history.at(-1)?.status ?? "").toLocaleUpperCase(),
       });
@@ -293,10 +293,7 @@ const TransactionHistory = ({
       horizontal: "right",
     };
 
-    const totalAmount = trans.reduce(
-      (p, n) => p + (n?.sub_type ?? false ? n?.amount ?? 0 : n.amount!),
-      0
-    );
+    const totalAmount = trans.reduce((p, n) => p + (n.amount ?? 0), 0);
     const totalFee = trans.reduce((p, n) => p + (n?.fee ?? 0), 0);
 
     const parseToMoney = (num: number) =>
@@ -321,7 +318,7 @@ const TransactionHistory = ({
         bold: true,
       };
     });
-
+    // return;
     workbook.xlsx.writeBuffer().then((data) => {
       const blob = new Blob([data], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheet.sheet",
