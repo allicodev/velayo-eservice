@@ -142,8 +142,8 @@ const EncoderForm = ({
           : -((transaction?.amount ?? 0) + (transaction.fee ?? 0));
 
       return (
-        (transaction?.amount ?? 0) +
-        (transaction?.fee ?? 0) * (transaction?.isOnlinePayment ? 1 : -1)
+        ((transaction?.amount ?? 0) + (transaction?.fee ?? 0)) *
+        (transaction?.isOnlinePayment ? 1 : -1)
       );
     };
 
