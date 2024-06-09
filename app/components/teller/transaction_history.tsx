@@ -260,7 +260,6 @@ const TransactionHistory = ({
     ];
 
     trans.map((e) => {
-      console.log(e);
       sheet.addRow({
         refCode: e.reference,
         branchName: (e.branchId as Branch)?.name ?? "No Branch",
@@ -268,13 +267,23 @@ const TransactionHistory = ({
         transactionType: getTransactionLabel(e.type),
         billerName: e.sub_type?.toLocaleUpperCase() ?? "N/A",
         amount:
-          e.type == "miscellaneous" ? (e.amount ?? 0) + (e.fee ?? 0) : e.amount,
+          e.type == "miscellaneous" ||
+          (e.type == "wallet" &&
+            e.sub_type?.toLocaleLowerCase().includes("cash-out"))
+            ? (e.amount ?? 0) + (e.fee ?? 0)
+            : e.amount,
         serviceFee: e.fee,
         total:
-          e.type == "wallet" &&
-          e.sub_type?.toLocaleLowerCase().includes("cash-out")
-            ? -((e.amount ?? 0) - (e.fee ?? 0))
-            : (e.amount ?? 0) + (e.fee ?? 0),
+          ((e.amount ?? 0) +
+            (e.type == "wallet" &&
+            e.sub_type?.toLocaleLowerCase().includes("cash-out")
+              ? e.fee ?? 0
+              : 0)) *
+            (e.type == "wallet" &&
+            e.sub_type?.toLocaleLowerCase().includes("cash-out")
+              ? -1
+              : 1) +
+          (e.fee ?? 0),
         user: typeof e.tellerId == "object" ? e.tellerId.name : "",
         status: (e.history.at(-1)?.status ?? "").toLocaleUpperCase(),
       });

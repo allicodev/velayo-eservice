@@ -115,10 +115,12 @@ const Accounting = () => {
     {
       title: "Amount",
       align: "end",
-      render: (_, e) =>
-        e?.sub_type && e.sub_type?.toLocaleLowerCase().includes("cash-out")
-          ? -(e?.amount ?? 0).toFixed(2)
-          : e.amount,
+      render: (_, row) =>
+        row.type == "miscellaneous" ||
+        (row.type == "wallet" &&
+          row.sub_type?.toLocaleLowerCase().includes("cash-out"))
+          ? (row.amount ?? 0) + (row.fee ?? 0)
+          : row.amount,
     },
     {
       title: "Service Fee",
@@ -129,7 +131,17 @@ const Accounting = () => {
     {
       title: "Amount + Service Fee",
       align: "end",
-      render: (_, row) => (row?.amount ?? 0) + (row?.fee ?? 0),
+      render: (_, e) =>
+        ((e.amount ?? 0) +
+          (e.type == "wallet" &&
+          e.sub_type?.toLocaleLowerCase().includes("cash-out")
+            ? e.fee ?? 0
+            : 0)) *
+          (e.type == "wallet" &&
+          e.sub_type?.toLocaleLowerCase().includes("cash-out")
+            ? -1
+            : 1) +
+        (e.fee ?? 0),
     },
     {
       title: "Teller",
@@ -463,13 +475,23 @@ const Accounting = () => {
         transactionType: getTransactionLabel(e.type),
         billerName: e.sub_type?.toLocaleUpperCase() ?? "N/A",
         amount:
-          e.type == "miscellaneous" ? (e.amount ?? 0) + (e.fee ?? 0) : e.amount,
+          e.type == "miscellaneous" ||
+          (e.type == "wallet" &&
+            e.sub_type?.toLocaleLowerCase().includes("cash-out"))
+            ? (e.amount ?? 0) + (e.fee ?? 0)
+            : e.amount,
         serviceFee: e.fee,
         total:
-          e.type == "wallet" &&
-          e.sub_type?.toLocaleLowerCase().includes("cash-out")
-            ? -((e.amount ?? 0) - (e.fee ?? 0))
-            : (e.amount ?? 0) + (e.fee ?? 0),
+          ((e.amount ?? 0) +
+            (e.type == "wallet" &&
+            e.sub_type?.toLocaleLowerCase().includes("cash-out")
+              ? e.fee ?? 0
+              : 0)) *
+            (e.type == "wallet" &&
+            e.sub_type?.toLocaleLowerCase().includes("cash-out")
+              ? -1
+              : 1) +
+          (e.fee ?? 0),
         user: typeof e.tellerId == "object" ? e.tellerId.name : "",
         status: (e.history.at(-1)?.status ?? "").toLocaleUpperCase(),
       });
