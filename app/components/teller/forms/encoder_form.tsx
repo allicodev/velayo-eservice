@@ -252,7 +252,11 @@ const EncoderForm = ({
 
   const checkIfValid = () => {
     if (isDisabled) return true;
-    if (isFailed) return false;
+    if (
+      isFailed ||
+      (transaction?.type == "miscellaneous" && transaction.isOnlinePayment)
+    )
+      return false;
     if (transaction && transaction.type == "wallet") {
       if (
         transaction.sub_type?.split(" ")[1] == "cash-in" &&
