@@ -284,7 +284,7 @@ const Portal = () => {
   };
 
   const fetchPortal = async (prop?: FilterProps) => {
-    let res = await portal.getPortal(prop);
+    let res = await portal.getPortal({ ...prop, project: { logs: 0 } });
     setOpenNewPortal({ open: false, portal: null });
     if (res?.success ?? false) {
       setPortals(res?.data ?? []);

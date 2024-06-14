@@ -26,7 +26,7 @@ const RequestSchema = new mongoose.Schema(
       ref: "User",
     },
   },
-  { timestamps: false }
+  { timestamps: true }
 );
 
 export default mongoose.models.Request ||
