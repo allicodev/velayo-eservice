@@ -572,7 +572,7 @@ const Encoder = () => {
     })(user);
 
     (async (_) => {
-      let res = await _.getPortal({ sort: 1 });
+      let res = await _.getPortal({ sort: 1, project: { logs: 0 } });
 
       if (res?.success ?? false) setPortals(res?.data ?? []);
     })(portal);
