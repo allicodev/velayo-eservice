@@ -11,7 +11,7 @@ class PortalService {
   public async getPortal(query?: any) {
     if (query?.assignTo) query.assignTo = JSON.stringify(query.assignTo);
     if (query?.project) query.project = JSON.stringify(query.project);
-    return await this.instance.get<Portal[]>({ endpoint: "/portal", query });
+    return await this.instance.get<Portal[]>({ endpoint: "portal", query });
   }
 
   public async deletePortal(_id: string) {

@@ -20,7 +20,7 @@ async function handler(
         return res.json({
           code: 200,
           success: true,
-          message: "Successfully Fetched wallets",
+          message: "Successfully Fetched branches",
           data: e as any,
         });
       })
