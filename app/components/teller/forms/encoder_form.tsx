@@ -358,7 +358,6 @@ const EncoderForm = ({
                     ![
                       "billerId",
                       "transactionType",
-                      "fee",
                       "tellerId",
                       "amount",
                     ].includes(e)
@@ -398,16 +397,27 @@ const EncoderForm = ({
                     ![
                       "billerId",
                       "transactionType",
-                      "fee",
                       "tellerId",
                       "amount",
                     ].includes(e)
                 )
                 .map((e: any) => {
-                  if (typeof _[e] == "string" && _[e].includes("_money"))
+                  if (transaction.type == "eload" && e == "fee")
+                    return `₱${Number.parseFloat(_[e]).toLocaleString(
+                      undefined,
+                      {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }
+                    )}`;
+                  else if (typeof _[e] == "string" && _[e].includes("_money"))
                     return `₱${Number.parseFloat(
                       _[e].split("_")[0]
-                    ).toLocaleString()}`;
+                    ).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}`;
+
                   return _[e];
                 }),
               `₱${transaction.amount?.toLocaleString(undefined, {

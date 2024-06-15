@@ -40,7 +40,8 @@ async function handler(
 
     const _page = Number.parseInt(page!.toString()) - 1;
 
-    let query = [];
+    let query = [],
+      _logs = [];
 
     if (fromDate)
       query.push({
@@ -88,6 +89,14 @@ async function handler(
       query.length > 0 ? { $and: query } : {}
     );
 
+    if (type == "attendance") {
+      _logs = await Log.find(query.length > 0 ? { $and: query } : {}, {
+        timeIn: 1,
+        timeOut: 1,
+        _id: 0,
+      });
+    }
+
     if (project) project = JSON.parse(project as string);
     return await Log.find(query.length > 0 ? { $and: query } : {}, project)
       .skip(_page * Number.parseInt(pageSize!.toString()))
@@ -102,6 +111,7 @@ async function handler(
           data: e as any,
           meta: {
             total,
+            timers: _logs,
           },
         });
       })

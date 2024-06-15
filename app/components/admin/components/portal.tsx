@@ -307,8 +307,6 @@ const Portal = () => {
       pageSize: 9999999,
     });
 
-    console.log(res);
-
     if (res?.success ?? false) {
       setLogs(res?.data ?? []);
       setFetching(false);

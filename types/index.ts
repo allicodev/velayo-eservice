@@ -61,6 +61,7 @@ interface ExtendedResponse<T> extends Response {
   data?: T;
   meta?: {
     total: number;
+    [key: string]: any;
   };
 }
 

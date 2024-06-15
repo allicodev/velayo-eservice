@@ -45,6 +45,7 @@ const Attendance = () => {
   const [tellerName, setTellerName] = useState("");
 
   const [total, setTotal] = useState(0);
+  const [totalRenderedHourse, setTotalRenderedHours] = useState(0);
 
   // context and services
   const user = new UserService();
@@ -78,35 +79,7 @@ const Attendance = () => {
       render: ({ userId, timeInPhoto, createdAt, branchId, timeIn }) => (
         <div>
           {dayjs(timeIn).format("hh:mma")}
-          <Typography.Link
-            style={{
-              display: "block",
-              textAlign: "center",
-            }}
-            onClick={() =>
-              setPhotoViewer({
-                open: true,
-                src: timeInPhoto,
-                details: ["admin", "encoder"].includes(userId.role)
-                  ? ""
-                  : `Taken in Branch ${branchId} at ${dayjs(createdAt).format(
-                      "MMMM DD, YYYY - hh:mma"
-                    )}`,
-              })
-            }
-          >
-            view photo
-          </Typography.Link>
-        </div>
-      ),
-    },
-    {
-      title: "Time Out",
-      align: "center",
-      render: ({ userId, timeOutPhoto, createdAt, branchId, timeOut }) =>
-        timeOut ? (
-          <div>
-            {dayjs(timeOut).format("hh:mma")}
+          {timeInPhoto && (
             <Typography.Link
               style={{
                 display: "block",
@@ -115,7 +88,7 @@ const Attendance = () => {
               onClick={() =>
                 setPhotoViewer({
                   open: true,
-                  src: timeOutPhoto,
+                  src: timeInPhoto,
                   details: ["admin", "encoder"].includes(userId.role)
                     ? ""
                     : `Taken in Branch ${branchId} at ${dayjs(createdAt).format(
@@ -126,6 +99,38 @@ const Attendance = () => {
             >
               view photo
             </Typography.Link>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: "Time Out",
+      align: "center",
+      render: ({ userId, timeOutPhoto, createdAt, branchId, timeOut }) =>
+        timeOut ? (
+          <div>
+            {dayjs(timeOut).format("hh:mma")}
+            {timeOutPhoto && (
+              <Typography.Link
+                style={{
+                  display: "block",
+                  textAlign: "center",
+                }}
+                onClick={() =>
+                  setPhotoViewer({
+                    open: true,
+                    src: timeOutPhoto,
+                    details: ["admin", "encoder"].includes(userId.role)
+                      ? ""
+                      : `Taken in Branch ${branchId} at ${dayjs(
+                          createdAt
+                        ).format("MMMM DD, YYYY - hh:mma")}`,
+                  })
+                }
+              >
+                view photo
+              </Typography.Link>
+            )}
           </div>
         ) : (
           <Typography.Text type="secondary" italic>
@@ -212,11 +217,12 @@ const Attendance = () => {
     </div>
   );
 
-  const calculateHoursRendered = (_log: LogData): number => {
-    if (_log.timeOut == null) return 0;
-    let hours = dayjs(_log.timeOut).diff(dayjs(_log.timeIn), "hour");
+  const calculateHoursRendered = (__log: LogData): number => {
+    if (__log.timeOut == null) return 0;
+    let hours = dayjs(__log.timeOut).diff(dayjs(__log.timeIn), "hour");
     let minutes =
-      Math.abs(dayjs(_log.timeOut).minute() - dayjs(_log.timeIn).minute()) / 60;
+      Math.abs(dayjs(__log.timeOut).minute() - dayjs(__log.timeIn).minute()) /
+      60;
     return hours + minutes;
   };
 
@@ -259,6 +265,16 @@ const Attendance = () => {
         setFetching(false);
         setLogs(res?.data ?? []);
         setTotal(res.meta?.total ?? 10);
+        setTotalRenderedHours(
+          res?.meta?.timers.reduce((p: any, n: any) => {
+            if (n.timeOut == null) return p;
+            let hours = dayjs(n.timeOut).diff(dayjs(n.timeIn), "hour");
+            let minutes =
+              Math.abs(dayjs(n.timeOut).minute() - dayjs(n.timeIn).minute()) /
+              60;
+            return p + hours + minutes;
+          }, 0)
+        );
         resolve(res.data);
       } else {
         setFetching(false);
@@ -435,7 +451,7 @@ const Attendance = () => {
                 toDate: filter.toDate ?? null,
               }),
           }}
-          summary={(pageData) => (
+          summary={() => (
             <Table.Summary fixed>
               <Table.Summary.Row>
                 <Table.Summary.Cell index={0} />
@@ -454,9 +470,7 @@ const Attendance = () => {
                       Total:
                     </Typography.Text>
                     <span style={{ flex: 7 }}>
-                      {pageData
-                        .reduce((p, n) => p + calculateHoursRendered(n), 0)
-                        .toFixed(2)}
+                      {totalRenderedHourse.toFixed(2)}
                     </span>
                   </div>
                 </Table.Summary.Cell>
