@@ -19,13 +19,14 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
+  const currentDate: Date = new Date();
+  const pastDate: Date = new Date(
+    currentDate.setDate(currentDate.getDate() - 15)
+  );
   return await Log.find(
     {
       type: "attendance",
-      $or: [
-        { timeIn: { $gte: Date.now() / 1000 - 15 * 24 * 60 * 60 } },
-        { timeOut: { $gte: Date.now() / 1000 - 15 * 24 * 60 * 60 } },
-      ],
+      $or: [{ timeIn: { $lte: pastDate } }, { timeOut: { $lte: pastDate } }],
     },
     { _id: 1 }
   )
@@ -39,7 +40,6 @@ async function handler(
       return res.json({
         code: 200,
         success: true,
-        message: "Successfully Fetched branches",
         data: e as any,
       });
     })
