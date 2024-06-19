@@ -27,6 +27,7 @@ async function handler(
           Number.parseInt(pageSize!.toString())
       )
       .limit(Number.parseInt(pageSize!.toString()))
+      .sort({ status: -1, createdAt: -1 })
       .populate("portalId encoderId")
       .then((e) => res.json({ code: 200, success: true, data: e as any }));
   } else {

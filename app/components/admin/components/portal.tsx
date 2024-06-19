@@ -85,7 +85,12 @@ const Portal = () => {
     {
       title: "Portal Name",
       render: (_, row) => (
-        <Badge count={row.requests?.length ?? 0} offset={[8, 0]}>
+        <Badge
+          count={
+            row.requests?.filter((e) => e.status != "rejected")?.length ?? 0
+          }
+          offset={[8, 0]}
+        >
           <Typography.Text
             style={{
               color: selectedPortal?._id == row._id ? "#fff" : "#000",
@@ -235,19 +240,18 @@ const Portal = () => {
         <Typography.Title level={3} style={{ margin: 5 }}>
           {selectedPortal.name} Balance History
         </Typography.Title>
-        {selectedPortal.requests && selectedPortal.requests.length > 0 && (
-          <Badge count={selectedPortal.requests.length}>
-            <MessageOutlined
-              style={{ fontSize: "1.5em", cursor: "pointer" }}
-              onClick={() =>
-                setOpenRequestBalance({
-                  open: true,
-                  portal: selectedPortal ?? "",
-                })
-              }
-            />
-          </Badge>
-        )}
+
+        <Badge count={selectedPortal.requests?.length ?? 0}>
+          <MessageOutlined
+            style={{ fontSize: "1.5em", cursor: "pointer" }}
+            onClick={() =>
+              setOpenRequestBalance({
+                open: true,
+                portal: selectedPortal ?? "",
+              })
+            }
+          />
+        </Badge>
       </Flex>
     );
 

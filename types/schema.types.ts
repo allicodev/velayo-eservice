@@ -218,6 +218,6 @@ export interface BalanceRequest {
   amount: Number;
   portalId: Portal;
   encoderId: User;
-  status: "pending" | "completed";
+  status: "pending" | "completed" | "rejected";
   createdAt: Date;
 }
