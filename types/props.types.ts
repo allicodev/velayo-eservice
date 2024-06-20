@@ -97,6 +97,7 @@ export interface NewUserProps {
   user?: NewUser | null;
 }
 
+// !remove
 export interface NewBillerProps {
   open: boolean;
   close: () => void;
@@ -116,6 +117,7 @@ export interface UpdateBillerProps {
   name: string;
 }
 
+// !remove
 export interface NewOptionProps {
   open: boolean;
   close: () => void;

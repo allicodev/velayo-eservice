@@ -12,6 +12,10 @@ async function handler(
 
   const { method } = req;
 
+  if (method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (method != "GET")
     res.json({
       code: 405,

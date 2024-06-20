@@ -13,6 +13,8 @@ async function handler(
 
   const { method } = req;
 
+  if (method === "OPTIONS") return res.status(200).end();
+
   if (method == "GET")
     return await Branch.find()
       .populate("items.itemId")

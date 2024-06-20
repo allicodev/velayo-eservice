@@ -24,6 +24,7 @@ class UserService {
     return response;
   }
 
+  // !remove
   public async newUser(payload: User): Promise<ExtendedResponse<User>> {
     const response = await this.instance.post<User>({
       endpoint: "/user/new-user",
@@ -32,6 +33,7 @@ class UserService {
     return response;
   }
 
+  // !remove
   public async updateUser(payload: User): Promise<ExtendedResponse<User>> {
     const response = await this.instance.post<User>({
       endpoint: "/user/update-user",
@@ -52,6 +54,7 @@ class UserService {
     return response;
   }
 
+  // !remove
   public async deleteUser({ id }: { id: string }): Promise<Response> {
     const response = await this.instance.get<Response>({
       endpoint: "/user/remove-user",

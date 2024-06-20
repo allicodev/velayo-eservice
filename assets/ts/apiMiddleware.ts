@@ -13,6 +13,8 @@ interface RequestWithAuthData extends NextApiRequest {
 
 const authMiddleware = (handler: NextApiHandler) => {
   return async (req: RequestWithAuthData, res: NextApiResponse) => {
+    if (req.method === "OPTIONS") return res.status(200).end();
+
     try {
       const authorizationToken = req.headers.authorization;
 

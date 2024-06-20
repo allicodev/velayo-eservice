@@ -40,6 +40,8 @@ interface TotalProps {
   fee: number;
 }
 
+// !remove (check)
+
 const TransactionHistory = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [tellers, setTellers] = useState<User[]>([]);

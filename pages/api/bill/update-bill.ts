@@ -1,3 +1,4 @@
+import authMiddleware from "@/assets/ts/apiMiddleware";
 import dbConnect from "@/database/dbConnect";
 import Bill from "@/database/models/bill.schema";
 import { ExtendedResponse, BillingSettingsType } from "@/types";
@@ -39,4 +40,4 @@ async function handler(
     });
 }
 
-export default handler;
+export default authMiddleware(handler);

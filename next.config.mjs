@@ -29,15 +29,20 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
+        source: "/api/(.*)",
         headers: [
+          { key: "Access-Control-Allow-Credentials", value: "true" },
           {
-            key: "Cross-Origin-Embedder-Policy",
-            value: "require-corp",
+            key: "Access-Control-Allow-Origin",
+            value: "https://velayo-admin.vercel.app",
           },
           {
-            key: "Cross-Origin-Opener-Policy",
-            value: "same-origin",
+            key: "Access-Control-Allow-Methods",
+            value: "GET,OPTIONS,PATCH,DELETE,POST,PUT",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "Content-Type, Authorization",
           },
         ],
       },
