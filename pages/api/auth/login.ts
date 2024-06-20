@@ -17,6 +17,10 @@ async function handler(
   const { method } = req;
   const { username, password } = req.body;
 
+  if (method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (method === "POST") {
     const validUser = await User.findOne({
       $or: [{ username }, { email: username }],
