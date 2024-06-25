@@ -14,6 +14,7 @@ interface MyBasicProps {
 const RequestBalance = ({ open, close, portal }: MyBasicProps) => {
   const [requests, setRequests] = useState<BalanceRequest[]>([]);
   const [trigger, setTrigger] = useState(0);
+  const [total, setTotal] = useState(0);
 
   // * etc and services
   const portalService = new PortalService();
@@ -100,7 +101,10 @@ const RequestBalance = ({ open, close, portal }: MyBasicProps) => {
       pageSize,
     });
 
-    if (res?.success ?? false) setRequests(res?.data ?? []);
+    if (res?.success ?? false) {
+      setRequests(res?.data ?? []);
+      setTotal(res?.meta?.total ?? 0);
+    }
   };
 
   const handleCormfirmRequest = async (_id: string) => {
@@ -160,6 +164,7 @@ const RequestBalance = ({ open, close, portal }: MyBasicProps) => {
         columns={columns}
         dataSource={requests}
         pagination={{
+          total,
           onChange(page, pageSize) {
             fetchRequest({ page, pageSize });
           },

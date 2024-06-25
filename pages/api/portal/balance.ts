@@ -3,6 +3,8 @@ import dbConnect from "@/database/dbConnect";
 import Request from "@/database/models/request.schema";
 import { BalanceRequest, ExtendedResponse, Response } from "@/types";
 
+import mongoose from "mongoose";
+
 import type { NextApiRequest, NextApiResponse } from "next";
 
 async function handler(
@@ -19,17 +21,55 @@ async function handler(
     if (!pageSize) pageSize = "10";
     let query = [];
 
-    if (portalId) query.push({ portalId });
+    if (portalId)
+      query.push({ portalId: new mongoose.Types.ObjectId(portalId as any) });
 
-    return await Request.find(query.length > 0 ? { $and: query } : {})
-      .skip(
-        (Number.parseInt(page.toString()) - 1) *
-          Number.parseInt(pageSize!.toString())
-      )
-      .limit(Number.parseInt(pageSize!.toString()))
-      .sort({ status: -1, createdAt: -1 })
-      .populate("portalId encoderId")
-      .then((e) => res.json({ code: 200, success: true, data: e as any }));
+    let total = await Request.countDocuments(
+      query.length > 0 ? { $and: query } : {}
+    );
+
+    return await Request.aggregate([
+      {
+        $match: {
+          ...(query.length > 0 ? { $and: query } : {}),
+        },
+      },
+      {
+        $addFields: {
+          statusScore: {
+            $cond: {
+              if: { $eq: ["$status", "pending"] },
+              then: 1,
+              else: {
+                $cond: {
+                  if: { $eq: ["$status", "rejected"] },
+                  then: 2,
+                  else: 3,
+                },
+              },
+            },
+          },
+        },
+      },
+      { $sort: { statusScore: 1 } },
+      {
+        $skip:
+          (Number.parseInt(page.toString()) - 1) *
+          Number.parseInt(pageSize!.toString()),
+      },
+      {
+        $limit: Number.parseInt(pageSize!.toString()),
+      },
+    ]).then((e) =>
+      res.json({
+        code: 200,
+        success: true,
+        data: e as any,
+        meta: {
+          total: total as any,
+        },
+      })
+    );
   } else {
     const { _id } = req.body;
 
