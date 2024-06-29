@@ -350,7 +350,7 @@ const Attendance = () => {
           .join(" "),
         type: e.userId.role.toLocaleUpperCase(),
         date: dayjs(e?.createdAt).format("MM/DD/YYYY"),
-        timeIn: dayjs(e.timeIn).format("hh:mma"),
+        timeIn: e.timeIn ? dayjs(e.timeIn).format("hh:mma") : "",
         timeOut: e.timeOut ? dayjs(e.timeOut).format("hh:mma") : "",
         renderedHours: calculateHoursRendered(e).toFixed(2),
       });
