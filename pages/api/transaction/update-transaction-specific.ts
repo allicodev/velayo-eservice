@@ -1,17 +1,14 @@
 import dbConnect from "@/database/dbConnect";
 import Transaction from "@/database/models/transaction.schema";
-import {
-  ExtendedResponse,
-  Response,
-  TransactionPOS as TransactionProp,
-} from "@/types";
-import { Pusher2 } from "@/provider/utils/pusher";
+import { ExtendedResponse, Response } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import authMiddleware from "@/assets/ts/apiMiddleware";
+
 async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ExtendedResponse<TransactionProp> | Response>
+  res: NextApiResponse<ExtendedResponse<Response>>
 ) {
   await dbConnect();
 
@@ -24,20 +21,14 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  return await Transaction.create(req.body)
+  return await Transaction.findOneAndUpdate({ _id: req.body._id }, req.body, {
+    returnOriginal: false,
+  })
     .then(async (e) => {
-      if (req.body.history.at(-1).status != "request") {
-        if (req.body.type == "miscellaneous") {
-          if (req.body.isOnlinePayment)
-            await new Pusher2().emit("encoder", "notify", {});
-        } else await new Pusher2().emit("encoder", "notify", {});
-      }
-
       return res.json({
         code: 200,
         success: true,
-        message: "Transaction has been sent",
-        data: e,
+        message: "Successfully updated",
       });
     })
     .catch((e) => {
@@ -50,4 +41,4 @@ async function handler(
     });
 }
 
-export default handler;
+export default authMiddleware(handler);

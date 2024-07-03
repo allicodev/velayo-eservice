@@ -5,7 +5,6 @@ import {
   Divider,
   Modal,
   Row,
-  Space,
   Timeline,
   Typography,
   message,
@@ -22,6 +21,7 @@ import {
 } from "@/types";
 import { transactionToPrinter } from "@/assets/ts";
 import { useUserStore } from "@/provider/context";
+import BillService from "@/provider/bill.service";
 
 const TransactionDetails = ({
   open,
@@ -30,6 +30,7 @@ const TransactionDetails = ({
 }: TransactionDetailsProps) => {
   const [textData, setTextData] = useState<[string[], any[]]>([[], []]);
   const printer = new PrinterService();
+  const bill = new BillService();
 
   const latestHistory = () => transaction?.history?.at(-1);
   const { currentBranch, currentUser, printerIsAlive } = useUserStore();
@@ -131,6 +132,27 @@ const TransactionDetails = ({
     else {
       message.error("Print Error. Printer server is offline");
       return;
+    }
+  };
+
+  const handleRequestToEncoder = async () => {
+    let res = await bill.updateTransactionSpecific({
+      _id: transaction?._id,
+      tellerId: currentUser?._id,
+      $push: {
+        history: {
+          description: `First Transaction Requested confirmed by Teller ${
+            currentUser?.name ?? ""
+          }`,
+          status: "pending",
+          createdAt: new Date(),
+        },
+      },
+    });
+
+    if (res?.success ?? false) {
+      message.success("Successfully Confirmed");
+      close();
     }
   };
 
@@ -339,7 +361,8 @@ const TransactionDetails = ({
           ) : null}
 
           {transaction?.type == "wallet" &&
-            transaction.sub_type?.includes("cash-in") && (
+            transaction.sub_type?.includes("cash-in") &&
+            latestHistory()?.status != "request" && (
               <div style={{ display: "flex", marginTop: 15 }}>
                 <div
                   style={{
@@ -367,6 +390,17 @@ const TransactionDetails = ({
               size="large"
             >
               PRINT
+            </Button>
+          )}
+
+          {latestHistory()?.status == "request" && (
+            <Button
+              onClick={handleRequestToEncoder}
+              style={{ marginTop: 25, paddingLeft: 30, paddingRight: 30 }}
+              size="large"
+              type="primary"
+            >
+              Confirm and Send to Encoder
             </Button>
           )}
         </Col>

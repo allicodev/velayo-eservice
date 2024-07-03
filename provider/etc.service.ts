@@ -63,6 +63,17 @@ class EtcService {
     });
   }
 
+  public async getTransactionFromQueue(queue: number, branchId: string) {
+    return await this.instance.get<Transaction>({
+      endpoint: "/transaction/search-transaction",
+      query: {
+        queue,
+        status: "request",
+        branchId,
+      },
+    });
+  }
+
   public async checkSettings() {
     return await this.instance.get<Response>({
       endpoint: "/etc/check-settings",

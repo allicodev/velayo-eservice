@@ -12,7 +12,7 @@ const TransactionHistorySchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["completed", "failed", "pending"],
+      enum: ["request", "completed", "failed", "pending"],
       default: "pending",
     },
   },
@@ -82,16 +82,19 @@ TransactionSchema.pre("save", async function (next) {
   if (this.isNew) {
     try {
       const lastDocument = await TransactionModel.findOne(
-        {},
-        { queue: 1 },
+        {
+          branchId: this.branchId,
+        },
+        { queue: 1, createdAt: 1 },
         { sort: { createdAt: -1 } }
       );
 
       const lastQueueNumber = lastDocument ? lastDocument.queue || 0 : 0;
 
       const today = new Date();
-      const createdAtDate = new Date(this.createdAt);
-      if (today.toDateString() !== createdAtDate.toDateString()) {
+      const createdAtDate = new Date(lastDocument.createdAt);
+
+      if (today.getDate() !== createdAtDate.getDate()) {
         this.queue = 1;
       } else {
         this.queue = lastQueueNumber + 1;

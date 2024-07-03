@@ -208,6 +208,13 @@ class BillService extends Loader {
     });
   }
 
+  public async updateTransactionSpecific(transaction: any) {
+    return await this.instance.post<Response>({
+      endpoint: "/transaction/update-transaction-specific",
+      payload: transaction,
+    });
+  }
+
   public async markMainAmount(billId: string, index: number) {
     this.loaderPush("mark-main");
     const response = await this.instance.post<BillingSettingsType>({

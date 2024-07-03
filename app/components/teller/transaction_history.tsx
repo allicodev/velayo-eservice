@@ -85,6 +85,9 @@ const TransactionHistory = ({
       case "failed": {
         return <Tag color="#FF0000">FAILED</Tag>;
       }
+      case "request": {
+        return <Tag color="#EFB40D">Request</Tag>;
+      }
       default:
         return <Tag>No Status</Tag>;
     }

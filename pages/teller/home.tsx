@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Button, Col, Row, Tag, Typography, message, notification } from "antd";
-import { WalletOutlined } from "@ant-design/icons";
+import {
+  Button,
+  Col,
+  InputNumber,
+  Row,
+  Tag,
+  Typography,
+  message,
+  notification,
+} from "antd";
+import { WalletOutlined, SearchOutlined } from "@ant-design/icons";
 import { MdOutlineSendToMobile } from "react-icons/md";
 import { FaMoneyBills } from "react-icons/fa6";
 import { AiOutlineFileDone } from "react-icons/ai";
@@ -24,11 +33,13 @@ import BranchService from "@/provider/branch.service";
 import PosHome from "@/app/components/pos/pos";
 import dayjs from "dayjs";
 import ItemService from "@/provider/item.service";
+import EtcService from "@/provider/etc.service";
 
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
   const [api, contextHolder] = notification.useNotification();
   const [brans, setBrans] = useState<BranchData | null>(null);
+  const [queueInput, setQueueInput] = useState<number | null>(null);
   const [transactionDetailsOpt, setTransactionOpt] =
     useState<TransactionOptProps>({
       open: false,
@@ -43,6 +54,7 @@ const Teller = () => {
   const bill = new BillService();
   const branch = new BranchService();
   const itemService = new ItemService();
+  const etc = new EtcService();
 
   const menu = [
     {
@@ -162,6 +174,38 @@ const Teller = () => {
     })(bill);
   };
 
+  const searchTransaction = async () => {
+    if (!queueInput) {
+      message.warning("Cannot search. Input is empty.");
+      return;
+    }
+    let res = await etc.getTransactionFromQueue(queueInput, currentBranch);
+
+    if (res?.success ?? false) {
+      if (res?.data)
+        await (TransactionHistory as any).openTransaction(res?.data?._id);
+      else message.warning("No Transaction");
+    }
+  };
+
+  // function handleKeyPress(event: KeyboardEvent) {
+  //   const key = event.key;
+
+  //   switch (key) {
+  //     case "F1":
+  //       setOpenedMenu("bills");
+  //       break;
+  //     case "F2":
+  //       setOpenedMenu("gcash");
+  //       break;
+  //     case "F3":
+  //       setOpenedMenu("eload");
+  //       break;
+  //     default:
+  //     // Handle other key presses
+  //   }
+  // }
+
   useEffect(() => {
     return initPusherProvider();
   }, []);
@@ -178,6 +222,14 @@ const Teller = () => {
       }
     })();
   }, []);
+
+  // useEffect(() => {
+  //   document.addEventListener("keydown", handleKeyPress);
+
+  //   return () => {
+  //     document.removeEventListener("keydown", handleKeyPress);
+  //   };
+  // }, []);
 
   useEffect(() => {
     const minutes = 5; // change this to update the items per (x) minutes
@@ -245,6 +297,40 @@ const Teller = () => {
             />
           </div>
           <div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <InputNumber
+                size="large"
+                style={{
+                  marginLeft: 20,
+                  width: 250,
+                  fontSize: "1.25em",
+                  borderTopRightRadius: 0,
+                  borderBottomRightRadius: 0,
+                }}
+                onChange={(e) => {
+                  if (e) setQueueInput(Number.parseInt(e!.toString()));
+                }}
+                onPressEnter={searchTransaction}
+                placeholder="Enter queue number..."
+                controls={false}
+              />
+              <Button
+                size="large"
+                icon={<SearchOutlined />}
+                style={{
+                  borderTopLeftRadius: 0,
+                  borderBottomLeftRadius: 0,
+                }}
+                onClick={searchTransaction}
+              >
+                SEARCH
+              </Button>
+            </div>
             <Row gutter={[32, 32]} style={{ padding: 20 }}>
               {menu.map((e, i) => (
                 <Col span={8} key={`btn-${i}`}>

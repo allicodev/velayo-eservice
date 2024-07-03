@@ -1,7 +1,11 @@
 import { UserProps } from "./props.types";
 import { ItemUnit, Transaction } from "./schema.types";
 
-type TransactionHistoryDataType_type = "pending" | "completed" | "failed";
+type TransactionHistoryDataType_type =
+  | "request"
+  | "pending"
+  | "completed"
+  | "failed";
 type TransactionNameType = "gcash" | "eload" | "bills";
 type UserBadgeTitle = "Teller" | "Encoder";
 

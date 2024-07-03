@@ -40,7 +40,11 @@ export type TransactionType =
   | "eload"
   | "miscellaneous"
   | "shopee";
-export type TransactionHistoryStatus = "completed" | "failed" | "pending";
+export type TransactionHistoryStatus =
+  | "request"
+  | "completed"
+  | "failed"
+  | "pending";
 
 export interface TransactionHistory {
   description: string;

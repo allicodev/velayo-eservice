@@ -19,7 +19,19 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
-  return await Transaction.findOne(req.query)
+  return await Transaction.findOne({
+    ...req.query,
+    ...(req.query.status
+      ? {
+          $expr: {
+            $in: [
+              { $arrayElemAt: ["$history.status", -1] },
+              [req.query.status],
+            ],
+          },
+        }
+      : {}),
+  })
     .then(async (e) => {
       return res.json({
         code: 200,
