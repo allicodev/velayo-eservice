@@ -61,7 +61,4 @@ const LogSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// const UserLogSchema = new mongoose.Schema({}, { timestamps: false });
-// const ItemLogSchema = new mongoose.Schema({}, { timestamps: false });
-
 export default mongoose.models.Log || mongoose.model("Log", LogSchema);

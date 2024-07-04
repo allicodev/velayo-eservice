@@ -80,7 +80,7 @@ class BranchService extends Loader {
       query: { branchId },
     });
 
-    return branch.data?.items?.filter((e) => e.itemId._id == itemId);
+    return branch.data?.items?.filter((e) => e.itemId?._id == itemId);
   }
   public async removeBranchItem(branchId: string, itemId: string) {
     return await this.instance.get<Response>({

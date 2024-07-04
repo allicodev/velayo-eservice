@@ -120,7 +120,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
 
   const searchItem = async (key: string) => {
     let filteredItems = items.filter((e) =>
-      e.name.toLocaleLowerCase().includes(key.toLocaleLowerCase())
+      e.name?.toLocaleLowerCase().includes(key.toLocaleLowerCase())
     );
     setPopupitems(filteredItems);
     // let res = await item.searchItem(key);
@@ -505,8 +505,8 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
             onSelect={(_, e) => getItem(e.key)}
             dropdownStyle={{ width: 1100 }}
             filterOption={(inputValue, option) =>
-              option!
-                .value!.toString()
+              option!.value
+                ?.toString()
                 .toUpperCase()
                 .indexOf(inputValue.toUpperCase()) !== -1
             }

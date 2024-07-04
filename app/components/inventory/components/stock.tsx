@@ -214,12 +214,12 @@ const Stock = ({
               render: (_) =>
                 `₱${_?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`,
             },
-            {
-              title: "C. Quantity",
-              width: 100,
-              dataIndex: "currentQuantity",
-              align: "center",
-            },
+            // {
+            //   title: "C. Quantity",
+            //   width: 100,
+            //   dataIndex: "currentQuantity",
+            //   align: "center",
+            // },
             {
               title: `Stock(s) ${type == "stock-in" ? "In" : "Out"}`,
               align: "center",
