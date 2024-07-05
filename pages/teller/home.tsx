@@ -306,7 +306,7 @@ const Teller = () => {
             />
           </div>
           <div>
-            <div
+            {/* <div
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -339,7 +339,7 @@ const Teller = () => {
               >
                 SEARCH
               </Button>
-            </div>
+            </div> */}
             <Row gutter={[32, 32]} style={{ padding: 20 }}>
               {menu.map((e, i) => (
                 <Col span={8} key={`btn-${i}`}>
