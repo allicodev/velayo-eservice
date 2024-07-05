@@ -35,6 +35,17 @@ async function handler(
         },
       },
       {
+        $lookup: {
+          from: "users",
+          localField: "encoderId",
+          foreignField: "_id",
+          as: "encoderId",
+        },
+      },
+      {
+        $unwind: "$encoderId",
+      },
+      {
         $addFields: {
           statusScore: {
             $cond: {
