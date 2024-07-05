@@ -20,6 +20,8 @@ async function handler(
       message: "Incorrect Request Method",
     });
 
+  if (method == "OPTIONS") return res.status(200);
+
   const totalSales = await Transaction.aggregate([
     {
       $match: {
