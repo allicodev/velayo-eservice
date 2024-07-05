@@ -58,7 +58,7 @@ const Teller = () => {
 
   const menu = [
     {
-      title: "Bills \nPayment",
+      title: "Bills Payment \n (F1)",
       icon: (
         <FaMoneyBills
           className="db-btn"
@@ -68,7 +68,7 @@ const Teller = () => {
       onPress: () => setOpenedMenu("bills"),
     },
     {
-      title: "Wallet Cash \nIn/out",
+      title: "Wallet Cash In/out  \n (F2)",
       icon: (
         <WalletOutlined
           className="db-btn"
@@ -78,7 +78,7 @@ const Teller = () => {
       onPress: () => setOpenedMenu("gcash"),
     },
     {
-      title: "E-Load",
+      title: "E-Load  \n (F3)",
       icon: (
         <MdOutlineSendToMobile
           className="db-btn"
@@ -88,11 +88,11 @@ const Teller = () => {
       onPress: () => setOpenedMenu("eload"),
     },
     {
-      title: "Shopee Self \nCollect",
+      title: "Shopee Self Collect \n (F4)",
       onPress: () => setOpenedMenu("shoppe"),
     },
     {
-      title: "Transaction History",
+      title: "Transaction History \n (F5)",
       icon: (
         <AiOutlineFileDone
           className="db-btn"
@@ -102,7 +102,7 @@ const Teller = () => {
       onPress: () => setOpenedMenu("th"),
     },
     {
-      title: "Miscellaneous",
+      title: "Miscellaneous \n (F6)",
       onPress: () => setOpenedMenu("pos"),
     },
   ];
@@ -188,23 +188,32 @@ const Teller = () => {
     }
   };
 
-  // function handleKeyPress(event: KeyboardEvent) {
-  //   const key = event.key;
+  function handleKeyPress(event: KeyboardEvent) {
+    const key = event.key;
 
-  //   switch (key) {
-  //     case "F1":
-  //       setOpenedMenu("bills");
-  //       break;
-  //     case "F2":
-  //       setOpenedMenu("gcash");
-  //       break;
-  //     case "F3":
-  //       setOpenedMenu("eload");
-  //       break;
-  //     default:
-  //     // Handle other key presses
-  //   }
-  // }
+    switch (key) {
+      case "F1":
+        setOpenedMenu("bills");
+        break;
+      case "F2":
+        setOpenedMenu("gcash");
+        break;
+      case "F3":
+        setOpenedMenu("eload");
+        break;
+      case "F4":
+        setOpenedMenu("shoppe");
+        break;
+      case "F5":
+        setOpenedMenu("th");
+        break;
+      case "F6":
+        setOpenedMenu("pos");
+        break;
+      default:
+      // Handle other key presses
+    }
+  }
 
   useEffect(() => {
     return initPusherProvider();
@@ -223,13 +232,13 @@ const Teller = () => {
     })();
   }, []);
 
-  // useEffect(() => {
-  //   document.addEventListener("keydown", handleKeyPress);
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyPress);
 
-  //   return () => {
-  //     document.removeEventListener("keydown", handleKeyPress);
-  //   };
-  // }, []);
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress);
+    };
+  }, []);
 
   useEffect(() => {
     const minutes = 5; // change this to update the items per (x) minutes
@@ -346,50 +355,70 @@ const Teller = () => {
                 alignItems: "center",
               }}
             >
-              <div style={{ fontFamily: "abel", fontSize: "1em" }}>
-                Selected Branch:{" "}
-                <Tag
-                  color="success"
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  marginRight: 20,
+                }}
+              >
+                <div
                   style={{
-                    fontSize: "1em",
-                    padding: 5,
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  {brans?.name}
-                </Tag>
-              </div>
-              <div className="printer-container">
-                {printerIsAlive ? (
-                  <Typography.Text
-                    style={{
-                      paddingRight: 8,
-                      paddingLeft: 8,
-                      paddingTop: 5,
-                      paddingBottom: 5,
-                      border: "1px solid #a1a1a1",
-                      borderRadius: 5,
-                      cursor: "default",
-                      background: "#28a745",
-                      color: "#fff",
-                    }}
-                  >
-                    CONNECTED TO PRINTER
-                  </Typography.Text>
-                ) : (
-                  <Typography.Text
-                    style={{
-                      paddingRight: 8,
-                      paddingLeft: 8,
-                      paddingTop: 5,
-                      paddingBottom: 5,
-                      border: "1px solid grey",
-                      borderRadius: 5,
-                      cursor: "default",
-                    }}
-                  >
-                    Printer is not connected
-                  </Typography.Text>
-                )}
+                  <div style={{ fontFamily: "abel", fontSize: "1em" }}>
+                    Selected Branch:{" "}
+                    <Tag
+                      color="success"
+                      style={{
+                        fontSize: "1em",
+                        padding: 5,
+                      }}
+                    >
+                      {brans?.name}
+                    </Tag>
+                  </div>
+                  <div className="printer-container">
+                    {printerIsAlive ? (
+                      <Typography.Text
+                        style={{
+                          paddingRight: 8,
+                          paddingLeft: 8,
+                          paddingTop: 5,
+                          paddingBottom: 5,
+                          border: "1px solid #a1a1a1",
+                          borderRadius: 5,
+                          cursor: "default",
+                          background: "#28a745",
+                          color: "#fff",
+                        }}
+                      >
+                        CONNECTED TO PRINTER
+                      </Typography.Text>
+                    ) : (
+                      <Typography.Text
+                        style={{
+                          paddingRight: 8,
+                          paddingLeft: 8,
+                          paddingTop: 5,
+                          paddingBottom: 5,
+                          border: "1px solid grey",
+                          borderRadius: 5,
+                          cursor: "default",
+                        }}
+                      >
+                        Printer is not connected
+                      </Typography.Text>
+                    )}
+                  </div>
+                </div>
+                <span style={{ fontFamily: "abel" }}>
+                  [F12] - Open Queue Modal
+                </span>
               </div>
             </div>
           </div>

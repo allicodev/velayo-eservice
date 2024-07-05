@@ -35,6 +35,7 @@ const BranchSchema = new mongoose.Schema(
       required: true,
     },
     items: [ItemWithStockSchema],
+    pin: String,
   },
   { timestamps: true }
 );

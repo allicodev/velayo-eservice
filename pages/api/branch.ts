@@ -36,9 +36,8 @@ async function handler(
       });
   else {
     const { _id } = req.body;
-
     if (_id) {
-      return await Branch.findOneAndUpdate({ _id }, req.body)
+      return await Branch.findOneAndUpdate({ _id }, { $set: req.body })
         .then(() =>
           res.json({
             code: 200,
@@ -47,7 +46,6 @@ async function handler(
           })
         )
         .catch((e) => {
-          console.log(e);
           return res.json({
             code: 500,
             success: false,
@@ -55,6 +53,7 @@ async function handler(
           });
         });
     } else {
+      console.log(req.body);
       return await Branch.create(req.body).then((e) =>
         res.json({
           code: 200,

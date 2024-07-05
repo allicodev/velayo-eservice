@@ -12,6 +12,7 @@ const SettingsSchema = new mongoose.Schema(
     fee: Number,
     threshold: Number,
     additionalFee: Number,
+    pin: String,
   },
   { timestamps: false }
 );

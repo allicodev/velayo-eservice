@@ -352,7 +352,7 @@ const WebCamera = ({
       setLoader("in");
       let timeIn = new Date();
 
-      if (timeIn.getHours() < 7) timeIn.setHours(7);
+      if (timeIn.getHours() < 7) timeIn.setHours(7, 0);
 
       (async (_) => {
         let res = await _.newLog({

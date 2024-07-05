@@ -217,9 +217,9 @@ async function handler(
   res.json({
     success: true,
     data: {
-      totalTransaction: totalTransaction[0].count,
-      totalSales: totalSales[0].total,
-      totalNetSales: totalSales[0].feeTotal,
+      totalTransaction: totalTransaction[0]?.count ?? 0,
+      totalSales: totalSales[0]?.total ?? 0,
+      totalNetSales: totalSales[0]?.feeTotal ?? 0,
       totalBranch: branchSales.length,
       branchSales,
       topItemSales,
