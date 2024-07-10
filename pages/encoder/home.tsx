@@ -75,11 +75,6 @@ const Encoder = () => {
 
   const { currentUser } = useUserStore();
 
-  const bill = new BillService();
-  const etc = new EtcService();
-  const user = new UserService();
-  const portal = new PortalService();
-
   // const [play] = useSound(notifSound);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [api, contextHolder] = Modal.useModal();
@@ -488,7 +483,7 @@ const Encoder = () => {
     new Promise(async (resolve, reject) => {
       setFetching(true);
       if (!pageSize) pageSize = 10;
-      let res = await bill.getAllTransaction({
+      let res = await BillService.getAllTransaction({
         page,
         pageSize,
         tellerId,
@@ -565,20 +560,20 @@ const Encoder = () => {
   useEffect(() => {
     // check if there is a settings init, otherwise, create an empty one;
     (async (_) => {
-      await etc.checkSettings();
-    })(etc);
+      await _.checkSettings();
+    })(EtcService);
 
     (async (_) => {
       let res = await _.getUsers({ page: 1, pageSize: 9999, role: ["teller"] });
 
       if (res?.success ?? false) setTellers((res?.data as User[]) ?? []);
-    })(user);
+    })(UserService);
 
     (async (_) => {
       let res = await _.getPortal({ sort: 1, project: { logs: 0 } });
 
       if (res?.success ?? false) setPortals(res?.data ?? []);
-    })(portal);
+    })(PortalService);
   }, [trigger]);
 
   return (

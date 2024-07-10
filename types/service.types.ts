@@ -1,4 +1,4 @@
-import { TransactionType } from ".";
+import { TransactionType, ItemData } from ".";
 
 // * User Service
 export interface UserLoginProps {
@@ -60,4 +60,9 @@ export interface EloadSettings {
   fee?: number | undefined;
   threshold?: number | undefined;
   additionalFee?: number | undefined;
+}
+
+export interface ItemWithCategory {
+  name: string;
+  item: ItemData[];
 }

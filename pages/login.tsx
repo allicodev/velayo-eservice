@@ -23,7 +23,6 @@ import Webcam from "react-webcam";
 
 const Login = () => {
   const [form] = Form.useForm();
-  const user = new UserService();
   const { setUser, setBranch } = useUserStore();
   const { setAccessToken } = useAuthStore();
 
@@ -36,7 +35,7 @@ const Login = () => {
   const [openWebcam, setOpenWebCam] = useState(false);
 
   const handleFinish = async (val: UserLoginProps) => {
-    const response = await user.login(val);
+    const response = await UserService.login(val);
 
     if (response.success) {
       if (response.data && response.data.role == "teller") {

@@ -3,6 +3,7 @@ import {
   Button,
   Col,
   InputNumber,
+  Modal,
   Row,
   Tag,
   Typography,
@@ -40,21 +41,18 @@ const Teller = () => {
   const [api, contextHolder] = notification.useNotification();
   const [brans, setBrans] = useState<BranchData | null>(null);
   const [queueInput, setQueueInput] = useState<number | null>(null);
+  const [lastQueue, setLastQueue] = useState(0);
   const [transactionDetailsOpt, setTransactionOpt] =
     useState<TransactionOptProps>({
       open: false,
       transaction: null,
     });
+  const [openQueue, setOpenQueue] = useState(false);
 
   const { currentUser, currentBranch, setPrinter, printerIsAlive } =
     useUserStore();
   const { setItems, lastDateUpdated, setLastDateUpdated, items } =
     useItemStore();
-
-  const bill = new BillService();
-  const branch = new BranchService();
-  const itemService = new ItemService();
-  const etc = new EtcService();
 
   const menu = [
     {
@@ -93,12 +91,6 @@ const Teller = () => {
     },
     {
       title: "Transaction History \n (F5)",
-      icon: (
-        <AiOutlineFileDone
-          className="db-btn"
-          style={{ fontSize: 80, color: "#000" }}
-        />
-      ),
       onPress: () => setOpenedMenu("th"),
     },
     {
@@ -163,7 +155,7 @@ const Teller = () => {
 
   const handleEloadRequest = (eload: EloadProp) => {
     return (async (_) => {
-      let res = await bill.requestEload(
+      let res = await _.requestEload(
         {
           ...eload,
           tellerId: currentUser?._id ?? "",
@@ -171,7 +163,7 @@ const Teller = () => {
         currentBranch
       );
       return res.success ?? false;
-    })(bill);
+    })(BillService);
   };
 
   const searchTransaction = async () => {
@@ -179,12 +171,16 @@ const Teller = () => {
       message.warning("Cannot search. Input is empty.");
       return;
     }
-    let res = await etc.getTransactionFromQueue(queueInput, currentBranch);
+    let res = await EtcService.getTransactionFromQueue(
+      queueInput,
+      currentBranch
+    );
 
     if (res?.success ?? false) {
-      if (res?.data)
+      if (res?.data) {
+        setOpenQueue(false);
         await (TransactionHistory as any).openTransaction(res?.data?._id);
-      else message.warning("No Transaction");
+      } else message.warning("No Queue");
     }
   };
 
@@ -209,6 +205,9 @@ const Teller = () => {
         break;
       case "F6":
         setOpenedMenu("pos");
+        break;
+      case "F10":
+        setOpenQueue(true);
         break;
       default:
       // Handle other key presses
@@ -246,7 +245,15 @@ const Teller = () => {
       let res = await _.getBranchSpecific(currentBranch);
 
       if (res?.success ?? false) setBrans(res?.data ?? null);
-    })(branch);
+    })(BranchService);
+
+    (async (_) => {
+      let res = await _.getLastQueue(currentBranch);
+
+      if (res?.success ?? false) {
+        setLastQueue(res?.data ?? 0);
+      }
+    })(EtcService);
 
     if (
       Math.abs(dayjs(lastDateUpdated).diff(dayjs(), "minutes")) >= minutes ||
@@ -271,7 +278,7 @@ const Teller = () => {
           setLastDateUpdated(dayjs());
           console.log("Items are refreshed");
         }
-      })(itemService);
+      })(ItemService);
     }
   }, []);
 
@@ -306,40 +313,29 @@ const Teller = () => {
             />
           </div>
           <div>
-            {/* <div
+            <div
               style={{
-                display: "flex",
-                alignItems: "center",
+                marginLeft: 20,
+                fontFamily: "abel",
+                fontSize: "1.2em",
               }}
             >
-              <InputNumber
-                size="large"
+              Last transaction queue:{" "}
+              <span
                 style={{
-                  marginLeft: 20,
-                  width: 250,
-                  fontSize: "1.25em",
-                  borderTopRightRadius: 0,
-                  borderBottomRightRadius: 0,
+                  background: "#98c04b",
+                  color: "#fff",
+                  paddingTop: 3,
+                  paddingBottom: 3,
+                  paddingRight: 7,
+                  paddingLeft: 7,
+                  fontWeight: 700,
+                  borderRadius: 2,
                 }}
-                onChange={(e) => {
-                  if (e) setQueueInput(Number.parseInt(e!.toString()));
-                }}
-                onPressEnter={searchTransaction}
-                placeholder="Enter queue number..."
-                controls={false}
-              />
-              <Button
-                size="large"
-                icon={<SearchOutlined />}
-                style={{
-                  borderTopLeftRadius: 0,
-                  borderBottomLeftRadius: 0,
-                }}
-                onClick={searchTransaction}
               >
-                SEARCH
-              </Button>
-            </div> */}
+                {lastQueue}
+              </span>
+            </div>
             <Row gutter={[32, 32]} style={{ padding: 20 }}>
               {menu.map((e, i) => (
                 <Col span={8} key={`btn-${i}`}>
@@ -417,7 +413,7 @@ const Teller = () => {
                   </div>
                 </div>
                 <span style={{ fontFamily: "abel" }}>
-                  [F12] - Open Queue Modal
+                  [F10] - Open Queue Modal
                 </span>
               </div>
             </div>
@@ -450,6 +446,50 @@ const Teller = () => {
         close={() => setOpenedMenu("")}
       />
       <PosHome open={openedMenu == "pos"} close={close} />
+      <Modal
+        open={openQueue}
+        onCancel={() => setOpenQueue(false)}
+        footer={null}
+        closable={false}
+        width={400}
+        style={{
+          padding: 0,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <InputNumber
+            size="large"
+            style={{
+              width: 250,
+              fontSize: "1.25em",
+              borderTopRightRadius: 0,
+              borderBottomRightRadius: 0,
+            }}
+            onChange={(e) => {
+              if (e) setQueueInput(Number.parseInt(e!.toString()));
+            }}
+            onPressEnter={searchTransaction}
+            placeholder="Enter queue number..."
+            controls={false}
+          />
+          <Button
+            size="large"
+            icon={<SearchOutlined />}
+            style={{
+              borderTopLeftRadius: 0,
+              borderBottomLeftRadius: 0,
+            }}
+            onClick={searchTransaction}
+          >
+            search
+          </Button>
+        </div>
+      </Modal>
     </>
   );
 };

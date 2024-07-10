@@ -36,8 +36,6 @@ const Stock = ({
 
   const { items: lcItems } = useItemStore();
 
-  const branch = new BranchService();
-
   // * redux
   const selectedItem = useSelector((state: RootState) => state.item);
   const dispatch = useDispatch<AppDispatch>();
@@ -66,25 +64,23 @@ const Stock = ({
       return;
     }
 
-    await branch
-      .updateItemBranch(
-        branchId,
-        type ?? "",
-        selectedItem.map((e) => ({
-          _id: e._id ?? "",
-          count: type == "stock-in" ? e.quantity : -e.quantity,
-        }))
-      )
-      .then(async (e) => {
-        let res = await branch.getBranchSpecific(branchId);
-        if (e?.success ?? false) {
-          message.success("Successfully Added");
-          dispatch(purgeItems());
+    await BranchService.updateItemBranch(
+      branchId,
+      type ?? "",
+      selectedItem.map((e) => ({
+        _id: e._id ?? "",
+        count: type == "stock-in" ? e.quantity : -e.quantity,
+      }))
+    ).then(async (e) => {
+      let res = await BranchService.getBranchSpecific(branchId);
+      if (e?.success ?? false) {
+        message.success("Successfully Added");
+        dispatch(purgeItems());
 
-          if (res?.success ?? false) onSubmit(res?.data ?? null);
-          close();
-        } else message.error(e?.message ?? "Error");
-      });
+        if (res?.success ?? false) onSubmit(res?.data ?? null);
+        close();
+      } else message.error(e?.message ?? "Error");
+    });
   };
 
   return (

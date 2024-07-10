@@ -78,13 +78,6 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
   const { currentUser, currentBranch } = useUserStore();
   const { items, setUpdateQuantity } = useItemStore();
 
-  // provider
-  const item = new ItemService();
-  const branch = new BranchService();
-  const printer = new PrinterService();
-
-  const etc = new EtcService();
-
   // redux
   const selectedItem = useSelector((state: RootState) => state.item);
   const dispatch = useDispatch<AppDispatch>();
@@ -128,7 +121,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
   };
 
   const getItem = async (id: string) => {
-    let res = await item.getItemSpecific(id);
+    let res = await ItemService.getItemSpecific(id);
 
     if (res?.success ?? false) {
       setOpenItemOpt({ open: true, data: res?.data ?? null, mode: "new", id });
@@ -144,7 +137,10 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
       message.warning("Cannot Add an Item. Quantity should be greater than 0");
       return;
     }
-    let res2 = await branch.getItemSpecific(currentBranch, openItemOpt.id);
+    let res2 = await BranchService.getItemSpecific(
+      currentBranch,
+      openItemOpt.id
+    );
     const stock_count = (res2 as any[])[0]?.stock_count ?? 0;
     const item: ItemData = (res2 as any[])[0]?.itemId;
 
@@ -228,7 +224,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
         (p, n) => p + (n.price - n.cost) * n.quantity,
         0
       );
-      let res = await item.requestTransaction(
+      let res = await ItemService.requestTransaction(
         transactionDetails,
         cash!,
         _amount - fee,
@@ -240,7 +236,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
       );
 
       if (res?.success ?? false) {
-        await branch.updateItemBranch(
+        await BranchService.updateItemBranch(
           branchId,
           "misc",
           selectedItem.map((e) => ({
@@ -265,7 +261,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
               // call proxy server, also call a flag that the print is success
 
               new Promise(async (resolve, reject) => {
-                await printer.printReceiptPos({
+                await PrinterService.printReceiptPos({
                   printData: {
                     itemDetails: JSON.stringify(
                       selectedItem.map((e) => ({
@@ -320,9 +316,9 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
 
     if (onlinePaymentInput.isOnlinePayment)
       return await new Promise(async (resolve, reject) => {
-        await etc
-          .getTransactionFromTraceId(onlinePaymentInput.traceId)
-          .then((e) => (e?.data ? resolve(e.data) : reject()));
+        await EtcService.getTransactionFromTraceId(
+          onlinePaymentInput.traceId
+        ).then((e) => (e?.data ? resolve(e.data) : reject()));
       })
         .then((e) => {
           if (e)
@@ -350,7 +346,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
       let res = await _.getBranchSpecific(currentBranch);
 
       if (res?.success ?? false) setBrans(res?.data ?? null);
-    })(branch);
+    })(BranchService);
   }, []);
 
   useEffect(() => {

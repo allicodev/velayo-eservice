@@ -3,6 +3,7 @@ import {
   Button,
   Col,
   Divider,
+  Input,
   Modal,
   Row,
   Timeline,
@@ -19,7 +20,7 @@ import {
   TransactionPOS,
   User,
 } from "@/types";
-import { transactionToPrinter } from "@/assets/ts";
+import { FloatLabel, transactionToPrinter } from "@/assets/ts";
 import { useUserStore } from "@/provider/context";
 import BillService from "@/provider/bill.service";
 
@@ -29,8 +30,7 @@ const TransactionDetails = ({
   transaction,
 }: TransactionDetailsProps) => {
   const [textData, setTextData] = useState<[string[], any[]]>([[], []]);
-  const printer = new PrinterService();
-  const bill = new BillService();
+  const [traceNum, setTraceNum] = useState("");
 
   const latestHistory = () => transaction?.history?.at(-1);
   const { currentBranch, currentUser, printerIsAlive } = useUserStore();
@@ -109,7 +109,7 @@ const TransactionDetails = ({
               message.success(data?.message ?? "Success");
             }
           }
-        })(printer);
+        })(PrinterService);
       else {
         (async (_) => {
           await _.printReceiptPos({
@@ -127,7 +127,7 @@ const TransactionDetails = ({
             tellerId: currentUser?.name ?? "",
             branchId: currentBranch,
           });
-        })(printer);
+        })(PrinterService);
       }
     else {
       message.error("Print Error. Printer server is offline");
@@ -136,7 +136,7 @@ const TransactionDetails = ({
   };
 
   const handleRequestToEncoder = async () => {
-    let res = await bill.updateTransactionSpecific({
+    let res = await BillService.updateTransactionSpecific({
       _id: transaction?._id,
       tellerId: currentUser?._id,
       $push: {
@@ -148,6 +148,7 @@ const TransactionDetails = ({
           createdAt: new Date(),
         },
       },
+      traceId: traceNum,
     });
 
     if (res?.success ?? false) {
@@ -394,14 +395,38 @@ const TransactionDetails = ({
           )}
 
           {latestHistory()?.status == "request" && (
-            <Button
-              onClick={handleRequestToEncoder}
-              style={{ marginTop: 25, paddingLeft: 30, paddingRight: 30 }}
-              size="large"
-              type="primary"
-            >
-              Confirm and Send to Encoder
-            </Button>
+            <div style={{ marginTop: 25, paddingRight: 30 }}>
+              {transaction?.isOnlinePayment && (
+                <FloatLabel
+                  value={traceNum}
+                  label="Trace ID (date, time, last 4 digits) (e.g 2312121234)"
+                >
+                  <Input
+                    className="customInput"
+                    value={traceNum}
+                    maxLength={10}
+                    minLength={10}
+                    style={{
+                      fontSize: "1.5em",
+                    }}
+                    onChange={(e) => {
+                      if (e.target.value == "") setTraceNum("");
+
+                      if (!Number.isNaN(Number(e.target.value)))
+                        setTraceNum(e.target.value);
+                    }}
+                  />
+                </FloatLabel>
+              )}
+              <Button
+                onClick={handleRequestToEncoder}
+                size="large"
+                type="primary"
+                disabled={transaction?.isOnlinePayment && traceNum.length < 10}
+              >
+                Confirm and Send to Encoder
+              </Button>
+            </div>
           )}
         </Col>
         <Col span={1}>

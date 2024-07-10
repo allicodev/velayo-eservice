@@ -21,7 +21,6 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
   const [disabledEload, setDisabledEload] = useState<EloadSettings | null>(
     null
   );
-  const etc = new EtcService();
 
   const [eload, setEload] = useState<Eload>({
     provider: null,
@@ -115,7 +114,7 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
     (async (_) => {
       let res2 = await _.getEloadSettings();
       if (res2?.success ?? false) setDisabledEload(res2?.data ?? null);
-    })(etc);
+    })(EtcService);
   }, []);
 
   return (

@@ -46,6 +46,17 @@ async function handler(
       $unwind: "$parents",
     },
     {
+      $lookup: {
+        from: "itemcategories",
+        localField: "itemCategory",
+        foreignField: "_id",
+        as: "itemCategory",
+      },
+    },
+    {
+      $unwind: { path: "$itemCategory", preserveNullAndEmptyArrays: true },
+    },
+    {
       $group: {
         _id: "$_id",
         name: { $first: "$name" },
@@ -56,6 +67,7 @@ async function handler(
         cost: { $first: "$cost" },
         parentId: { $first: "$parentId" },
         createdAt: { $first: "$createdAt" },
+        itemCategory: { $first: "$itemCategory" },
         parents: { $push: "$parents" },
       },
     },
@@ -90,7 +102,10 @@ async function handler(
       $project: { parents: 0 },
     },
   ])
-    .then((e) => res.json({ success: true, code: 200, data: e }))
+    .then((e) => {
+      console.log(e[0]);
+      return res.json({ success: true, code: 200, data: e });
+    })
     .catch((e) =>
       res.json({ success: false, code: 500, message: "Error in the Server" })
     );

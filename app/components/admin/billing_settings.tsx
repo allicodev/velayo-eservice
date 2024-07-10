@@ -74,8 +74,6 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
     id: null,
   });
 
-  const bill = new BillService();
-
   const getItemStyle = (
     draggableStyle: DraggingStyle | NotDraggingStyle | undefined,
     isDragging: boolean
@@ -261,7 +259,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                               if (res.success)
                                 message.success(res?.message ?? "Success");
                             }
-                          })(bill);
+                          })(BillService);
 
                           setSelectedBiller(_);
                         }
@@ -405,7 +403,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
         if (res.data)
           setSelectedBiller(res.data[billers.indexOf(selectedBiller)]);
       }
-    })(bill);
+    })(BillService);
   };
 
   const handleNewBiller = (name: string) => {
@@ -417,7 +415,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
         setOpenNewBiller(false);
         if (res.data) setBillers([...billers, res.data]);
       }
-    })(bill);
+    })(BillService);
   };
 
   const handleNewOption = (opt: BillingsFormField) => {
@@ -441,7 +439,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
             message.success(res?.message ?? "Success");
           }
         }
-      })(bill);
+      })(BillService);
     } else {
       (async (_) => {
         if (selectedBiller?._id != undefined) {
@@ -458,7 +456,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
             message.success(res?.message ?? "Success");
           }
         }
-      })(bill);
+      })(BillService);
     }
   };
 
@@ -478,7 +476,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
         message.success(res?.message ?? "Success");
         setTrigger(trigger + 1);
       }
-    })(bill);
+    })(BillService);
   };
 
   const handleMarkAsMain = (id: string, index: number) => {
@@ -491,7 +489,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
           return true;
         }
       }
-    })(bill);
+    })(BillService);
   };
 
   const handleDeleteOption = (id: string, index: number) => {
@@ -504,7 +502,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
           return true;
         }
       }
-    })(bill);
+    })(BillService);
   };
 
   const handleDeleteBiller = () => {
@@ -515,7 +513,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
         setSelectedBiller(null);
         message.success(res?.message ?? "Success");
       }
-    })(bill);
+    })(BillService);
   };
 
   useEffect(() => {
@@ -794,7 +792,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                 setTrigger(trigger + 1);
               }
             }
-          })(bill);
+          })(BillService);
         }}
         name={selectedBiller?.name ?? ""}
       />

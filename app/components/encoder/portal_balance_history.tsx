@@ -31,10 +31,6 @@ const PortalBalanceHistory = ({
   const [balanceInput, setBalanceInput] = useState<number | null>(null);
   const [fetching, setFetching] = useState(false);
 
-  // * etc and services
-  const log = new LogService();
-  const portalService = new PortalService();
-
   const { currentUser } = useUserStore();
 
   const column2: TableProps<Log>["columns"] = [
@@ -94,11 +90,11 @@ const PortalBalanceHistory = ({
 
       if (res?.success ?? false) setLogs(res?.data ?? []);
       setFetching(false);
-    })(log);
+    })(LogService);
   };
 
   const request = async () => {
-    let res = await portalService.requestBalance(
+    let res = await PortalService.requestBalance(
       balanceInput ?? 0,
       portal?._id ?? "",
       currentUser?._id ?? ""

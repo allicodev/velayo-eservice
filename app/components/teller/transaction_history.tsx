@@ -44,9 +44,6 @@ const TransactionHistory = ({
   const [searchName, setSearchName] = useState("");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const bill = new BillService();
-  const user = new UserService();
-
   const { currentBranch, currentUser } = useUserStore();
 
   // * FILTER
@@ -372,7 +369,7 @@ const TransactionHistory = ({
       // setTotal
       if (!pageSize) pageSize = 10;
 
-      let res = await bill.getAllTransaction({
+      let res = await BillService.getAllTransaction({
         page,
         pageSize,
         status: status ? status : null,
@@ -414,7 +411,7 @@ const TransactionHistory = ({
           searchKey: searchName,
         });
         if (res?.success ?? false) setTellers(res?.data ?? []);
-      })(user);
+      })(UserService);
   }, [searchName, open]);
 
   return (

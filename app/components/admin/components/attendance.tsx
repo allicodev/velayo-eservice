@@ -48,10 +48,6 @@ const Attendance = () => {
   const [total, setTotal] = useState(0);
   const [totalRenderedHourse, setTotalRenderedHours] = useState(0);
 
-  // context and services
-  const user = new UserService();
-  const log = new LogService();
-
   const columns: TableProps<LogData>["columns"] = [
     {
       title: "ID",
@@ -248,7 +244,7 @@ const Attendance = () => {
       setFetching(true);
       if (!pageSize) pageSize = 10;
 
-      let res = await log.getLog({
+      let res = await LogService.getLog({
         page,
         pageSize,
         type: "attendance",
@@ -413,7 +409,7 @@ const Attendance = () => {
       });
 
       if (res?.success ?? false) setTellers((res?.data as User[]) ?? []);
-    })(user);
+    })(UserService);
 
     getLogs({
       page: 1,

@@ -14,11 +14,10 @@ const BalanceUpdater = ({
 }: BalanceUpdaterProps) => {
   const [input, setInput] = useState("");
 
-  const log = new LogService();
   const { currentUser } = useUserStore();
 
   const handleUpdate = async () => {
-    let res = await log.newLog({
+    let res = await LogService.newLog({
       userId: currentUser?._id ?? "",
       type: "portal",
       portalId: _id,

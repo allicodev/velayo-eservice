@@ -158,13 +158,11 @@ export interface Eload {
 export interface ApiGetProps {
   endpoint: string;
   query?: Record<any, any>;
-  publicRoute?: boolean;
 }
 
 export interface ApiPostProps {
   endpoint: string;
   payload?: Record<any, any>;
-  publicRoute?: boolean;
 }
 
 // utils props

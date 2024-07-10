@@ -42,8 +42,6 @@ const User = ({
   const [total, setTotal] = useState(0);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
-  const user = new UserService();
-
   const columns: TableProps<ProtectedUser>["columns"] = [
     {
       title: "ID",
@@ -119,7 +117,7 @@ const User = ({
         setTrigger(trigger + 1);
         setOpenedNewUser(false);
       } else message.warning(res.message);
-    })(user);
+    })(UserService);
   };
 
   const handleSaveUser = (obj: any) => {
@@ -131,7 +129,7 @@ const User = ({
         setOpenedNewUser(false);
         setOpenedUser(null);
       } else message.warning(res.message);
-    })(user);
+    })(UserService);
   };
 
   const handeRemoveUser = (id: string) => {
@@ -142,7 +140,7 @@ const User = ({
         message.success(res.message ?? "Deleted Successfully");
         setTrigger(trigger + 1);
       } else message.warning(res.message);
-    })(user);
+    })(UserService);
   };
 
   const getUsers = ({
@@ -160,7 +158,7 @@ const User = ({
       // setFetching(true);
       if (!pageSize) pageSize = 10;
 
-      let res = await user.getUsers({
+      let res = await UserService.getUsers({
         role: role ? [role.toLocaleLowerCase()] : undefined,
         page,
         pageSize,

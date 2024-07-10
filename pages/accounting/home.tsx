@@ -76,10 +76,6 @@ const Accounting = () => {
 
   const [total, setTotal] = useState(0);
 
-  const bill = new BillService();
-  const branch = new BranchService();
-  const user = new UserService();
-
   const { currentUser } = useUserStore();
 
   const column: TableProps<Transaction>["columns"] = [
@@ -309,7 +305,7 @@ const Accounting = () => {
       setFetching(true);
       if (!pageSize) pageSize = 10;
 
-      let res = await bill.getAllTransaction({
+      let res = await BillService.getAllTransaction({
         page,
         pageSize,
         order: "descending",
@@ -573,7 +569,7 @@ const Accounting = () => {
       let res = await _.getBranch({});
 
       if (res?.success ?? false) setBranches(res?.data ?? []);
-    })(branch);
+    })(BranchService);
 
     // get tellers
     (async (_) => {
@@ -584,7 +580,7 @@ const Accounting = () => {
       });
 
       if (res?.success ?? false) setTellers((res?.data as User[]) ?? []);
-    })(user);
+    })(UserService);
 
     // recalculate total
     updateTotalCalculate();

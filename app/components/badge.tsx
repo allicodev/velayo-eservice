@@ -61,10 +61,6 @@ const UserBadge = ({
   const [openWebcam, setOpenWebCam] = useState(false);
   const webcamRef = useRef<Webcam>(null);
 
-  const bill = new BillService();
-  const wallet = new WalletService();
-  const etc = new EtcService();
-
   const { setItems } = useItemStore();
   const { removeUser, removeBranch } = useUserStore();
 
@@ -292,7 +288,7 @@ const UserBadge = ({
         setBills(res.data ?? []);
         setOrigBills(res?.data ?? []);
       }
-    })(bill);
+    })(BillService);
     (async (_) => {
       let res = await _.getWallet();
 
@@ -300,7 +296,7 @@ const UserBadge = ({
         setWallets(res.data ?? []);
         setOrigWallet(res?.data ?? []);
       }
-    })(wallet);
+    })(WalletService);
   };
 
   const handleUpdate = () => {
@@ -315,7 +311,7 @@ const UserBadge = ({
       let res2 = await _.updateEloadSettings({ disabled_eload: eload });
 
       if (res2?.success ?? false) setTrigger(trigger + 1);
-    })(etc);
+    })(EtcService);
   };
 
   useEffect(() => {
@@ -335,7 +331,7 @@ const UserBadge = ({
     (async (_) => {
       let res2 = await _.getEloadSettings();
       if (res2?.success ?? false) setEload(res2?.data?.disabled_eload ?? []);
-    })(etc);
+    })(EtcService);
   }, [trigger]);
 
   return (

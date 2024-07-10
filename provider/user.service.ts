@@ -1,5 +1,4 @@
-import Loader from "./utils/loader";
-import Api from "./api.service";
+import API from "./api.service";
 import {
   UserLoginProps,
   ExtendedResponse,
@@ -10,59 +9,50 @@ import {
   ProtectedUser,
 } from "@/types";
 
-class UserService {
-  private readonly instance = new Api();
-
-  public async login(
+abstract class UserService {
+  public static async login(
     payload: UserLoginProps
   ): Promise<ExtendedResponse<UserWithToken>> {
-    const response = await this.instance.post<UserWithToken>({
+    return await API.post<UserWithToken>({
       endpoint: "/auth/login",
       payload,
-      publicRoute: true,
     });
-    return response;
   }
 
-  // !remove
-  public async newUser(payload: User): Promise<ExtendedResponse<User>> {
-    const response = await this.instance.post<User>({
+  public static async newUser(payload: User): Promise<ExtendedResponse<User>> {
+    return await API.post<User>({
       endpoint: "/user/new-user",
       payload,
     });
-    return response;
   }
 
-  // !remove
-  public async updateUser(payload: User): Promise<ExtendedResponse<User>> {
-    const response = await this.instance.post<User>({
+  public static async updateUser(
+    payload: User
+  ): Promise<ExtendedResponse<User>> {
+    return await API.post<User>({
       endpoint: "/user/update-user",
       payload,
     });
-    return response;
   }
 
-  public async getUsers(
+  public static async getUsers(
     prop: PageProps
   ): Promise<ExtendedResponse<ProtectedUser[] | User[]>> {
     let role: any = prop.role;
     if (prop.role) role = JSON.stringify(prop.role);
-    const response = await this.instance.get<ProtectedUser[] | User[]>({
+    return await API.get<ProtectedUser[] | User[]>({
       endpoint: "/user/get-users",
       query: { ...prop, role },
     });
-    return response;
   }
 
-  // !remove
-  public async deleteUser({ id }: { id: string }): Promise<Response> {
-    const response = await this.instance.get<Response>({
+  public static async deleteUser({ id }: { id: string }): Promise<Response> {
+    return await API.get<Response>({
       endpoint: "/user/remove-user",
       query: {
         id,
       },
     });
-    return response;
   }
 }
 
