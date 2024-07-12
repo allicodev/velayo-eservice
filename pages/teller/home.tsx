@@ -1,19 +1,10 @@
-import React, { useEffect, useState } from "react";
-import {
-  Button,
-  Col,
-  InputNumber,
-  Modal,
-  Row,
-  Tag,
-  Typography,
-  message,
-  notification,
-} from "antd";
-import { WalletOutlined, SearchOutlined } from "@ant-design/icons";
+import React, { useEffect, useRef, useState } from "react";
+import { Button, Col, Row, Tag, Typography, notification } from "antd";
+import { WalletOutlined } from "@ant-design/icons";
 import { MdOutlineSendToMobile } from "react-icons/md";
 import { FaMoneyBills } from "react-icons/fa6";
-import { AiOutlineFileDone } from "react-icons/ai";
+import Webcam from "react-webcam";
+import dayjs from "dayjs";
 
 import { UserBadge, DashboardBtn } from "@/app/components";
 import {
@@ -32,22 +23,27 @@ import ShoppeForm from "@/app/components/teller/shoppe_form";
 import BillService from "@/provider/bill.service";
 import BranchService from "@/provider/branch.service";
 import PosHome from "@/app/components/pos/pos";
-import dayjs from "dayjs";
 import ItemService from "@/provider/item.service";
 import EtcService from "@/provider/etc.service";
+import ModalQueue from "@/app/components/teller/modal_queue";
+import WebCamera from "@/app/components/teller/webcam";
+import COTracker from "@/app/components/teller/cashout_tracker";
 
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
   const [api, contextHolder] = notification.useNotification();
   const [brans, setBrans] = useState<BranchData | null>(null);
-  const [queueInput, setQueueInput] = useState<number | null>(null);
   const [lastQueue, setLastQueue] = useState(0);
+  const [openQueue, setOpenQueue] = useState(false);
+  const [openWebcam, setOpenWebCam] = useState(false);
+  const [openCOTracker, setOpenCOTracker] = useState(false);
   const [transactionDetailsOpt, setTransactionOpt] =
     useState<TransactionOptProps>({
       open: false,
       transaction: null,
+      requestId: null,
     });
-  const [openQueue, setOpenQueue] = useState(false);
+  const webcamRef = useRef<Webcam>(null);
 
   const { currentUser, currentBranch, setPrinter, printerIsAlive } =
     useUserStore();
@@ -166,24 +162,6 @@ const Teller = () => {
     })(BillService);
   };
 
-  const searchTransaction = async () => {
-    if (!queueInput) {
-      message.warning("Cannot search. Input is empty.");
-      return;
-    }
-    let res = await EtcService.getTransactionFromQueue(
-      queueInput,
-      currentBranch
-    );
-
-    if (res?.success ?? false) {
-      if (res?.data) {
-        setOpenQueue(false);
-        await (TransactionHistory as any).openTransaction(res?.data?._id);
-      } else message.warning("No Queue");
-    }
-  };
-
   function handleKeyPress(event: KeyboardEvent) {
     const key = event.key;
 
@@ -205,6 +183,12 @@ const Teller = () => {
         break;
       case "F6":
         setOpenedMenu("pos");
+        break;
+      case "F8":
+        setOpenCOTracker(true);
+        break;
+      case "F9":
+        setOpenWebCam(true);
         break;
       case "F10":
         setOpenQueue(true);
@@ -320,7 +304,7 @@ const Teller = () => {
                 fontSize: "1.2em",
               }}
             >
-              Last transaction queue:{" "}
+              Latest transaction queue:{" "}
               <span
                 style={{
                   background: "#98c04b",
@@ -331,7 +315,9 @@ const Teller = () => {
                   paddingLeft: 7,
                   fontWeight: 700,
                   borderRadius: 2,
+                  cursor: "pointer",
                 }}
+                onClick={() => setOpenQueue(true)}
               >
                 {lastQueue}
               </span>
@@ -412,9 +398,41 @@ const Teller = () => {
                     )}
                   </div>
                 </div>
-                <span style={{ fontFamily: "abel" }}>
-                  [F10] - Open Queue Modal
-                </span>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <span style={{ fontFamily: "abel" }}>
+                    <span
+                      style={{
+                        fontSize: "1.2em",
+                        fontWeight: 700,
+                      }}
+                    >
+                      [F8]
+                    </span>{" "}
+                    - Track Transaction
+                  </span>
+                  <span style={{ fontFamily: "abel" }}>
+                    <span
+                      style={{
+                        fontSize: "1.2em",
+                        fontWeight: 700,
+                      }}
+                    >
+                      [F9]
+                    </span>{" "}
+                    - Attendance
+                  </span>
+                  <span style={{ fontFamily: "abel" }}>
+                    <span
+                      style={{
+                        fontSize: "1.2em",
+                        fontWeight: 700,
+                      }}
+                    >
+                      [F10]
+                    </span>{" "}
+                    - Queue Modal
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -428,8 +446,8 @@ const Teller = () => {
       <TransactionHistory
         open={openedMenu == "th"}
         close={close}
-        onCellClick={(e) => {
-          setTransactionOpt({ open: true, transaction: e });
+        onCellClick={(e, requestId) => {
+          setTransactionOpt({ open: true, transaction: e, requestId });
         }}
       />
       <TransactionDetails
@@ -446,50 +464,21 @@ const Teller = () => {
         close={() => setOpenedMenu("")}
       />
       <PosHome open={openedMenu == "pos"} close={close} />
-      <Modal
+      <ModalQueue
         open={openQueue}
-        onCancel={() => setOpenQueue(false)}
-        footer={null}
-        closable={false}
-        width={400}
-        style={{
-          padding: 0,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <InputNumber
-            size="large"
-            style={{
-              width: 250,
-              fontSize: "1.25em",
-              borderTopRightRadius: 0,
-              borderBottomRightRadius: 0,
-            }}
-            onChange={(e) => {
-              if (e) setQueueInput(Number.parseInt(e!.toString()));
-            }}
-            onPressEnter={searchTransaction}
-            placeholder="Enter queue number..."
-            controls={false}
-          />
-          <Button
-            size="large"
-            icon={<SearchOutlined />}
-            style={{
-              borderTopLeftRadius: 0,
-              borderBottomLeftRadius: 0,
-            }}
-            onClick={searchTransaction}
-          >
-            search
-          </Button>
-        </div>
-      </Modal>
+        close={() => setOpenQueue(false)}
+        branchId={currentBranch}
+      />
+      <WebCamera
+        open={openWebcam}
+        close={() => setOpenWebCam(false)}
+        webcamRef={webcamRef}
+      />
+      <COTracker
+        open={openCOTracker}
+        close={() => setOpenCOTracker(false)}
+        setOpenedMenu={setOpenedMenu!}
+      />
     </>
   );
 };

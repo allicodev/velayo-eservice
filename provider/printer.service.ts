@@ -1,12 +1,11 @@
 import axios from "axios";
-import Loader from "./utils/loader";
 import {
   ShopeeSelfCollectPrinter,
   TransactionPrinter,
   TransactionPrinterPOS,
 } from "@/types";
 
-abstract class PrinterService extends Loader {
+abstract class PrinterService {
   private static readonly instance = axios.create({
     baseURL: "http://localhost:3001",
     timeout: 5000,
@@ -14,6 +13,7 @@ abstract class PrinterService extends Loader {
       "Content-Type": "application/json",
     },
   });
+
   public static async printShoppeCollect({ ...p }: ShopeeSelfCollectPrinter) {
     return await this.instance.post("/print/shopee-collect", p);
   }

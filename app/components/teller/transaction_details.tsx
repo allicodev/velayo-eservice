@@ -23,11 +23,13 @@ import {
 import { FloatLabel, transactionToPrinter } from "@/assets/ts";
 import { useUserStore } from "@/provider/context";
 import BillService from "@/provider/bill.service";
+import EtcService from "@/provider/etc.service";
 
 const TransactionDetails = ({
   open,
   close,
   transaction,
+  requestId,
 }: TransactionDetailsProps) => {
   const [textData, setTextData] = useState<[string[], any[]]>([[], []]);
   const [traceNum, setTraceNum] = useState("");
@@ -153,6 +155,8 @@ const TransactionDetails = ({
 
     if (res?.success ?? false) {
       message.success("Successfully Confirmed");
+      console.log(requestId);
+      if (requestId != null) await EtcService.markCompleted(requestId);
       close();
     }
   };

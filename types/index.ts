@@ -104,6 +104,7 @@ export * from "./service.types";
 export interface TransactionOptProps {
   open: boolean;
   transaction: Transaction | null;
+  requestId?: string | null;
 }
 
 export interface ItemCode {

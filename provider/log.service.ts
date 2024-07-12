@@ -1,8 +1,7 @@
-import Loader from "./utils/loader";
 import API from "./api.service";
-import { ExtendedResponse, Log, LogData, NewLog, Response } from "@/types";
+import { ExtendedResponse, LogData, NewLog, Response } from "@/types";
 
-abstract class LogService extends Loader {
+abstract class LogService {
   public static async newLog({
     ...props
   }: NewLog): Promise<ExtendedResponse<LogData>> {

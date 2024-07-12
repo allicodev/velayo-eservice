@@ -44,6 +44,7 @@ const EncoderForm = ({
   const [portals, setPortals] = useState<Portal[]>([]);
   const [selectedPortal, setSelectedPortal] = useState<Portal | null>(null);
   const [rebate, setRebate] = useState<number | null>(0);
+  const [to, setTo] = useState<NodeJS.Timeout>();
 
   const { currentUser } = useUserStore();
 
@@ -627,8 +628,9 @@ const EncoderForm = ({
                       borderRadius: 8,
                     }}
                     onClick={() => {
+                      clearTimeout(to);
                       setCopiedIndex(i);
-                      setTimeout(() => setCopiedIndex(-1), 2500);
+                      setTo(setTimeout(() => setCopiedIndex(-1), 2500));
                       let textToBeCopied: any = textData[1][i];
 
                       if (textData[1][i].includes("₱")) {

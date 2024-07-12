@@ -30,7 +30,7 @@ export interface DrawerBasicProps {
   style?: CSSProperties;
   extra?: ReactNode;
   extraData?: any;
-  onCellClick?: (str: any) => void;
+  onCellClick?: (str: any, extra?: any) => void;
   refresh?: number;
 }
 
@@ -87,6 +87,7 @@ export interface TransactionDetailsProps {
   open: boolean;
   close: () => void;
   transaction: Transaction | TransactionPOS | null;
+  requestId?: string | null;
 }
 
 export interface NewUserProps {

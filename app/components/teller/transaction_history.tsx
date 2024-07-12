@@ -63,10 +63,13 @@ const TransactionHistory = ({
     }, 500);
   };
 
-  (TransactionHistory as any).openTransaction = async (id: any) => {
+  (TransactionHistory as any).openTransaction = async (
+    id: any,
+    requestId?: string
+  ) => {
     await getTransaction({ page: 1, pageSize: 99999 }).then((__: any) => {
       if (onCellClick) {
-        onCellClick(__.filter((e: any) => e._id == id)[0]);
+        onCellClick(__.filter((e: any) => e._id == id)[0], requestId);
       } else null;
     });
   };

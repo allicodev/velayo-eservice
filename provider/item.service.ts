@@ -1,4 +1,3 @@
-import Loader from "./utils/loader";
 import API from "./api.service";
 import {
   InputProps,
@@ -12,7 +11,7 @@ import {
   BranchData,
 } from "@/types";
 
-abstract class ItemService extends Loader {
+abstract class ItemService {
   public static async getItems(query?: any) {
     return await API.get<BranchData[] | ItemData[]>({
       endpoint: "/item/all",

@@ -1,4 +1,3 @@
-import Loader from "./utils/loader";
 import API from "./api.service";
 import {
   BillingSettingsType,
@@ -13,7 +12,7 @@ import {
 } from "@/types";
 import { Dayjs } from "dayjs";
 
-abstract class BillService extends Loader {
+abstract class BillService {
   public static async getBill(_id?: string | null) {
     return await API.get<BillingSettingsType[]>({
       endpoint: "/bill/get-bill",

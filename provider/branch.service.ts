@@ -1,4 +1,3 @@
-import Loader from "./utils/loader";
 import API from "./api.service";
 import {
   Branch,
@@ -9,7 +8,7 @@ import {
 } from "@/types";
 
 // !remove (some)
-abstract class BranchService extends Loader {
+abstract class BranchService {
   public static async newBranch({ ...props }: Branch): Promise<Response> {
     return await API.post<Branch>({
       endpoint: "/branch",

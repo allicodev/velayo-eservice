@@ -42,6 +42,8 @@ const RequestSchema = new mongoose.Schema(
       enum: ["bills", "wallet", "eload", "shopee", "miscellaneous"],
     },
     queue: Number,
+    // if billingType == "miscellaneous"
+    extra: Object,
   },
   { timestamps: true }
 );

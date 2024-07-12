@@ -45,7 +45,15 @@ import EtcService from "@/provider/etc.service";
 
 // TODO: reduce the item quantity on api after POS transact
 
-const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
+const PosHome = ({
+  open,
+  close,
+  search,
+}: {
+  open: boolean;
+  close: () => void;
+  search?: string;
+}) => {
   const [currentTime, setCurrentTime] = useState<Dayjs>(dayjs());
   const [popupItem, setPopupitems] = useState<ItemData[]>([]);
   const [inputQuantity, setInputQuantity] = useState<number | null>();
@@ -147,7 +155,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
     if (
       stock_count <
       (inputQuantity ?? 0) +
-        selectedItem.filter((e) => e._id == openItemOpt.id)[0]?.quantity
+        (selectedItem.filter((e) => e._id == openItemOpt.id)[0]?.quantity ?? 0)
     ) {
       message.warning(
         "Cannot Add an Item. Quantity should be lesser than current item quantity"
@@ -350,13 +358,14 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
   }, []);
 
   useEffect(() => {
-    (searchRef.current as any)?.focus();
+    // (searchRef.current as any)?.focus();
     setPopupitems(items);
 
+    if (search != "") setInputSearch(search ?? "");
     // return () => {
     //   searchRef.current = null;
     // };
-  }, [open]);
+  }, [open, search]);
 
   return (
     <>
@@ -497,7 +506,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
             style={{ display: "block", width: "100%" }}
             onChange={runTimer}
             value={inputSearch}
-            ref={searchRef}
+            // ref={searchRef}
             onSelect={(_, e) => getItem(e.key)}
             dropdownStyle={{ width: 1100 }}
             filterOption={(inputValue, option) =>
@@ -506,6 +515,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
                 .toUpperCase()
                 .indexOf(inputValue.toUpperCase()) !== -1
             }
+            autoFocus
             options={
               popupItem.length > 0
                 ? [

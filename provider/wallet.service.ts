@@ -1,4 +1,3 @@
-import Loader from "./utils/loader";
 import API from "./api.service";
 import {
   BillingsFormField,

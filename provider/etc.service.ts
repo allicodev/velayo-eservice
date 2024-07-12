@@ -2,6 +2,7 @@ import API from "./api.service";
 import {
   BillingSettingsType,
   EloadSettings,
+  RequestQueue,
   Response,
   Transaction,
   UpdateBillWallet,
@@ -61,17 +62,6 @@ abstract class EtcService {
     });
   }
 
-  public static async getTransactionFromQueue(queue: number, branchId: string) {
-    return await API.get<Transaction>({
-      endpoint: "/transaction/search-transaction",
-      query: {
-        queue,
-        status: "request",
-        branchId,
-      },
-    });
-  }
-
   public static async checkSettings() {
     return await API.get<Response>({
       endpoint: "/etc/check-settings",
@@ -96,6 +86,25 @@ abstract class EtcService {
       endpoint: "/etc/check-last-queue",
       query: {
         branchId,
+      },
+    });
+  }
+
+  public static async getQueueRequest(branchId: string, queue?: number) {
+    return await API.get<RequestQueue[]>({
+      endpoint: "/etc/requests-queue",
+      query: {
+        branchId,
+        queue,
+      },
+    });
+  }
+
+  public static async markCompleted(_id: string) {
+    return await API.get<RequestQueue[]>({
+      endpoint: "/etc/request-completed",
+      query: {
+        _id,
       },
     });
   }

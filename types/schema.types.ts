@@ -225,3 +225,14 @@ export interface BalanceRequest {
   status: "pending" | "completed" | "rejected";
   createdAt: Date;
 }
+
+// * Request Queue
+export interface RequestQueue {
+  _id?: string;
+  transactionId: Transaction;
+  branchId: Branch;
+  billingType: "bills" | "wallet" | "eload" | "shopee" | "miscellaneous";
+  queue: number;
+  status: "pending" | "completed" | "rejected";
+  extra: Object;
+}
