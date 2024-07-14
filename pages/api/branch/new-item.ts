@@ -25,7 +25,7 @@ async function handler(
     { _id },
     {
       $push: {
-        items: itemIds.map((e: any) => ({
+        items: itemIds?.map((e: any) => ({
           itemId: e,
           stock_count: 0,
           createdAt: new Date().toISOString(),

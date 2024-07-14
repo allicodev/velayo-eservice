@@ -291,8 +291,8 @@ const Encoder = () => {
     {
       title: "ID",
       key: "id",
-      dataIndex: "queue",
       width: 50,
+      render: (_, row, i) => i + 1,
     },
     {
       title: isMobile ? "Type" : "Transaction Type",

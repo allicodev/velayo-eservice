@@ -226,7 +226,12 @@ const Stock = ({
                   size="large"
                   className="inputnum-align-end"
                   onChange={(e) =>
-                    dispatch(updateQuantity({ id: row._id, quantity: e! }))
+                    dispatch(
+                      updateQuantity({
+                        id: row._id,
+                        quantity: parseInt(e?.toFixed()!),
+                      })
+                    )
                   }
                 />
               ),

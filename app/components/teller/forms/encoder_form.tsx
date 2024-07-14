@@ -248,6 +248,7 @@ const EncoderForm = ({
 
   const checkIfValid = () => {
     if (isDisabled) return true;
+
     if (
       isFailed ||
       (transaction?.type == "miscellaneous" && transaction.isOnlinePayment)
@@ -266,6 +267,17 @@ const EncoderForm = ({
       if (
         transaction.sub_type?.split(" ")[1] == "cash-out" &&
         (selectedPortal == null || [0, null].includes(rebate))
+      )
+        return true;
+      return false;
+    }
+
+    if (transaction && ["bills", "eload"].includes(transaction.type)) {
+      if (
+        selectedPortal == null ||
+        selectedPortal.currentBalance < (transaction.amount ?? 0) ||
+        ["", null].includes(refNumber) ||
+        [0, null].includes(rebate)
       )
         return true;
       return false;
