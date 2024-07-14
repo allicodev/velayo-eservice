@@ -199,9 +199,12 @@ const TransactionDetails = ({
                     width: "100%",
                   }}
                 >
-                  <span style={{ width: 120 }}>{`₱${
+                  <span style={{ width: 120 }}>{`₱${(
                     e.quantity * e.price
-                  }`}</span>
+                  ).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`}</span>
                   <span>{`₱${e.price} x ${e.quantity}${e.unit}`}</span>
                 </div>
               )),

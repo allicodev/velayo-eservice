@@ -57,6 +57,7 @@ const PosHome = ({
   const [currentTime, setCurrentTime] = useState<Dayjs>(dayjs());
   const [popupItem, setPopupitems] = useState<ItemData[]>([]);
   const [inputQuantity, setInputQuantity] = useState<number | null>();
+  const [price, setPrice] = useState<number | null>();
   const [openItemOpt, setOpenItemOpt] = useState<{
     open: boolean;
     data: ItemData | null;
@@ -133,7 +134,7 @@ const PosHome = ({
 
     if (res?.success ?? false) {
       setOpenItemOpt({ open: true, data: res?.data ?? null, mode: "new", id });
-      quantityRef.current?.focus();
+      if (res?.data?.price != null) quantityRef.current?.focus();
     }
   };
 
@@ -145,6 +146,12 @@ const PosHome = ({
       message.warning("Cannot Add an Item. Quantity should be greater than 0");
       return;
     }
+
+    if (openItemOpt.data?.price == null && price == null) {
+      message.warning("Cannot Add an Item. Price is empty");
+      return;
+    }
+
     let res2 = await BranchService.getItemSpecific(
       currentBranch,
       openItemOpt.id
@@ -165,7 +172,7 @@ const PosHome = ({
 
     setOpenItemOpt({ open: false, data: null, mode: "", id: "" });
     setInputSearch("");
-    setInputQuantity(null);
+
     if (openItemOpt.mode == "new") {
       if (selectedItem.some((e) => e._id == openItemOpt.data?._id)) {
         dispatch(
@@ -176,8 +183,14 @@ const PosHome = ({
         );
       } else {
         if (openItemOpt.data) {
-          const { _id, name, itemCode, unit, parentName, price } =
-            openItemOpt.data;
+          const {
+            _id,
+            name,
+            itemCode,
+            unit,
+            parentName,
+            price: _price,
+          } = openItemOpt.data;
 
           dispatch(
             newItem({
@@ -186,14 +199,14 @@ const PosHome = ({
               itemCode,
               unit: unit!,
               currentQuantity: (res2 as any[])[0].stock_count ?? 0,
-              price,
+              price: openItemOpt.data.price == null ? price! : _price,
               parentName: parentName!,
               quantity: inputQuantity!,
               cost: item.cost,
             })
           );
 
-          setInputQuantity(null);
+          setPrice(null);
         }
       }
     } else if (openItemOpt.mode == "update") {
@@ -205,6 +218,8 @@ const PosHome = ({
       );
     }
 
+    setInputQuantity(null);
+    setPrice(null);
     setPopupitems(items);
   };
 
@@ -608,9 +623,12 @@ const PosHome = ({
                               paddingLeft: 10,
                               textAlign: "end",
                               paddingRight: 10,
+                              color: e.price == undefined ? "#aaa" : undefined,
                             }}
                           >
-                            {e.price?.toFixed(2)}
+                            {e.price != undefined
+                              ? e.price?.toFixed(2)
+                              : "Not Set"}
                           </span>
                           <span
                             style={{
@@ -680,7 +698,11 @@ const PosHome = ({
                 width: 100,
                 dataIndex: "price",
                 render: (_) =>
-                  `₱${_?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`,
+                  _ != undefined ? (
+                    `₱${_?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
+                  ) : (
+                    <Typography.Text type="secondary">Not Set</Typography.Text>
+                  ),
               },
               {
                 title: "Quantity",
@@ -728,12 +750,16 @@ const PosHome = ({
         onCancel={() => {
           setOpenItemOpt({ open: false, data: null, mode: "", id: "" });
           setInputQuantity(null);
+          setPrice(null);
         }}
         zIndex={2}
         closable={false}
         footer={null}
         width={350}
         styles={{
+          content: {
+            padding: 10,
+          },
           body: {
             display: "flex",
             flexDirection: "column",
@@ -742,6 +768,24 @@ const PosHome = ({
           },
         }}
       >
+        <Typography style={{ fontSize: "3em" }}>Price</Typography>
+        <InputNumber
+          className="custom customInput size-70"
+          style={{ width: 300, textAlign: "center" }}
+          min={1}
+          controls={false}
+          value={price}
+          formatter={(value: any) =>
+            value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
+          parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
+          onKeyDown={(e) => {
+            if (e.code == "Enter") quantityRef.current?.focus();
+          }}
+          onChange={(e) => {
+            if (e) setPrice(e);
+          }}
+        />
         <Typography style={{ fontSize: "3em" }}>QUANTITY</Typography>
         <InputNumber
           className="custom customInput size-70"

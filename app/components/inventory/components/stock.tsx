@@ -208,7 +208,11 @@ const Stock = ({
               width: 80,
               dataIndex: "price",
               render: (_) =>
-                `₱${_?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`,
+                _ != undefined ? (
+                  `₱${_?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
+                ) : (
+                  <Typography.Text type="secondary">Not Set</Typography.Text>
+                ),
             },
             // {
             //   title: "C. Quantity",
