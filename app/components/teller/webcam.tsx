@@ -416,6 +416,7 @@ const WebCamera = ({
         fromDate: dayjs(),
         toDate: dayjs(),
         userId: currentOpenedUser?._id ?? "",
+        type: "attendance",
       });
 
       if ((res?.data && res?.data.length > 0) ?? false) {
