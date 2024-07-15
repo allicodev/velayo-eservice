@@ -9,7 +9,6 @@ import {
   message,
 } from "antd";
 import Webcam from "react-webcam";
-import { CiLogin, CiLogout } from "react-icons/ci";
 import {
   ReloadOutlined,
   LeftOutlined,
@@ -20,7 +19,13 @@ import UserService from "@/provider/user.service";
 import { ProtectedUser } from "@/types";
 import LogService from "@/provider/log.service";
 import { useUserStore } from "@/provider/context";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
+
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const WebCamera = ({
   open,
