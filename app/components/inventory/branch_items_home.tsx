@@ -45,9 +45,6 @@ const BranchItemHome = ({ open, close, branch, updateBranch }: BasicProps) => {
     type: "stock-in" | "stock-out" | null;
   }>({ open: false, type: "stock-in" });
 
-  //   etc and services
-  const branchService = new BranchService();
-
   const drawerTitle = () => (
     <Flex align="center">
       <Typography.Title level={4} style={{ margin: 0 }}>
@@ -161,7 +158,7 @@ const BranchItemHome = ({ open, close, branch, updateBranch }: BasicProps) => {
   ];
 
   const handleItemPushToBranch = async (ids: string[]) => {
-    await branchService.newItemBranch(branch._id ?? "", ids).then((e) => {
+    await BranchService.newItemBranch(branch._id ?? "", ids).then((e) => {
       if (e.success ?? false) {
         updateBranch(e.data);
         message.success(e?.message ?? "Success");
@@ -170,7 +167,7 @@ const BranchItemHome = ({ open, close, branch, updateBranch }: BasicProps) => {
   };
 
   const handleDeleteItem = async (itemId: string, branchId: string) => {
-    let res = await branchService.removeBranchItem(branchId, itemId);
+    let res = await BranchService.removeBranchItem(branchId, itemId);
 
     if (res?.success ?? false) {
       message.success(res?.message ?? "Success");

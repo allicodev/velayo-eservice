@@ -15,9 +15,6 @@ const ShoppeForm = ({ open, close }: { open: boolean; close: () => void }) => {
   const [name, setName] = useState("");
   const [pins, setPins] = useState<string[]>([]);
 
-  const bill = new BillService();
-  const printer = new PrinterService();
-
   const { currentUser, currentBranch } = useUserStore();
 
   const clearAll = () => {
@@ -61,7 +58,7 @@ const ShoppeForm = ({ open, close }: { open: boolean; close: () => void }) => {
         clearAll();
         close();
       }
-    })(bill);
+    })(BillService);
   };
 
   const handlePrint = () => {
@@ -82,7 +79,7 @@ const ShoppeForm = ({ open, close }: { open: boolean; close: () => void }) => {
       });
 
       if (res.data?.success) message.success(res.data?.message ?? "Success");
-    })(printer);
+    })(PrinterService);
   };
 
   return (

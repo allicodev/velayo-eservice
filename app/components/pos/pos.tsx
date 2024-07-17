@@ -45,10 +45,19 @@ import EtcService from "@/provider/etc.service";
 
 // TODO: reduce the item quantity on api after POS transact
 
-const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
+const PosHome = ({
+  open,
+  close,
+  search,
+}: {
+  open: boolean;
+  close: () => void;
+  search?: string;
+}) => {
   const [currentTime, setCurrentTime] = useState<Dayjs>(dayjs());
   const [popupItem, setPopupitems] = useState<ItemData[]>([]);
   const [inputQuantity, setInputQuantity] = useState<number | null>();
+  const [price, setPrice] = useState<number | null>();
   const [openItemOpt, setOpenItemOpt] = useState<{
     open: boolean;
     data: ItemData | null;
@@ -77,13 +86,6 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
   // context store
   const { currentUser, currentBranch } = useUserStore();
   const { items, setUpdateQuantity } = useItemStore();
-
-  // provider
-  const item = new ItemService();
-  const branch = new BranchService();
-  const printer = new PrinterService();
-
-  const etc = new EtcService();
 
   // redux
   const selectedItem = useSelector((state: RootState) => state.item);
@@ -128,11 +130,11 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
   };
 
   const getItem = async (id: string) => {
-    let res = await item.getItemSpecific(id);
+    let res = await ItemService.getItemSpecific(id);
 
     if (res?.success ?? false) {
       setOpenItemOpt({ open: true, data: res?.data ?? null, mode: "new", id });
-      quantityRef.current?.focus();
+      if (res?.data?.price != null) quantityRef.current?.focus();
     }
   };
 
@@ -144,14 +146,23 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
       message.warning("Cannot Add an Item. Quantity should be greater than 0");
       return;
     }
-    let res2 = await branch.getItemSpecific(currentBranch, openItemOpt.id);
+
+    if (openItemOpt.data?.price == null && price == null) {
+      message.warning("Cannot Add an Item. Price is empty");
+      return;
+    }
+
+    let res2 = await BranchService.getItemSpecific(
+      currentBranch,
+      openItemOpt.id
+    );
     const stock_count = (res2 as any[])[0]?.stock_count ?? 0;
     const item: ItemData = (res2 as any[])[0]?.itemId;
 
     if (
       stock_count <
       (inputQuantity ?? 0) +
-        selectedItem.filter((e) => e._id == openItemOpt.id)[0]?.quantity
+        (selectedItem.filter((e) => e._id == openItemOpt.id)[0]?.quantity ?? 0)
     ) {
       message.warning(
         "Cannot Add an Item. Quantity should be lesser than current item quantity"
@@ -161,7 +172,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
 
     setOpenItemOpt({ open: false, data: null, mode: "", id: "" });
     setInputSearch("");
-    setInputQuantity(null);
+
     if (openItemOpt.mode == "new") {
       if (selectedItem.some((e) => e._id == openItemOpt.data?._id)) {
         dispatch(
@@ -172,8 +183,14 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
         );
       } else {
         if (openItemOpt.data) {
-          const { _id, name, itemCode, unit, parentName, price } =
-            openItemOpt.data;
+          const {
+            _id,
+            name,
+            itemCode,
+            unit,
+            parentName,
+            price: _price,
+          } = openItemOpt.data;
 
           dispatch(
             newItem({
@@ -182,14 +199,14 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
               itemCode,
               unit: unit!,
               currentQuantity: (res2 as any[])[0].stock_count ?? 0,
-              price,
+              price: openItemOpt.data.price == null ? price! : _price,
               parentName: parentName!,
               quantity: inputQuantity!,
               cost: item.cost,
             })
           );
 
-          setInputQuantity(null);
+          setPrice(null);
         }
       }
     } else if (openItemOpt.mode == "update") {
@@ -201,6 +218,8 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
       );
     }
 
+    setInputQuantity(null);
+    setPrice(null);
     setPopupitems(items);
   };
 
@@ -228,7 +247,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
         (p, n) => p + (n.price - n.cost) * n.quantity,
         0
       );
-      let res = await item.requestTransaction(
+      let res = await ItemService.requestTransaction(
         transactionDetails,
         cash!,
         _amount - fee,
@@ -240,7 +259,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
       );
 
       if (res?.success ?? false) {
-        await branch.updateItemBranch(
+        await BranchService.updateItemBranch(
           branchId,
           "misc",
           selectedItem.map((e) => ({
@@ -265,7 +284,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
               // call proxy server, also call a flag that the print is success
 
               new Promise(async (resolve, reject) => {
-                await printer.printReceiptPos({
+                await PrinterService.printReceiptPos({
                   printData: {
                     itemDetails: JSON.stringify(
                       selectedItem.map((e) => ({
@@ -320,9 +339,9 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
 
     if (onlinePaymentInput.isOnlinePayment)
       return await new Promise(async (resolve, reject) => {
-        await etc
-          .getTransactionFromTraceId(onlinePaymentInput.traceId)
-          .then((e) => (e?.data ? resolve(e.data) : reject()));
+        await EtcService.getTransactionFromTraceId(
+          onlinePaymentInput.traceId
+        ).then((e) => (e?.data ? resolve(e.data) : reject()));
       })
         .then((e) => {
           if (e)
@@ -350,17 +369,18 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
       let res = await _.getBranchSpecific(currentBranch);
 
       if (res?.success ?? false) setBrans(res?.data ?? null);
-    })(branch);
+    })(BranchService);
   }, []);
 
   useEffect(() => {
-    (searchRef.current as any)?.focus();
+    // (searchRef.current as any)?.focus();
     setPopupitems(items);
 
+    if (search != "") setInputSearch(search ?? "");
     // return () => {
     //   searchRef.current = null;
     // };
-  }, [open]);
+  }, [open, search]);
 
   return (
     <>
@@ -501,7 +521,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
             style={{ display: "block", width: "100%" }}
             onChange={runTimer}
             value={inputSearch}
-            ref={searchRef}
+            // ref={searchRef}
             onSelect={(_, e) => getItem(e.key)}
             dropdownStyle={{ width: 1100 }}
             filterOption={(inputValue, option) =>
@@ -510,6 +530,7 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
                 .toUpperCase()
                 .indexOf(inputValue.toUpperCase()) !== -1
             }
+            autoFocus
             options={
               popupItem.length > 0
                 ? [
@@ -602,9 +623,12 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
                               paddingLeft: 10,
                               textAlign: "end",
                               paddingRight: 10,
+                              color: e.price == undefined ? "#aaa" : undefined,
                             }}
                           >
-                            {e.price?.toFixed(2)}
+                            {e.price != undefined
+                              ? e.price?.toFixed(2)
+                              : "Not Set"}
                           </span>
                           <span
                             style={{
@@ -674,7 +698,11 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
                 width: 100,
                 dataIndex: "price",
                 render: (_) =>
-                  `₱${_?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`,
+                  _ != undefined ? (
+                    `₱${_?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
+                  ) : (
+                    <Typography.Text type="secondary">Not Set</Typography.Text>
+                  ),
               },
               {
                 title: "Quantity",
@@ -722,12 +750,16 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
         onCancel={() => {
           setOpenItemOpt({ open: false, data: null, mode: "", id: "" });
           setInputQuantity(null);
+          setPrice(null);
         }}
         zIndex={2}
         closable={false}
         footer={null}
         width={350}
         styles={{
+          content: {
+            padding: 10,
+          },
           body: {
             display: "flex",
             flexDirection: "column",
@@ -736,6 +768,24 @@ const PosHome = ({ open, close }: { open: boolean; close: () => void }) => {
           },
         }}
       >
+        <Typography style={{ fontSize: "3em" }}>Price</Typography>
+        <InputNumber
+          className="custom customInput size-70"
+          style={{ width: 300, textAlign: "center" }}
+          min={1}
+          controls={false}
+          value={price}
+          formatter={(value: any) =>
+            value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
+          parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
+          onKeyDown={(e) => {
+            if (e.code == "Enter") quantityRef.current?.focus();
+          }}
+          onChange={(e) => {
+            if (e) setPrice(e);
+          }}
+        />
         <Typography style={{ fontSize: "3em" }}>QUANTITY</Typography>
         <InputNumber
           className="custom customInput size-70"

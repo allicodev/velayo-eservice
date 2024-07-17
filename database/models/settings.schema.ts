@@ -13,6 +13,7 @@ const SettingsSchema = new mongoose.Schema(
     threshold: Number,
     additionalFee: Number,
     pin: String,
+    queue: [Object],
   },
   { timestamps: false }
 );

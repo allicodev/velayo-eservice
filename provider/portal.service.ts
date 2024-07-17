@@ -1,46 +1,44 @@
 import { BalanceRequest, NewPortalProps, Portal, Response } from "@/types";
-import Api from "./api.service";
+import API from "./api.service";
 
-class PortalService {
-  private readonly instance = new Api();
-
-  public async newPortal(payload: NewPortalProps) {
-    return await this.instance.post<Response>({ endpoint: "/portal", payload });
+abstract class PortalService {
+  public static async newPortal(payload: NewPortalProps) {
+    return await API.post<Response>({ endpoint: "/portal", payload });
   }
 
-  public async getPortal(query?: any) {
+  public static async getPortal(query?: any) {
     if (query?.assignTo) query.assignTo = JSON.stringify(query.assignTo);
     if (query?.project) query.project = JSON.stringify(query.project);
-    return await this.instance.get<Portal[]>({ endpoint: "portal", query });
+    return await API.get<Portal[]>({ endpoint: "portal", query });
   }
 
-  public async deletePortal(_id: string) {
-    return await this.instance.get<Response>({
+  public static async deletePortal(_id: string) {
+    return await API.get<Response>({
       endpoint: "/portal/delete",
       query: { _id },
     });
   }
 
-  public async requestBalance(
+  public static async requestBalance(
     amount: number,
     portalId: string,
     encoderId: string
   ) {
-    return await this.instance.post<Response>({
+    return await API.post<Response>({
       endpoint: "/portal/balance",
       payload: { amount, portalId, encoderId, type: "balance_request" },
     });
   }
 
-  public async getBalanceRequest(query?: any) {
-    return await this.instance.get<BalanceRequest[]>({
+  public static async getBalanceRequest(query?: any) {
+    return await API.get<BalanceRequest[]>({
       endpoint: "/portal/balance",
       query,
     });
   }
 
-  public async updateBalanceRequest(_id: string, payload: any) {
-    return await this.instance.post<BalanceRequest>({
+  public static async updateBalanceRequest(_id: string, payload: any) {
+    return await API.post<BalanceRequest>({
       endpoint: "/portal/balance",
       payload: { ...payload, _id },
     });

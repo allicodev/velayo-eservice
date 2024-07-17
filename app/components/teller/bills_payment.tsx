@@ -106,9 +106,6 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
   const updateOP = (key: string, value: any) =>
     setOnlinePaymentInput({ ...onlinePaymentInput, [key]: value });
 
-  const billService = new BillService();
-  const etc = new EtcService();
-
   const { currentUser, currentBranch } = useUserStore();
 
   const getFee = () => {
@@ -187,15 +184,15 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
             close();
           } else setLoading(false);
         }
-      })(billService);
+      })(BillService);
     };
 
     // if isOnlinepayment is true, check for traceid
     if (onlinePaymentInput.isOnlinePayment)
       return await new Promise(async (resolve, reject) => {
-        await etc
-          .getTransactionFromTraceId(onlinePaymentInput.traceId)
-          .then((e) => (e?.data ? resolve(e.data) : reject()));
+        await EtcService.getTransactionFromTraceId(
+          onlinePaymentInput.traceId
+        ).then((e) => (e?.data ? resolve(e.data) : reject()));
       })
         .then((e) => {
           if (e)
@@ -788,7 +785,7 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
       if (res.success) {
         setBills(res?.data ?? []);
       }
-    })(billService);
+    })(BillService);
   };
 
   const handleNotifyDisable = async ({ data }: { data: any[] }) => {

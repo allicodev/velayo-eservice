@@ -49,8 +49,6 @@ const NewOption = ({
   const [input, setInput] = useState<string>("");
   const [name, setName] = useState("");
 
-  const bill = new BillServices();
-
   const handleOnFinish = () => {
     (async () => {
       await validate(extraOption)

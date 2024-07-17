@@ -13,7 +13,6 @@ import { NewItemProps } from "@/types";
 import ItemService from "@/provider/item.service";
 
 const NewItem = ({ title, open, close, onSave }: NewItemProps) => {
-  const item = new ItemService();
   const [form] = Form.useForm();
 
   const handleFinish = async (val: any) => {
@@ -36,7 +35,7 @@ const NewItem = ({ title, open, close, onSave }: NewItemProps) => {
               (res.data?.value ?? 0) + 1
             }`
           );
-      })(item);
+      })(ItemService);
   }, [open]);
 
   return (

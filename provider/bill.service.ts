@@ -1,5 +1,4 @@
-import Loader from "./utils/loader";
-import Api from "./api.service";
+import API from "./api.service";
 import {
   BillingSettingsType,
   BillingsFormField,
@@ -13,57 +12,49 @@ import {
 } from "@/types";
 import { Dayjs } from "dayjs";
 
-class BillService extends Loader {
-  private readonly instance = new Api();
-
-  public async getBill(_id?: string | null) {
-    this.loaderPush("get-bill");
-    const response = await this.instance.get<BillingSettingsType[]>({
+abstract class BillService {
+  public static async getBill(_id?: string | null) {
+    return await API.get<BillingSettingsType[]>({
       endpoint: "/bill/get-bill",
       query: { _id },
     });
-    this.loaderPop("get-bill");
-    return response;
   }
 
-  public async newBill(name: string) {
-    this.loaderPush("new-bill");
-    const response = await this.instance.post<BillingSettingsType>({
+  public static async newBill(name: string) {
+    return await API.post<BillingSettingsType>({
       endpoint: "/bill/new-bill",
       payload: {
         name,
       },
     });
-    this.loaderPop("new-bill");
-    return response;
   }
 
-  public async pushToFormFields(billId: string, formfield: BillingsFormField) {
-    this.loaderPush("new-option-bill");
+  public static async pushToFormFields(
+    billId: string,
+    formfield: BillingsFormField
+  ) {
     formfield.slug_name = formfield.name
       .replaceAll(" ", "_")
       .toLocaleLowerCase();
-    const response = await this.instance.post<BillingSettingsType>({
+    return await API.post<BillingSettingsType>({
       endpoint: "/bill/new-option",
       payload: {
         id: billId,
         formField: formfield,
       },
     });
-    this.loaderPop("new-option-bill");
-    return response;
   }
 
-  public async updateFormFields(
+  public static async updateFormFields(
     billId: string,
     formfield: BillingsFormField,
     index: number
   ) {
-    this.loaderPush("update-option-bill");
     formfield.slug_name = formfield.name
       .replaceAll(" ", "_")
       .toLocaleLowerCase();
-    const response = await this.instance.post<BillingSettingsType>({
+
+    return await API.post<BillingSettingsType>({
       endpoint: "/bill/update-option",
       payload: {
         id: billId,
@@ -71,53 +62,42 @@ class BillService extends Loader {
         index,
       },
     });
-    this.loaderPop("update-option-bill");
-    return response;
   }
 
-  public async updateBillOption(
+  public static async updateBillOption(
     billId: string,
     billOption: BillingSettingsType
   ) {
-    this.loaderPush("update-option");
-    const response = await this.instance.post<BillingSettingsType>({
+    return await API.post<BillingSettingsType>({
       endpoint: "/bill/update-bill-option",
       payload: {
         id: billId,
         billOption,
       },
     });
-    this.loaderPop("update-option");
-    return response;
   }
 
-  public async removeOptionIndexed(billId: string, index: number) {
-    this.loaderPush("removing-option");
-    const response = await this.instance.get<BillingSettingsType>({
+  public static async removeOptionIndexed(billId: string, index: number) {
+    return await API.get<BillingSettingsType>({
       endpoint: "/bill/delete-option",
       query: {
         id: billId,
         index,
       },
     });
-    this.loaderPop("removing-option");
-    return response;
   }
 
-  public async updateBillName(billId: string, name: string) {
-    this.loaderPush("removing-option");
-    const response = await this.instance.get<BillingSettingsType>({
+  public static async updateBillName(billId: string, name: string) {
+    return await API.get<BillingSettingsType>({
       endpoint: "/bill/update-bill",
       query: {
         id: billId,
         name,
       },
     });
-    this.loaderPop("removing-option");
-    return response;
   }
 
-  public async requestBill(
+  public static async requestBill(
     biller_name: string,
     bill: string,
     amount: number,
@@ -146,16 +126,13 @@ class BillService extends Loader {
       ],
     };
 
-    this.loaderPush("request-bill");
-    const response = await this.instance.post<Response>({
+    return await API.post<Response>({
       endpoint: "/bill/request-transaction",
       payload: { ...transaction, branchId },
     });
-    this.loaderPop("request-bill");
-    return response;
   }
 
-  public async getAllTransaction({
+  public static async getAllTransaction({
     page,
     pageSize,
     status,
@@ -182,7 +159,7 @@ class BillService extends Loader {
     sub_type?: string | null;
     project?: Record<any, any>;
   }) {
-    return await this.instance.get<Transaction[]>({
+    return await API.get<Transaction[]>({
       endpoint: "/transaction/get-transactions",
       query: {
         page,
@@ -201,44 +178,38 @@ class BillService extends Loader {
     });
   }
 
-  public async updateTransaction(transaction: any) {
-    return await this.instance.post<Response>({
+  public static async updateTransaction(transaction: any) {
+    return await API.post<Response>({
       endpoint: "/transaction/update-transaction",
       payload: transaction,
     });
   }
 
-  public async updateTransactionSpecific(transaction: any) {
-    return await this.instance.post<Response>({
+  public static async updateTransactionSpecific(transaction: any) {
+    return await API.post<Response>({
       endpoint: "/transaction/update-transaction-specific",
       payload: transaction,
     });
   }
 
-  public async markMainAmount(billId: string, index: number) {
-    this.loaderPush("mark-main");
-    const response = await this.instance.post<BillingSettingsType>({
+  public static async markMainAmount(billId: string, index: number) {
+    return await API.post<BillingSettingsType>({
       endpoint: "/bill/mark-as-main",
       payload: {
         id: billId,
         index,
       },
     });
-    this.loaderPop("mark-main");
-    return response;
   }
 
-  public async updateFee(fee: UpdateFeeProps) {
-    this.loaderPush("update-fee");
-    const response = await this.instance.get<BillingSettingsType>({
+  public static async updateFee(fee: UpdateFeeProps) {
+    return await API.get<BillingSettingsType>({
       endpoint: "/bill/update-fee",
       query: fee,
     });
-    this.loaderPop("update-fee");
-    return response;
   }
 
-  public async requestEload(eload: any, branchId: string) {
+  public static async requestEload(eload: any, branchId: string) {
     const amount = eload.amount;
     eload.amount = `${amount}_money`;
     const provider = eload.provider;
@@ -262,16 +233,13 @@ class BillService extends Loader {
       ],
     };
 
-    this.loaderPush("request-bill");
-    const response = await this.instance.post<Response>({
+    return await API.post<Response>({
       endpoint: "/bill/request-transaction",
       payload: { ...transaction, branchId },
     });
-    this.loaderPop("request-bill");
-    return response;
   }
 
-  public async requestShoppeCollect(
+  public static async requestShoppeCollect(
     details: string,
     amount: number | null,
     tellerId: string,
@@ -294,38 +262,28 @@ class BillService extends Loader {
       ],
     };
 
-    this.loaderPush("request-shoppe");
-    const response = await this.instance.post<Response>({
+    return await API.post<Response>({
       endpoint: "/bill/request-transaction",
       payload: { ...transaction, branchId },
     });
-    this.loaderPop("request-shoppe");
-    return response;
   }
 
-  public async deleteBiller(_id: string): Promise<Response> {
-    this.loaderPush("delete-biller");
-    const response = await this.instance.get<Response>({
+  public static async deleteBiller(_id: string): Promise<Response> {
+    return await API.get<Response>({
       endpoint: "/bill/delete-biller",
       query: { _id },
     });
-    this.loaderPop("delete-biller");
-    return response;
   }
 
-  public async updateExceptionBiller(
+  public static async updateExceptionBiller(
     _id: string,
     direction: string,
     excludeItems: ExceptionItemProps[]
   ): Promise<Response> {
-    this.loaderPush("delete-biller");
-
-    const response = await this.instance.post<Response>({
+    return await API.post<Response>({
       endpoint: "/bill/update-exception",
       payload: { _id, direction, excludeItems },
     });
-    this.loaderPop("delete-biller");
-    return response;
   }
 }
 

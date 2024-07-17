@@ -1,17 +1,16 @@
-import Api from "./api.service";
+import API from "./api.service";
 import {
   BillingSettingsType,
   EloadSettings,
+  RequestQueue,
   Response,
   Transaction,
   UpdateBillWallet,
   Wallet,
 } from "@/types";
 
-class EtcService {
-  private readonly instance = new Api();
-
-  public async disableWalletBills(
+abstract class EtcService {
+  public static async disableWalletBills(
     bills: BillingSettingsType[],
     wallets: Wallet[]
   ) {
@@ -35,7 +34,7 @@ class EtcService {
           name: e.name,
         });
     });
-    return await this.instance.post<Response>({
+    return await API.post<Response>({
       endpoint: "/etc/update-bill-wallet",
       payload: {
         wallets: _wallets,
@@ -44,8 +43,8 @@ class EtcService {
     });
   }
 
-  public async checkIfDisabled(type: string, id: string) {
-    return await this.instance.get<Response>({
+  public static async checkIfDisabled(type: string, id: string) {
+    return await API.get<Response>({
       endpoint: "/etc/check-disabled",
       query: {
         type,
@@ -54,8 +53,8 @@ class EtcService {
     });
   }
 
-  public async getTransactionFromTraceId(traceId: string) {
-    return await this.instance.get<Transaction>({
+  public static async getTransactionFromTraceId(traceId: string) {
+    return await API.get<Transaction>({
       endpoint: "/transaction/search-transaction",
       query: {
         traceId,
@@ -63,33 +62,50 @@ class EtcService {
     });
   }
 
-  public async getTransactionFromQueue(queue: number, branchId: string) {
-    return await this.instance.get<Transaction>({
-      endpoint: "/transaction/search-transaction",
+  public static async checkSettings() {
+    return await API.get<Response>({
+      endpoint: "/etc/check-settings",
+    });
+  }
+
+  public static async getEloadSettings() {
+    return await API.get<EloadSettings>({
+      endpoint: "/etc/eload-settings",
+    });
+  }
+
+  public static async updateEloadSettings(payload: any) {
+    return await API.post<Response>({
+      endpoint: "/etc/eload-settings-update",
+      payload,
+    });
+  }
+
+  public static async getLastQueue(branchId: string) {
+    return await API.get<number>({
+      endpoint: "/etc/check-last-queue",
       query: {
-        queue,
-        status: "request",
         branchId,
       },
     });
   }
 
-  public async checkSettings() {
-    return await this.instance.get<Response>({
-      endpoint: "/etc/check-settings",
+  public static async getQueueRequest(branchId: string, queue?: number) {
+    return await API.get<RequestQueue[]>({
+      endpoint: "/etc/requests-queue",
+      query: {
+        branchId,
+        queue,
+      },
     });
   }
 
-  public async getEloadSettings() {
-    return await this.instance.get<EloadSettings>({
-      endpoint: "/etc/eload-settings",
-    });
-  }
-
-  public async updateEloadSettings(payload: any) {
-    return await this.instance.post<Response>({
-      endpoint: "/etc/eload-settings-update",
-      payload,
+  public static async markCompleted(_id: string) {
+    return await API.get<RequestQueue[]>({
+      endpoint: "/etc/request-completed",
+      query: {
+        _id,
+      },
     });
   }
 }

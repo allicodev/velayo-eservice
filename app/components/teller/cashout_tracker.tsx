@@ -7,8 +7,6 @@ import TransactionHistory from "./transaction_history";
 const COTracker = ({ open, close, setOpenedMenu }: COProps) => {
   const [traceId, setTraceId] = useState("");
 
-  const etc = new EtcService();
-
   const handleSearch = () => {
     (async (_) => {
       let res = await _.getTransactionFromTraceId(traceId);
@@ -24,7 +22,7 @@ const COTracker = ({ open, close, setOpenedMenu }: COProps) => {
           close();
         });
       }
-    })(etc);
+    })(EtcService);
   };
 
   return (

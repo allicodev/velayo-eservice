@@ -42,9 +42,6 @@ import { useUserStore } from "@/provider/context";
 import { Pusher } from "@/provider/utils/pusher";
 
 const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
-  const wallet = new WalletService();
-  const etc = new EtcService();
-
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>();
   const [walletType, setWalletType] = useState<WalletType | null>(null);
   const [wallets, setWallets] = useState<Wallet[]>([]);
@@ -100,7 +97,7 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
 
     // add validation for cashout
     if (walletType == "cash-out") {
-      let res = await etc.getTransactionFromTraceId(val?.traceId);
+      let res = await EtcService.getTransactionFromTraceId(val?.traceId);
       if (res?.success) {
         if (res?.data) {
           message.error("Transaction is already processed. Cannot continue.");
@@ -110,7 +107,7 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
     }
 
     setLoading(true);
-    let res = await wallet.requestWalletTransaction(
+    let res = await WalletService.requestWalletTransaction(
       `${selectedWallet!.name!} ${walletType}`,
       JSON.stringify({
         ...val,
@@ -553,7 +550,7 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
 
   const getWallets = async () =>
     await new Promise(async (resolve, reject) => {
-      let res = await wallet.getWallet();
+      let res = await WalletService.getWallet();
 
       if (res?.success ?? false) {
         setWallets(res?.data ?? []);

@@ -27,8 +27,6 @@ const Branch = ({
     data: null,
   });
 
-  const branch = new BranchService();
-
   const handleNewBranch = (mode: string, obj: Branch | BranchData) => {
     (async (_) => {
       let res;
@@ -40,7 +38,7 @@ const Branch = ({
         refresh();
         setOpenNewBranch({ open: false, data: null });
       }
-    })(branch);
+    })(BranchService);
   };
 
   const handleOpenEdit = (obj: BranchData) => {

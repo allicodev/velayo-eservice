@@ -2,7 +2,14 @@ import authMiddleware from "@/assets/ts/apiMiddleware";
 import dbConnect from "@/database/dbConnect";
 import Transaction from "@/database/models/transaction.schema";
 import { ExtendedResponse, Transaction as TransactionProp } from "@/types";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
 import type { NextApiRequest, NextApiResponse } from "next";
+
+dayjs.extend(timezone);
+dayjs.extend(utc);
 
 async function handler(
   req: NextApiRequest,
@@ -20,17 +27,27 @@ async function handler(
     });
 
   return await Transaction.findOne({
-    ...req.query,
-    ...(req.query.status
-      ? {
-          $expr: {
-            $in: [
-              { $arrayElemAt: ["$history.status", -1] },
-              [req.query.status],
-            ],
-          },
-        }
-      : {}),
+    $and: [
+      {
+        ...req.query,
+        ...(req.query.status
+          ? {
+              $expr: {
+                $in: [
+                  { $arrayElemAt: ["$history.status", -1] },
+                  [req.query.status],
+                ],
+              },
+            }
+          : {}),
+      },
+      {
+        $gte: dayjs().tz("Asia/Manila").startOf("day").toDate(),
+      },
+      {
+        $kte: dayjs().tz("Asia/Manila").endOf("day").toDate(),
+      },
+    ],
   })
     .then(async (e) => {
       return res.json({

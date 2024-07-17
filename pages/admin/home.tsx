@@ -24,9 +24,6 @@ const Home = () => {
   const { setItems, lastDateUpdated, setLastDateUpdated, items } =
     useItemStore();
 
-  const branch = new BranchService();
-  const item = new ItemService();
-
   const menu = [
     { title: "Users", onPress: () => setOpenedMenu("user") },
     { title: "Bills", onPress: () => setOpenedMenu("bills") },
@@ -60,7 +57,7 @@ const Home = () => {
     (async (_) => {
       let res2 = await _.getBranch({});
       if (res2?.success ?? false) setBranches(res2?.data ?? []);
-    })(branch);
+    })(BranchService);
 
     if (
       Math.abs(dayjs(lastDateUpdated).diff(dayjs(), "minutes")) >= minutes ||
@@ -74,7 +71,7 @@ const Home = () => {
           setLastDateUpdated(dayjs());
           console.log("Items are refreshed");
         }
-      })(item);
+      })(ItemService);
     }
   }, [trigger]);
 

@@ -7,14 +7,11 @@ import { Transaction, TransactionPrinter } from "@/types";
 export const transactionToPrinter = async (
   transaction: Transaction
 ): Promise<TransactionPrinter> => {
-  const bill = new BillService();
-  const wallet = new WalletService();
-
   let res: any;
 
   if (transaction.type == "wallet")
-    res = await wallet.getWallet(transaction?.walletId ?? "");
-  else res = await bill.getBill(transaction?.billerId ?? "");
+    res = await WalletService.getWallet(transaction?.walletId ?? "");
+  else res = await BillService.getBill(transaction?.billerId ?? "");
   res = res.data && res.data.length > 0 ? res.data[0] : null;
 
   if (res) {

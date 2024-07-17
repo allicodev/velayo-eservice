@@ -61,7 +61,6 @@ const ItemsHome = ({ open, close, extraData }: DrawerBasicProps) => {
     price: 0,
     cost: 0,
   });
-  const itemService = new ItemService();
 
   // * onclick utils variables
   const [selectedKey, setSelectedKey] = useState<React.Key | null>(null);
@@ -113,7 +112,7 @@ const ItemsHome = ({ open, close, extraData }: DrawerBasicProps) => {
         setShowSaved(true);
         setTimeout(() => setShowSaved(false), 3000);
       }
-    })(itemService);
+    })(ItemService);
   };
 
   const handleItemOnAddClick = (id: string) =>
@@ -131,7 +130,7 @@ const ItemsHome = ({ open, close, extraData }: DrawerBasicProps) => {
         fetchItems();
         return true;
       } else return false;
-    })(itemService);
+    })(ItemService);
   };
 
   const fetchItems = () => {
@@ -150,7 +149,7 @@ const ItemsHome = ({ open, close, extraData }: DrawerBasicProps) => {
           );
         }
       }
-    })(itemService);
+    })(ItemService);
   };
 
   const handlePurgeItem = (id: string) => {
@@ -161,7 +160,7 @@ const ItemsHome = ({ open, close, extraData }: DrawerBasicProps) => {
         message.success(res?.message ?? "Success");
         fetchItems();
       }
-    })(itemService);
+    })(ItemService);
   };
 
   const updateSelectedItem = (id: string) => {
@@ -178,7 +177,7 @@ const ItemsHome = ({ open, close, extraData }: DrawerBasicProps) => {
         if (!cost) cost = 0;
         setInput({ name, unit, price, cost });
       }
-    })(itemService);
+    })(ItemService);
   };
 
   const highlightSearchItems = (search: string) => {
@@ -519,7 +518,7 @@ const ItemsHome = ({ open, close, extraData }: DrawerBasicProps) => {
                       setSelectedItem(null);
                       fetchItems();
                     }
-                  })(itemService);
+                  })(ItemService);
                 }}
               >
                 <Button

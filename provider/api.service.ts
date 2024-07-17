@@ -5,23 +5,13 @@ import { verify } from "@/assets/ts";
 import { useAuthStore } from "./context";
 import { ExtendedResponse, ApiGetProps, ApiPostProps } from "@/types";
 
-class API {
-  public async get<T>({
+abstract class API {
+  public static async get<T>({
     endpoint,
     query,
-    publicRoute = false,
   }: ApiGetProps): Promise<ExtendedResponse<T>> {
     const { accessToken: token } = useAuthStore.getState();
 
-    if (!publicRoute) {
-      await this.checkToken().catch((e) => {
-        return {
-          success: false,
-          code: 401,
-          message: e,
-        };
-      });
-    }
     const request = await axios.get(`/api/${endpoint}`, {
       params: query,
       headers: {
@@ -45,21 +35,11 @@ class API {
       };
   }
 
-  public async post<T>({
+  public static async post<T>({
     endpoint,
     payload,
-    publicRoute = false,
   }: ApiPostProps): Promise<ExtendedResponse<T>> {
     const { accessToken: token } = useAuthStore.getState();
-    if (!publicRoute) {
-      await this.checkToken().catch((e) => {
-        return {
-          success: false,
-          code: 401,
-          message: e,
-        };
-      });
-    }
 
     const request = await axios.post(`/api/${endpoint}`, payload, {
       headers: {

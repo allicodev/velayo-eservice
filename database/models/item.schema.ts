@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import ItemCategory from "@/database/models/item_category.schema";
 
 // todo: fix isParent
 const ItemSchema = new mongoose.Schema(
@@ -19,6 +20,10 @@ const ItemSchema = new mongoose.Schema(
     unit: {
       type: String,
       enum: ["pc(s)", "bot(s)", "kit(s)"],
+    },
+    itemCategory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: ItemCategory,
     },
     itemCode: Number,
     description: String,

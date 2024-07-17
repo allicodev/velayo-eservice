@@ -65,8 +65,6 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
   const [openUpdateName, setOpenUpdateName] = useState(false);
   const [selectedTabs, setSelectedTabs] = useState("fee-settings-tabs");
 
-  const wallet = new WalletService();
-
   const reorder = (
     list: BillingsFormField[],
     startIndex: number,
@@ -270,7 +268,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                               if (res.success)
                                 message.success(res?.message ?? "Success");
                             }
-                          })(wallet);
+                          })(WalletService);
 
                           setSelectedWallet(_);
                         }
@@ -350,7 +348,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                               if (res.success)
                                 message.success(res?.message ?? "Success");
                             }
-                          })(wallet);
+                          })(WalletService);
 
                           setSelectedWallet(_);
                         }
@@ -551,7 +549,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
             setSelectedWallet(res.data[wallets.indexOf(selectedWallet)]);
         }
       }
-    })(wallet);
+    })(WalletService);
   };
 
   const handleNewWallet = async (_wallet: Wallet): Promise<string> => {
@@ -575,7 +573,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
           setTrigger(trigger + 1);
           resolve("Successfully Added");
         } else reject("Error in the server.");
-      })(wallet);
+      })(WalletService);
     });
   };
 
@@ -589,7 +587,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
           setTrigger(trigger + 1);
         }
       }
-    })(wallet);
+    })(WalletService);
   };
 
   const handleSave = () => {
@@ -601,7 +599,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
           setTrigger(trigger + 1);
         }
       }
-    })(wallet);
+    })(WalletService);
   };
 
   const handleNewOption = (opt: BillingsFormField) => {
@@ -626,7 +624,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
             message.success(res?.message ?? "Success");
           }
         }
-      })(wallet);
+      })(WalletService);
     } else {
       (async (_) => {
         if (selectedWallet?._id != undefined) {
@@ -647,7 +645,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
             message.success(res?.message ?? "Success");
           }
         }
-      })(wallet);
+      })(WalletService);
     }
   };
 
@@ -665,7 +663,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
           return true;
         }
       }
-    })(wallet);
+    })(WalletService);
   };
 
   const handleDeleteOption = (id: string, index: number) => {
@@ -682,7 +680,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
           return true;
         }
       }
-    })(wallet);
+    })(WalletService);
   };
   const handleDeleteWallet = () => {
     (async (_) => {
@@ -692,7 +690,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
         setSelectedWallet(null);
         message.success(res?.message ?? "Success");
       }
-    })(wallet);
+    })(WalletService);
   };
 
   useEffect(() => {

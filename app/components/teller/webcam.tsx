@@ -59,9 +59,6 @@ const WebCamera = ({
   // important details
   const [employeeId, setEmployeeId] = useState("");
 
-  // context and services
-  const user = new UserService();
-  const log = new LogService();
   const { currentUser, currentBranch } = useUserStore();
 
   const capture = useCallback(() => {
@@ -349,7 +346,7 @@ const WebCamera = ({
         message.error("There are no employee registered with this User ID");
         return;
       }
-    })(user);
+    })(UserService);
   };
 
   const handleTimeUpdate = (type: "in" | "out") => {
@@ -379,7 +376,7 @@ const WebCamera = ({
           setStep(0);
           setLoader("");
         } else setLoader("");
-      })(log);
+      })(LogService);
     } else {
       setLoader("out");
       let timeOut = new Date();
@@ -404,7 +401,7 @@ const WebCamera = ({
           setStep(0);
           setLoader("");
         } else setLoader("");
-      })(log);
+      })(LogService);
     }
   };
 
@@ -449,7 +446,7 @@ const WebCamera = ({
           disableTimeOut: true,
         });
       }
-    })(log);
+    })(LogService);
   };
 
   return (

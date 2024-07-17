@@ -1,5 +1,6 @@
 import dbConnect from "@/database/dbConnect";
 import Log from "@/database/models/log.schema";
+import { queueResetter } from "@/provider/utils/queue-resetter";
 import { ExtendedResponse, Response } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -23,6 +24,9 @@ async function handler(
   const pastDate: Date = new Date(
     currentDate.setDate(currentDate.getDate() - 15)
   );
+
+  await queueResetter();
+
   return await Log.find(
     {
       type: "attendance",
