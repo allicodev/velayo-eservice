@@ -19,20 +19,19 @@ import {
 import {
   LogoutOutlined,
   SettingOutlined,
-  SearchOutlined,
   ReloadOutlined,
 } from "@ant-design/icons";
 import { CiLogin } from "react-icons/ci";
+import Cookies from "js-cookie";
+import Webcam from "react-webcam";
 
 import { BillingSettingsType, UserBadgeProps, Wallet } from "@/types";
-import Cookies from "js-cookie";
-import BillService from "@/provider/bill.service";
-import WalletService from "@/provider/wallet.service";
-import EtcService from "@/provider/etc.service";
 import { useItemStore, useUserStore } from "@/provider/context";
-import WebCamera from "./teller/webcam";
-import Webcam from "react-webcam";
+import WalletService from "@/provider/wallet.service";
+import BillService from "@/provider/bill.service";
 import jason from "@/assets/json/constant.json";
+import EtcService from "@/provider/etc.service";
+import WebCamera from "./teller/webcam";
 
 const UserBadge = ({
   name,
@@ -369,7 +368,7 @@ const UserBadge = ({
                       onClick: () => setOpenDisbaleBill(true),
                     }
                   : null,
-                ["accounting", "encoder"].includes(role ?? "")
+                ["accounting", "encoder", "teller"].includes(role ?? "")
                   ? {
                       key: "time-in",
                       label: (

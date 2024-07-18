@@ -155,7 +155,6 @@ const TransactionDetails = ({
 
     if (res?.success ?? false) {
       message.success("Successfully Confirmed");
-      console.log(requestId);
       if (requestId != null) await EtcService.markCompleted(requestId);
       close();
     }

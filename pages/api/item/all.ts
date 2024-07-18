@@ -103,7 +103,6 @@ async function handler(
     },
   ])
     .then((e) => {
-      console.log(e[0]);
       return res.json({ success: true, code: 200, data: e });
     })
     .catch((e) =>

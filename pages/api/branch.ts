@@ -27,7 +27,6 @@ async function handler(
         });
       })
       .catch((e) => {
-        console.log(e);
         return res.json({
           code: 500,
           success: false,
@@ -53,7 +52,6 @@ async function handler(
           });
         });
     } else {
-      console.log(req.body);
       return await Branch.create(req.body).then((e) =>
         res.json({
           code: 200,
