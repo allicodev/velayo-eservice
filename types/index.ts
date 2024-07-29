@@ -120,7 +120,7 @@ export interface ItemState {
   currentQuantity: number;
   quantity: number;
   parentName: string;
-  price: number;
+  price?: number;
   cost: number;
 }
 
@@ -133,12 +133,14 @@ export interface ItemBranchState {
 
 export interface DashboardData {
   totalTransaction: number;
+  totalTransactionToday: number;
   totalSales: number;
   totalNetSales: number;
   totalBranch: number;
   branchSales: BranchSales[];
   topItemSales: TopItem[];
   salesPerMonth: SalesPerMonth;
+  salesPerType: any[];
 }
 
 export interface BranchSales {
