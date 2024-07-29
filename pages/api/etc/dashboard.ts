@@ -4,6 +4,12 @@ import Branch from "@/database/models/branch.schema";
 import { DashboardData, ExtendedResponse } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 async function handler(
   req: NextApiRequest,
@@ -62,6 +68,13 @@ async function handler(
       $count: "count",
     },
   ]);
+
+  const totalTransactionToday = await Transaction.count({
+    createdAt: {
+      $gte: dayjs().tz("Asia/Manila").startOf("day").toDate(),
+    },
+    $lte: dayjs().tz("Asia/Manila").endOf("day").toDate(),
+  });
 
   const branchSales = await Branch.aggregate([
     {
@@ -214,16 +227,68 @@ async function handler(
     return obj;
   });
 
+  const salesPerType = await Transaction.aggregate([
+    {
+      $group: {
+        _id: {
+          type: "$type",
+          month: { $month: "$createdAt" },
+        },
+        total: { $sum: { $add: ["$amount", "$fee"] } }, // Combine amount and fee
+      },
+    },
+    {
+      $group: {
+        _id: "$_id.type",
+        sales: {
+          $push: {
+            k: {
+              $toString: {
+                $arrayElemAt: [
+                  [
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sep",
+                    "Oct",
+                    "Nov",
+                    "Dec",
+                  ],
+                  { $subtract: ["$_id.month", 1] },
+                ],
+              },
+            },
+            v: "$total",
+          },
+        },
+      },
+    },
+  ]).then((e) => {
+    e.forEach((el, i) => {
+      e[i].sales = el.sales
+        .map((_: any) => ({ [_.k]: _.v }))
+        .reduce((p: any, n: any) => ({ ...p, ...n }), {});
+    });
+    return e;
+  });
+
   res.json({
     success: true,
     data: {
       totalTransaction: totalTransaction[0]?.count ?? 0,
+      totalTransactionToday: totalTransactionToday,
       totalSales: totalSales[0]?.total ?? 0,
       totalNetSales: totalSales[0]?.feeTotal ?? 0,
       totalBranch: branchSales.length,
       branchSales,
       topItemSales,
       salesPerMonth,
+      salesPerType,
     },
     code: 200,
   });
