@@ -170,7 +170,7 @@ const Stock = ({
                 currentQuantity: quantity,
                 quantity: 0,
                 parentName: parentName?.split("-").reverse().join("-") ?? "",
-                price,
+                price: price ?? undefined,
                 cost,
               })
             );

@@ -30,6 +30,7 @@ async function handler(
         if (req.body.type == "miscellaneous") {
           if (req.body.isOnlinePayment)
             await new Pusher2().emit("encoder", "notify", {});
+        } else if (req.body.creditId != null) {
         } else await new Pusher2().emit("encoder", "notify", {});
       }
 

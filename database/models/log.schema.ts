@@ -1,15 +1,24 @@
 import mongoose from "mongoose";
 import "@/database/models/user.schema";
 import "@/database/models/branch.schema";
-import "@/database/models/transaction.schema";
 import "@/database/models/portal.schema";
+import "@/database/models/transaction.schema";
+import "@/database/models/user_credits.schema";
 import { ItemWithStockSchema } from "@/database/models/branch.schema";
 
 const LogSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["attendance", "stock", "credit", "debit", "portal"],
+      enum: [
+        "attendance",
+        "stock",
+        "credit",
+        "debit",
+        "portal",
+        "credit",
+        "credit_payment",
+      ],
       required: true,
     },
     userId: {
@@ -52,11 +61,20 @@ const LogSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["pending", "completed"],
-    }, // * only for credit
+    },
+
+    // * for credit
     // {
     //   status: "requested", // completed
     //   date:  Date(),
     // }
+    userCreditId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "UserCredit",
+    },
+    interest: Number,
+    dueDate: Date,
+    history: Array,
   },
   { timestamps: true }
 );

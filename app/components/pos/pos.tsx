@@ -9,6 +9,7 @@ import {
   Input,
   InputNumber,
   Modal,
+  Popconfirm,
   Row,
   Space,
   Table,
@@ -29,7 +30,13 @@ import { TbCurrencyPeso } from "react-icons/tb";
 
 import { useItemStore, useUserStore } from "@/provider/context";
 import ItemService from "@/provider/item.service";
-import { BranchData, ItemData, OnlinePayment } from "@/types";
+import {
+  BranchData,
+  CreditProp,
+  ItemData,
+  OnlinePayment,
+  UserCreditData,
+} from "@/types";
 import { AppDispatch, RootState } from "../../state/store";
 import {
   removeItem,
@@ -42,6 +49,8 @@ import BranchService from "@/provider/branch.service";
 import { FloatLabel } from "@/assets/ts";
 import PrinterService from "@/provider/printer.service";
 import EtcService from "@/provider/etc.service";
+import CreditService from "@/provider/credit.service";
+import LogService from "@/provider/log.service";
 
 // TODO: reduce the item quantity on api after POS transact
 
@@ -68,7 +77,7 @@ const PosHome = ({
 
   // refs
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const searchRef = useRef(null);
+  const timerRef2 = useRef<NodeJS.Timeout | null>(null);
   const quantityRef = useRef<HTMLInputElement>(null);
 
   const [inputSearch, setInputSearch] = useState("");
@@ -79,6 +88,12 @@ const PosHome = ({
     receiverName: "",
     recieverNum: "",
     traceId: "",
+  });
+  const [credit, setCredit] = useState<CreditProp>({
+    isCredit: false,
+    userId: "",
+    transactionId: "",
+    amount: 0,
   });
 
   const [form] = Form.useForm();
@@ -97,6 +112,15 @@ const PosHome = ({
 
   // tender utils
   const [amount, setAmount] = useState<number | null>(null);
+
+  // credit
+  const [openCredit, setOpenCredit] = useState(false);
+  const [users, setUsers] = useState<UserCreditData[]>([]);
+  const [selectedUser, setSelectedUser] = useState<UserCreditData | null>(null);
+  const [_selectedUser, _setSelectedUser] = useState<UserCreditData | null>(
+    null
+  );
+  const [interest, setInterest] = useState<number | null>(null);
 
   const onlinePaymentLabels = [
     "Portal",
@@ -134,12 +158,51 @@ const PosHome = ({
 
     if (res?.success ?? false) {
       setOpenItemOpt({ open: true, data: res?.data ?? null, mode: "new", id });
+      console.log(items.filter((e) => e._id == id)[0]);
       if (res?.data?.price != null) quantityRef.current?.focus();
+    }
+  };
+
+  const processWithTotal = (u: UserCreditData): UserCreditData => {
+    u.availableCredit =
+      u.history == null || u.history.length == 0
+        ? u.maxCredit
+        : u.history.reduce(
+            (p, n) =>
+              p -
+              (n.status == "completed"
+                ? 0
+                : n.history.reduce(
+                    (pp, nn) => pp + parseFloat(nn.amount.toString()),
+                    0
+                  )),
+            u.maxCredit
+          );
+
+    return u;
+  };
+
+  const runTimer2 = (searchWord: string) => {
+    if (timerRef2.current) {
+      clearTimeout(timerRef2.current);
+    }
+
+    timerRef2.current = setTimeout(() => searchUser(searchWord), 100);
+  };
+
+  const searchUser = async (searchWord: string) => {
+    let res = await CreditService.getUser({ searchWord });
+
+    if (res?.success ?? false) {
+      setUsers(res?.data?.map((e) => processWithTotal(e)) ?? []);
     }
   };
 
   const updateOP = (key: string, value: any) =>
     setOnlinePaymentInput({ ...onlinePaymentInput, [key]: value });
+
+  const updateCredit = (key: string, value: any) =>
+    setCredit({ ...credit, [key]: value });
 
   const confirmQuantity = async () => {
     if ([null, 0, undefined].includes(inputQuantity)) {
@@ -147,7 +210,7 @@ const PosHome = ({
       return;
     }
 
-    if (openItemOpt.data?.price == null && price == null) {
+    if ([null, 0].includes(openItemOpt.data?.price ?? null) && price == null) {
       message.warning("Cannot Add an Item. Price is empty");
       return;
     }
@@ -199,7 +262,9 @@ const PosHome = ({
               itemCode,
               unit: unit!,
               currentQuantity: (res2 as any[])[0].stock_count ?? 0,
-              price: openItemOpt.data.price == null ? price! : _price,
+              price: [null, 0].includes(openItemOpt.data.price)
+                ? price!
+                : _price!,
               parentName: parentName!,
               quantity: inputQuantity!,
               cost: item.cost,
@@ -224,137 +289,283 @@ const PosHome = ({
   };
 
   const getTotal = () =>
-    selectedItem.reduce((p, n) => p + n.price * n.quantity, 0);
+    selectedItem.reduce((p, n) => p + (n?.price ?? 0) * n.quantity, 0);
 
   const handleRequestTransaction = async () => {
-    let transactionDetails = JSON.stringify(
-      selectedItem.map((e) => ({
-        name: e.name,
-        price: e.price,
-        quantity: e.quantity,
-        unit: e.unit,
-        cost: e.cost,
-      }))
-    );
-    let cash = amount;
-    let _amount = getTotal();
-    let tellerId = currentUser?._id ?? "";
-    let branchId = currentBranch;
-    let online = onlinePaymentInput;
+    if (credit.isCredit) {
+      if (selectedUser == null) {
+        message.warning("No selected user");
+        return;
+      }
 
-    const func /* a newbie function */ = async () => {
-      const fee = selectedItem.reduce(
-        (p, n) => p + (n.price - n.cost) * n.quantity,
-        0
-      );
-      let res = await ItemService.requestTransaction(
-        transactionDetails,
-        cash!,
-        _amount - fee,
-        fee,
-        tellerId,
-        branchId,
-        "",
-        online
-      );
+      if (getTotal() > selectedUser.availableCredit) {
+        message.error("Cannot proceed. User Credit is insufficient");
+        return;
+      }
+    }
 
-      if (res?.success ?? false) {
-        await BranchService.updateItemBranch(
+    return new Promise<string | null>(async (resolve, reject) => {
+      if (credit.isCredit && selectedUser != null) {
+        // get user credit via id
+        let userCredit = await CreditService.getUser({
+          _id: selectedUser?._id ?? "",
+        });
+
+        let _res = await LogService.newLog({
+          userId: currentUser?._id ?? "",
+          type: "credit",
+          branchId: currentBranch,
+          userCreditId: selectedUser._id,
+          status: "pending",
+          amount: getTotal(),
+          dueDate: dayjs().add((userCredit.data![0] as any).creditTerm, "day"),
+          interest,
+          history: [
+            {
+              amount: getTotal(),
+              date: new Date(),
+              description: "Credit Initial",
+            },
+          ],
+        });
+
+        return resolve(_res.data?._id ?? "");
+      } else {
+        return resolve(null);
+      }
+    }).then(async (e) => {
+      let transactionDetails = JSON.stringify(
+        selectedItem.map((e) => ({
+          name: e.name,
+          price: e.price,
+          quantity: e.quantity,
+          unit: e.unit,
+          cost: e.cost,
+        }))
+      );
+      let cash = amount;
+      let _amount = getTotal();
+      let tellerId = currentUser?._id ?? "";
+      let branchId = currentBranch;
+      let online = onlinePaymentInput;
+
+      const func /* a newbie function */ = async () => {
+        const fee = selectedItem.reduce(
+          (p, n) => p + ((n.price ?? 0) - n.cost) * n.quantity,
+          0
+        );
+        let res = await ItemService.requestTransaction(
+          transactionDetails,
+          cash!,
+          _amount - fee,
+          fee,
+          tellerId,
           branchId,
-          "misc",
-          selectedItem.map((e) => ({
-            _id: e._id ?? "",
-            count: -e.quantity,
-          })),
-          (res.data as any)._id
+          "",
+          online,
+          e
         );
 
-        if (!online.isOnlinePayment)
-          modal.confirm({
-            title: "Do you want to print the receipt ?",
-            okText: "PRINT",
-            zIndex: 999999,
-            okButtonProps: {
-              size: "large",
-            },
-            cancelButtonProps: {
-              size: "large",
-            },
-            onOk: () => {
-              // call proxy server, also call a flag that the print is success
+        if (res?.success ?? false) {
+          await BranchService.updateItemBranch(
+            branchId,
+            "misc",
+            selectedItem.map((e) => ({
+              _id: e._id ?? "",
+              count: -e.quantity,
+            })),
+            (res.data as any)._id
+          );
 
-              new Promise(async (resolve, reject) => {
-                await PrinterService.printReceiptPos({
-                  printData: {
-                    itemDetails: JSON.stringify(
-                      selectedItem.map((e) => ({
-                        name: e.name,
-                        unit: e.unit,
-                        price: e.price,
-                        quantity: e.quantity,
-                      }))
-                    ),
-                    amount: getTotal(),
-                    cash: amount!,
-                    receiptNo:
-                      `3772-${parseInt(
-                        (res.data as any)._id.slice(-8).toString(),
-                        16
-                      )}` ?? "",
-                    refNo: "",
-                  },
-                  tellerId: currentUser?.name ?? "",
-                  branchId: currentBranch,
+          if (!online.isOnlinePayment)
+            modal.confirm({
+              title: "Do you want to print the receipt ?",
+              okText: "PRINT",
+              zIndex: 999999,
+              okButtonProps: {
+                size: "large",
+              },
+              cancelButtonProps: {
+                size: "large",
+              },
+              onOk: () => {
+                // call proxy server, also call a flag that the print is success
+
+                new Promise(async (resolve, reject) => {
+                  await PrinterService.printReceiptPos({
+                    printData: {
+                      itemDetails: JSON.stringify(
+                        selectedItem.map((e) => ({
+                          name: e.name,
+                          unit: e.unit,
+                          price: e.price,
+                          quantity: e.quantity,
+                        }))
+                      ),
+                      amount: getTotal(),
+                      cash: amount!,
+                      receiptNo:
+                        `3772-${parseInt(
+                          (res.data as any)._id.slice(-8).toString(),
+                          16
+                        )}` ?? "",
+                      refNo: "",
+                    },
+                    tellerId: currentUser?.name ?? "",
+                    branchId: currentBranch,
+                  });
+
+                  resolve(true);
+                }).then(() => {
+                  message.success(res?.message ?? "Success");
+                  setOpenTender(false);
+                  setAmount(null);
+                  selectedItem.map((e) => {
+                    setUpdateQuantity(e?._id ?? "", -e.quantity);
+                  });
+                  dispatch(purgeItems());
                 });
-
-                resolve(true);
-              }).then(() => {
-                message.success(res?.message ?? "Success");
+              },
+              onCancel: () => {
                 setOpenTender(false);
                 setAmount(null);
                 selectedItem.map((e) => {
                   setUpdateQuantity(e?._id ?? "", -e.quantity);
                 });
                 dispatch(purgeItems());
-              });
-            },
-            onCancel: () => {
-              setOpenTender(false);
-              setAmount(null);
-              selectedItem.map((e) => {
-                setUpdateQuantity(e?._id ?? "", -e.quantity);
-              });
-              dispatch(purgeItems());
-              message.success("New Transaction Successfully Added");
-            },
-          });
-        else {
-          message.success(res?.message ?? "Success");
-          setOpenTender(false);
-          setAmount(null);
-          dispatch(purgeItems());
-        }
-      }
-    };
+                message.success("New Transaction Successfully Added");
+              },
+            });
+          else {
+            message.success(res?.message ?? "Success");
+            setOpenTender(false);
+            setAmount(null);
+            dispatch(purgeItems());
+          }
 
-    if (onlinePaymentInput.isOnlinePayment)
-      return await new Promise(async (resolve, reject) => {
-        await EtcService.getTransactionFromTraceId(
-          onlinePaymentInput.traceId
-        ).then((e) => (e?.data ? resolve(e.data) : reject()));
-      })
-        .then((e) => {
-          if (e)
-            message.warning(
-              "This Transaction is already processed. Cannot continue."
-            );
-          return;
+          if (credit.isCredit && selectedUser != null) {
+            await LogService.updateLog({
+              _id: e,
+              transactionId: res.data?._id ?? "",
+            });
+          }
+          setSelectedUser(null);
+          _setSelectedUser(null);
+          updateCredit("isCredit", false);
+        }
+      };
+
+      if (onlinePaymentInput.isOnlinePayment)
+        return await new Promise(async (resolve, reject) => {
+          await EtcService.getTransactionFromTraceId(
+            onlinePaymentInput.traceId
+          ).then((e) => (e?.data ? resolve(e.data) : reject()));
         })
-        .catch(() => {
-          func();
-          return;
-        });
-    func();
+          .then((e) => {
+            if (e)
+              message.warning(
+                "This Transaction is already processed. Cannot continue."
+              );
+            return;
+          })
+          .catch(() => {
+            func();
+            return;
+          });
+      func();
+    });
+  };
+
+  const showCreditForm = () => {
+    if (selectedUser) {
+      return (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            background: "#5999ff",
+            padding: 10,
+            color: "#fff",
+            borderRadius: 10,
+            marginLeft: 24,
+            marginRight: 24,
+            paddingLeft: 10,
+            paddingRight: 10,
+            marginTop: 10,
+          }}
+        >
+          <div>
+            <Typography.Title level={3} style={{ color: "#fff" }}>
+              Payment Credit Applied for:{" "}
+            </Typography.Title>
+            <span
+              style={{
+                fontSize: "1.7em",
+              }}
+            >
+              {selectedUser.name +
+                " " +
+                selectedUser.middlename +
+                " " +
+                selectedUser.lastname}
+            </span>
+            <br />
+            <span
+              style={{
+                fontSize: "1.3em",
+              }}
+            >
+              Available Credit: ₱
+              {selectedUser.availableCredit.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+            <br />
+            <span
+              style={{
+                fontSize: "1.3em",
+              }}
+            >
+              Due Date:{" "}
+              {dayjs()
+                .add(selectedUser.creditTerm, "day")
+                .format("MMM DD, YYYY")}{" "}
+              ({selectedUser.creditTerm} days)
+            </span>
+            <br />
+            <span
+              style={{
+                fontSize: "1.3em",
+              }}
+            >
+              Overdue Interest: {interest}% / day
+            </span>
+          </div>
+          <Popconfirm
+            title="Remove Credit"
+            description="Are you sure you want to remove?"
+            okText="Remove"
+            onConfirm={() => {
+              setSelectedUser(null);
+              _setSelectedUser(null);
+              updateCredit("isCredit", false);
+            }}
+          >
+            <Button
+              type="text"
+              size="large"
+              icon={<DeleteOutlined />}
+              style={{ background: "#fff" }}
+              danger
+            >
+              remove
+            </Button>
+          </Popconfirm>
+        </div>
+      );
+    } else return <></>;
   };
 
   useEffect(() => {
@@ -768,24 +979,33 @@ const PosHome = ({
           },
         }}
       >
-        <Typography style={{ fontSize: "3em" }}>Price</Typography>
-        <InputNumber
-          className="custom customInput size-70"
-          style={{ width: 300, textAlign: "center" }}
-          min={1}
-          controls={false}
-          value={price}
-          formatter={(value: any) =>
-            value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
-          onKeyDown={(e) => {
-            if (e.code == "Enter") quantityRef.current?.focus();
-          }}
-          onChange={(e) => {
-            if (e) setPrice(e);
-          }}
-        />
+        {[null, 0].includes(
+          items.filter((e) => e._id == openItemOpt.id)[0]?.price
+        ) && (
+          <div>
+            <Typography style={{ fontSize: "3em", textAlign: "center" }}>
+              Price
+            </Typography>
+            <InputNumber
+              className="custom customInput size-70"
+              style={{ width: 300, textAlign: "center" }}
+              min={1}
+              controls={false}
+              value={price}
+              formatter={(value: any) =>
+                value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
+              onKeyDown={(e) => {
+                if (e.code == "Enter") quantityRef.current?.focus();
+              }}
+              onChange={(e) => {
+                if (e) setPrice(e);
+              }}
+            />
+          </div>
+        )}
+
         <Typography style={{ fontSize: "3em" }}>QUANTITY</Typography>
         <InputNumber
           className="custom customInput size-70"
@@ -905,82 +1125,114 @@ const PosHome = ({
           </Typography>
         </div>
         <div>
-          <Row>
-            <Col span={12}>
-              <span
-                style={{
-                  fontSize: "2.5em",
-                  marginLeft: 30,
-                }}
-              >
-                Cash/Amount
-              </span>
-            </Col>
-            <Col span={12} style={{ display: "flex" }}>
-              <InputNumber
-                size="large"
-                className="custom customInput size-70 with-prefix align-end-input-num"
-                min={0}
-                onChange={setAmount}
-                value={amount}
-                style={{
-                  width: "100%",
-                  height: 60,
-                  marginTop: 5,
-                  marginBottom: 5,
-                  display: "flex",
-                  alignItems: "center",
-                  marginRight: 30,
-                }}
-                prefix="₱"
-                controls={false}
-                formatter={(value: any) =>
-                  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                }
-                parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
-              />
-            </Col>
-          </Row>
-          <Row>
-            <Col span={12}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  cursor: "pointer",
-                  marginLeft: 30,
-                }}
-                onClick={() => {
-                  updateOP(
-                    "isOnlinePayment",
-                    !onlinePaymentInput.isOnlinePayment
-                  );
-                  if (onlinePaymentInput.isOnlinePayment) {
-                    setPaymentSaved(false);
-                    setOnlinePaymentInput({
-                      isOnlinePayment: false,
-                      portal: "",
-                      receiverName: "",
-                      recieverNum: "",
-                      traceId: "",
-                      reference: "",
-                    });
-                  }
-                }}
-              >
-                <Checkbox
-                  className="customCheckbox"
-                  checked={onlinePaymentInput.isOnlinePayment}
-                />
+          {!credit.isCredit && (
+            <Row>
+              <Col span={12}>
                 <span
                   style={{
-                    fontSize: "2em",
-                    marginLeft: 10,
+                    fontSize: "2.5em",
+                    marginLeft: 30,
                   }}
                 >
-                  Online Payment
+                  Cash/Amount
                 </span>
-              </div>
+              </Col>
+              <Col span={12} style={{ display: "flex" }}>
+                <InputNumber
+                  size="large"
+                  className="custom customInput size-70 with-prefix align-end-input-num"
+                  min={0}
+                  onChange={setAmount}
+                  value={amount}
+                  style={{
+                    width: "100%",
+                    height: 60,
+                    marginTop: 5,
+                    marginBottom: 5,
+                    display: "flex",
+                    alignItems: "center",
+                    marginRight: 30,
+                  }}
+                  prefix="₱"
+                  controls={false}
+                  formatter={(value: any) =>
+                    value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                  }
+                  parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
+                />
+              </Col>
+            </Row>
+          )}
+          <Row>
+            <Col span={12}>
+              {!credit.isCredit && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    marginLeft: 30,
+                  }}
+                  onClick={() => {
+                    updateOP(
+                      "isOnlinePayment",
+                      !onlinePaymentInput.isOnlinePayment
+                    );
+                    if (onlinePaymentInput.isOnlinePayment) {
+                      setPaymentSaved(false);
+                      setOnlinePaymentInput({
+                        isOnlinePayment: false,
+                        portal: "",
+                        receiverName: "",
+                        recieverNum: "",
+                        traceId: "",
+                        reference: "",
+                      });
+                    }
+                  }}
+                >
+                  <Checkbox
+                    className="customCheckbox"
+                    checked={onlinePaymentInput.isOnlinePayment}
+                  />
+                  <span
+                    style={{
+                      fontSize: "2em",
+                      marginLeft: 10,
+                    }}
+                  >
+                    Online Payment
+                  </span>
+                </div>
+              )}
+              {selectedUser == null && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    marginLeft: 30,
+                  }}
+                  onClick={() => {
+                    updateCredit("isCredit", !credit.isCredit);
+                    setOpenCredit(true);
+                  }}
+                >
+                  <Checkbox
+                    className="customCheckbox"
+                    checked={credit.isCredit}
+                  />
+                  <span
+                    style={{
+                      fontSize: "2em",
+                      marginLeft: 10,
+                    }}
+                  >
+                    Apply Credit
+                  </span>
+                </div>
+              )}
+              {selectedUser != null && showCreditForm()}
             </Col>
           </Row>
           {onlinePaymentInput.isOnlinePayment && paymentSaved && (
@@ -1088,10 +1340,13 @@ const PosHome = ({
               width: 210,
               marginRight: 30,
               fontSize: "3em",
-              background: getTotal() > (amount ?? 0) ? "#98c04b88" : "#98c04b",
+              background:
+                getTotal() > (amount ?? 0) && !credit.isCredit
+                  ? "#98c04b88"
+                  : "#98c04b",
               color: "#fff",
             }}
-            disabled={getTotal() > (amount ?? 0)}
+            disabled={getTotal() > (amount ?? 0) && !credit.isCredit}
             onClick={handleRequestTransaction}
           >
             Confirm
@@ -1277,6 +1532,119 @@ const PosHome = ({
             </Button>
           </Form.Item>
         </Form>
+      </Modal>
+      <Modal
+        open={openCredit}
+        onCancel={() => {
+          setOpenCredit(false);
+          updateCredit("isCredit", false);
+          _setSelectedUser(null);
+        }}
+        footer={null}
+        closable={false}
+        destroyOnClose
+      >
+        <AutoComplete
+          size="large"
+          className="ctmFontSize"
+          placeholder="Search User"
+          style={{
+            width: "100%",
+            height: 50,
+            fontSize: "1.5em",
+            marginTop: 10,
+          }}
+          filterOption={(inputValue, option) =>
+            option!
+              .value!.toString()
+              .toUpperCase()
+              .indexOf(inputValue.toUpperCase()) !== -1
+          }
+          options={users
+            // .filter((e) => selectedItem.map((_) => _._id).some((_) => _ == e._id)) // ! not working
+            .map((e) => ({
+              label: (
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <span>{e.name + " " + e.middlename + " " + e.lastname}</span>
+                  <span>
+                    Available Credits:{" "}
+                    <strong>
+                      ₱
+                      {e.availableCredit?.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </strong>
+                  </span>
+                </div>
+              ),
+              value: e.name + " " + e.middlename + " " + e.lastname,
+              key: e._id,
+            }))}
+          onChange={(e) => {
+            if (e != "") {
+              runTimer2(e);
+            } else setSelectedUser(null);
+          }}
+          onSelect={(_, __) => {
+            if (
+              users.filter((e) => e._id == __.key)[0].availableCredit -
+                getTotal() >
+              0
+            )
+              _setSelectedUser(users.filter((e) => e._id == __.key)[0]);
+            else
+              message.error(
+                "Credit cannot applied. Max Credits already reached"
+              );
+          }}
+          autoFocus
+        />
+        {_selectedUser != null && (
+          <div
+            style={{
+              fontSize: "1.5em",
+              marginTop: 10,
+              gap: 10,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <span>Overdue Interest per day:</span>
+            <InputNumber
+              style={{
+                width: 100,
+              }}
+              controls={false}
+              onChange={(e) => {
+                if (e != null && e != "")
+                  setInterest(parseFloat(e.toLocaleString()));
+                else setInterest(null);
+              }}
+              onPressEnter={() => {
+                setOpenCredit(false);
+                setSelectedUser(_selectedUser);
+              }}
+              size="large"
+              addonAfter="%"
+            />
+          </div>
+        )}
+        <Button
+          size="large"
+          type="primary"
+          style={{ marginTop: 10 }}
+          disabled={_selectedUser == null || interest == null}
+          onClick={() => {
+            setOpenCredit(false);
+            setSelectedUser(_selectedUser);
+          }}
+          block
+        >
+          CONFIRM
+        </Button>
       </Modal>
     </>
   );

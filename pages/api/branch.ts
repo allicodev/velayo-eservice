@@ -16,7 +16,10 @@ async function handler(
   if (method === "OPTIONS") return res.status(200).end();
 
   if (method == "GET")
-    return await Branch.find()
+    return await Branch.find(
+      {},
+      req.query?.project != null ? JSON.parse(req.query.project as any) : {}
+    )
       .populate("items.itemId")
       .then((e) => {
         return res.json({

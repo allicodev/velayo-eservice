@@ -347,7 +347,7 @@ const ItemsHome = ({ open, close, extraData }: DrawerBasicProps) => {
         _ = (
           <InputNumber
             size="large"
-            defaultValue={item.price}
+            defaultValue={item.price ?? undefined}
             style={{
               height: 50,
               border: "none",

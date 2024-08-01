@@ -105,7 +105,9 @@ abstract class BillService {
     tellerId: string,
     branchId: string,
     online?: OnlinePayment,
-    billerId?: string
+    billerId?: string,
+    creditId?: string | null,
+    dueDate?: Date | null
   ) {
     let transaction: Transaction = {
       type: "bills",
@@ -116,7 +118,9 @@ abstract class BillService {
       tellerId,
       branchId,
       billerId,
+      creditId,
       ...(online ? online : {}),
+      dueDate,
       history: [
         {
           description: "First  Transaction requested",
@@ -126,7 +130,7 @@ abstract class BillService {
       ],
     };
 
-    return await API.post<Response>({
+    return await API.post<Transaction>({
       endpoint: "/bill/request-transaction",
       payload: { ...transaction, branchId },
     });
@@ -145,6 +149,7 @@ abstract class BillService {
     type,
     sub_type,
     project,
+    hideCredit,
   }: {
     page: number;
     pageSize: number;
@@ -158,6 +163,7 @@ abstract class BillService {
     type?: TransactionType | null;
     sub_type?: string | null;
     project?: Record<any, any>;
+    hideCredit?: boolean;
   }) {
     return await API.get<Transaction[]>({
       endpoint: "/transaction/get-transactions",
@@ -174,6 +180,7 @@ abstract class BillService {
         type,
         sub_type,
         project: JSON.stringify(project),
+        hideCredit,
       },
     });
   }
@@ -233,7 +240,7 @@ abstract class BillService {
       ],
     };
 
-    return await API.post<Response>({
+    return await API.post<Transaction>({
       endpoint: "/bill/request-transaction",
       payload: { ...transaction, branchId },
     });

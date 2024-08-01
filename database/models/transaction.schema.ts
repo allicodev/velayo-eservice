@@ -4,6 +4,8 @@ import "@/database/models/branch.schema";
 import "@/database/models/bill.schema";
 import "@/database/models/wallet.schema";
 
+import "@/database/models/log.schema";
+
 const TransactionHistorySchema = new mongoose.Schema(
   {
     description: {
@@ -57,6 +59,10 @@ const TransactionSchema = new mongoose.Schema(
     branchId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Branch",
+    },
+    creditId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Log",
     },
     // for only ewallet cashout
     traceId: String,

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button, Col, Row, Tag, Typography, notification } from "antd";
+import { Button, Col, Row, Tag, Typography, message, notification } from "antd";
 import { WalletOutlined } from "@ant-design/icons";
 import { MdOutlineSendToMobile } from "react-icons/md";
 import { FaMoneyBills } from "react-icons/fa6";
@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 
 import { UserBadge, DashboardBtn } from "@/app/components";
 import {
-  WalletForm,
+  WalletPayment,
   TransactionHistory,
   TransactionDetails,
   BillsPayment,
@@ -28,6 +28,7 @@ import EtcService from "@/provider/etc.service";
 import ModalQueue from "@/app/components/teller/modal_queue";
 import WebCamera from "@/app/components/teller/webcam";
 import COTracker from "@/app/components/teller/cashout_tracker";
+import CreditTracker from "@/app/components/teller/credit-tracker";
 
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
@@ -52,7 +53,7 @@ const Teller = () => {
 
   const menu = [
     {
-      title: "Bills Payment \n (F1)",
+      title: "Bills Payment \n [F1]",
       icon: (
         <FaMoneyBills
           className="db-btn"
@@ -62,7 +63,7 @@ const Teller = () => {
       onPress: () => setOpenedMenu("bills"),
     },
     {
-      title: "Wallet Cash In/out  \n (F2)",
+      title: "Wallet Cash In/out  \n [F2]",
       icon: (
         <WalletOutlined
           className="db-btn"
@@ -72,7 +73,7 @@ const Teller = () => {
       onPress: () => setOpenedMenu("gcash"),
     },
     {
-      title: "E-Load  \n (F3)",
+      title: "E-Load  \n [F3]",
       icon: (
         <MdOutlineSendToMobile
           className="db-btn"
@@ -82,15 +83,15 @@ const Teller = () => {
       onPress: () => setOpenedMenu("eload"),
     },
     {
-      title: "Shopee Self Collect \n (F4)",
+      title: "Shopee Self Collect \n [F4]",
       onPress: () => setOpenedMenu("shoppe"),
     },
     {
-      title: "Transaction History \n (F5)",
+      title: "Transaction History \n [F5]",
       onPress: () => setOpenedMenu("th"),
     },
     {
-      title: "Miscellaneous \n (F6)",
+      title: "Miscellaneous \n [F6]",
       onPress: () => setOpenedMenu("pos"),
     },
   ];
@@ -112,7 +113,8 @@ const Teller = () => {
     let { queue, id } = data;
 
     api.info({
-      message: `Transaction ID #${queue} has been updated`,
+      // message: `Transaction ID #${queue} has been updated`,
+      message: "Some transaction has been updated",
       duration: 0,
       btn: (
         <Button
@@ -158,7 +160,7 @@ const Teller = () => {
         },
         currentBranch
       );
-      return res.success ?? false;
+      return res;
     })(BillService);
   };
 
@@ -183,6 +185,9 @@ const Teller = () => {
         break;
       case "F6":
         setOpenedMenu("pos");
+        break;
+      case "F7":
+        setOpenedMenu("credit");
         break;
       case "F8":
         setOpenCOTracker(true);
@@ -406,6 +411,17 @@ const Teller = () => {
                         fontWeight: 700,
                       }}
                     >
+                      [F7]
+                    </span>{" "}
+                    - Credit
+                  </span>
+                  <span style={{ fontFamily: "abel" }}>
+                    <span
+                      style={{
+                        fontSize: "1.2em",
+                        fontWeight: 700,
+                      }}
+                    >
                       [F8]
                     </span>{" "}
                     - Track Transaction
@@ -441,12 +457,16 @@ const Teller = () => {
 
       {/* context */}
       {contextHolder}
-      <WalletForm open={openedMenu == "gcash"} close={close} />
+      <WalletPayment open={openedMenu == "gcash"} close={close} />
       <BillsPayment open={openedMenu == "bills"} close={close} />
       <TransactionHistory
         open={openedMenu == "th"}
         close={close}
         onCellClick={(e, requestId) => {
+          if (e == null) {
+            message.error("Transaction not found.");
+            return;
+          }
           setTransactionOpt({ open: true, transaction: e, requestId });
         }}
       />
@@ -478,6 +498,10 @@ const Teller = () => {
         open={openCOTracker}
         close={() => setOpenCOTracker(false)}
         setOpenedMenu={setOpenedMenu!}
+      />
+      <CreditTracker
+        open={openedMenu == "credit"}
+        close={() => setOpenedMenu("")}
       />
     </>
   );

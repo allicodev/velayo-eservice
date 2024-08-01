@@ -1,4 +1,4 @@
-import { TransactionType, ItemData } from ".";
+import { TransactionType, ItemData, UserCreditData } from ".";
 
 // * User Service
 export interface UserLoginProps {
@@ -65,4 +65,11 @@ export interface EloadSettings {
 export interface ItemWithCategory {
   name: string;
   item: ItemData[];
+}
+
+export interface Credit {
+  userCreditId: string | UserCreditData;
+  amount: number;
+  status: "completed" | "pending";
+  _id?: string;
 }

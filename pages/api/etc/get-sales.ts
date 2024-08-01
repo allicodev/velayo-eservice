@@ -64,11 +64,6 @@ async function handler(
       },
     },
     {
-      $match: {
-        year: 2024,
-      },
-    },
-    {
       $group: {
         _id: { month: "$month" },
         sales: { $sum: "$sales" },
@@ -111,7 +106,6 @@ async function handler(
   res.json({
     success: true,
     data: salesPerMonth,
-
     code: 200,
   });
 }

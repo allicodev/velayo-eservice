@@ -1,13 +1,13 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { ItemBranchState } from "@/types";
+import { ItemData } from "@/types";
 
-const initialState: ItemBranchState[] = [];
+const initialState: ItemData[] = [];
 
 const itemSlice = createSlice({
   name: "item",
   initialState,
   reducers: {
-    newItem: (state, action: PayloadAction<ItemBranchState>) => {
+    newItem: (state, action: PayloadAction<ItemData>) => {
       state.push(action.payload);
       return state;
     },

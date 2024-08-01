@@ -15,10 +15,12 @@ import dayjs from "dayjs";
 import PrinterService from "@/provider/printer.service";
 import {
   Branch,
+  Credit,
   TransactionDetailsProps,
   TransactionHistoryDataType_type,
   TransactionPOS,
   User,
+  UserCreditData,
 } from "@/types";
 import { FloatLabel, transactionToPrinter } from "@/assets/ts";
 import { useUserStore } from "@/provider/context";
@@ -42,6 +44,7 @@ const TransactionDetails = ({
     else if (status == "failed") return "#FF0000";
     else return "#EFB40D";
   };
+
   const getStatusBadge = (status: TransactionHistoryDataType_type) => (
     <div
       style={{
@@ -53,6 +56,31 @@ const TransactionDetails = ({
         borderRadius: 10,
         fontSize: "0.85em",
         backgroundColor: getStatusColor(status),
+      }}
+    >
+      {status[0].toLocaleUpperCase()}
+      {status.slice(1)}
+    </div>
+  );
+
+  const getStatusBadgeCredit = (
+    status: "completed" | "pending",
+    isDue?: boolean
+  ) => (
+    <div
+      style={{
+        padding: 2,
+        paddingLeft: 15,
+        paddingRight: 15,
+        color: "#fff",
+        display: "inline-block",
+        borderRadius: 10,
+        fontSize: "0.85em",
+        backgroundColor: isDue
+          ? "red"
+          : status == "completed"
+          ? "green"
+          : "orange",
       }}
     >
       {status[0].toLocaleUpperCase()}
@@ -164,7 +192,6 @@ const TransactionDetails = ({
     if (open && transaction) {
       if (transaction.transactionDetails) {
         let _ = JSON.parse(transaction.transactionDetails);
-
         if (transaction.type == "miscellaneous")
           setTextData([
             [
@@ -182,7 +209,7 @@ const TransactionDetails = ({
                     "Sender Number/Account Number",
                   ]
                 : []),
-              "Current Status",
+              ...(transaction.creditId != null ? [] : ["Current Status"]),
             ],
             [
               transaction.type.toLocaleUpperCase(),
@@ -220,7 +247,9 @@ const TransactionDetails = ({
                     transaction.recieverNum,
                   ]
                 : []),
-              getStatusBadge(latestHistory()!.status),
+              ...(transaction.creditId != null
+                ? []
+                : [getStatusBadge(latestHistory()!.status)]),
             ],
           ]);
         else
@@ -230,7 +259,7 @@ const TransactionDetails = ({
               "Biller",
               "Teller",
               "Request Date",
-              "Current Status",
+              ...(transaction.creditId != null ? [] : ["Current Status"]),
               "Other Details**",
               ...Object.keys(_)
                 .filter(
@@ -257,6 +286,9 @@ const TransactionDetails = ({
                     "Sender Number/Account Number",
                   ]
                 : []),
+              ...(transaction.creditId != null
+                ? ["Credit Details**", "Name", "Status"]
+                : []),
             ],
             [
               transaction.type.toLocaleUpperCase(),
@@ -265,7 +297,9 @@ const TransactionDetails = ({
                 (transaction.branchId as Branch)?.name ?? "No Branch"
               })` ?? "No Teller",
               dayjs(transaction?.createdAt).format("MMMM DD, YYYY - hh:mma"),
-              getStatusBadge(latestHistory()!.status),
+              ...(transaction.creditId != null
+                ? []
+                : [getStatusBadge(latestHistory()!.status)]),
               "",
               ...Object.keys(_)
                 .filter(
@@ -291,6 +325,36 @@ const TransactionDetails = ({
                     transaction.portal,
                     transaction.receiverName,
                     transaction.recieverNum,
+                  ]
+                : []),
+              ...(transaction.creditId != null
+                ? [
+                    "",
+                    (
+                      (transaction.creditId as Credit)
+                        .userCreditId as UserCreditData
+                    ).name +
+                      (
+                        (transaction.creditId as Credit)
+                          .userCreditId as UserCreditData
+                      ).middlename +
+                      " " +
+                      (
+                        (transaction.creditId as Credit)
+                          .userCreditId as UserCreditData
+                      ).lastname,
+                    getStatusBadgeCredit(
+                      (transaction.creditId as Credit).status,
+                      dayjs(transaction.createdAt)
+                        .add(
+                          (
+                            (transaction.creditId as Credit)
+                              .userCreditId as UserCreditData
+                          ).creditTerm,
+                          "day"
+                        )
+                        .isBefore(dayjs())
+                    ),
                   ]
                 : []),
             ],

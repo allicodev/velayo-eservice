@@ -40,6 +40,7 @@ async function handler(
     type,
     sub_type,
     project,
+    hideCredit,
   } = req.query;
 
   const _page = Number.parseInt(page!.toString()) - 1;
@@ -97,6 +98,20 @@ async function handler(
     query.push({ branchId: new mongoose.Types.ObjectId(branchId as any) });
   if (type) query.push({ type });
 
+  if (hideCredit) {
+    query.push({
+      $or: [
+        {
+          creditId: null,
+        },
+        {
+          type: "wallet",
+          sub_type: { $regex: /cash-in/ },
+        },
+      ],
+    });
+  }
+
   const total = await Transaction.countDocuments(
     query.length > 0 ? { $and: query } : {}
   );
@@ -118,7 +133,14 @@ async function handler(
     .sort({
       createdAt: typeof order == "string" && order == "descending" ? -1 : 1,
     })
-    .populate("tellerId branchId")
+    .populate({ path: "tellerId" })
+    .populate({ path: "branchId" })
+    .populate({
+      path: "creditId",
+      populate: {
+        path: "userCreditId",
+      },
+    })
     .then((e: any[]) => {
       return res.json({
         code: 200,

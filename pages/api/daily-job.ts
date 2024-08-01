@@ -1,6 +1,6 @@
 import dbConnect from "@/database/dbConnect";
 import Log from "@/database/models/log.schema";
-import { queueResetter } from "@/provider/utils/queue-resetter";
+import { queueResetter, creditInterestChecker } from "@/provider/utils";
 import { ExtendedResponse, Response } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -26,6 +26,7 @@ async function handler(
   );
 
   await queueResetter();
+  await creditInterestChecker();
 
   return await Log.find(
     {

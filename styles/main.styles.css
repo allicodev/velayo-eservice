@@ -593,3 +593,8 @@ label.customCheckbox span span.ant-checkbox-inner::after {
   gap: 10px !important;
   padding: 15px !important;
 }
+
+.ctmFontSize div span input {
+  font-size: 1.5em;
+  height: 100% !important;
+}

@@ -13,6 +13,7 @@ import {
   TransactionPOS,
   BranchData,
   BranchItem,
+  ExtendedResponse,
 } from ".";
 import { Dayjs } from "dayjs";
 
@@ -141,7 +142,7 @@ export interface BillButtonProps {
 export interface EloadProps {
   open: boolean;
   close: () => void;
-  onSubmit: (eload: Eload) => Promise<boolean | void>;
+  onSubmit: (eload: Eload) => Promise<ExtendedResponse<Transaction>>;
 }
 
 export type ELoadType = "regular" | "promo";
@@ -152,6 +153,7 @@ export interface Eload {
   type: ELoadType | null;
   promo?: string | null;
   fee?: number;
+  creditId?: string | null;
 }
 
 // backend stuffs
@@ -266,4 +268,11 @@ export interface BalanceUpdaterProps {
   name?: string | null;
   type?: "add" | "subract" | null;
   refresh?: () => void;
+}
+
+export interface CreditProp {
+  isCredit: boolean;
+  userId: string;
+  transactionId: string;
+  amount: number;
 }

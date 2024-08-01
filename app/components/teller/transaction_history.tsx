@@ -97,6 +97,7 @@ const TransactionHistory = ({
     {
       title: "ID",
       dataIndex: "queue",
+      render: (_, row, i) => i + 1,
     },
     {
       title: "Transaction Type",
@@ -168,8 +169,12 @@ const TransactionHistory = ({
     {
       title: "Status",
       key: "status",
-      render: (_, { history }) =>
-        getStatusBadge(history?.at(-1)?.status ?? null),
+      render: (_, { history, creditId }) =>
+        creditId != null ? (
+          <Tag color="grey">CREDIT</Tag>
+        ) : (
+          getStatusBadge(history?.at(-1)?.status ?? null)
+        ),
     },
   ];
 

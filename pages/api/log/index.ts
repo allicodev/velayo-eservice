@@ -1,4 +1,3 @@
-import { ApiMiddleware } from "@/assets/ts";
 import dbConnect from "@/database/dbConnect";
 import Log from "@/database/models/log.schema";
 import { ExtendedResponse, LogData } from "@/types";
@@ -12,7 +11,7 @@ dayjs.extend(timezone);
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import mongoose from "mongoose";
-import authMiddleware from "@/assets/ts/apiMiddleware";
+import { processCreditPayment } from "@/provider/utils";
 
 async function handler(
   req: NextApiRequest,
@@ -37,6 +36,8 @@ async function handler(
       portalId,
       _id,
     } = req.query;
+
+    console.log(req.query);
 
     const _page = Number.parseInt(page!.toString()) - 1;
 
@@ -125,6 +126,8 @@ async function handler(
       });
   } else {
     let { postType } = req.body;
+
+    if (req.body.type == "credit_payment") await processCreditPayment(req.body);
 
     if (postType == "new")
       return await Log.create(req.body)

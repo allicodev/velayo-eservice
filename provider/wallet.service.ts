@@ -143,7 +143,8 @@ abstract class WalletService {
     tellerId: string,
     branchId: string,
     traceId: string | null,
-    walletId?: string | null
+    walletId?: string | null,
+    creditId?: string | null
   ) {
     let transaction: Transaction = {
       type: "wallet",
@@ -154,6 +155,7 @@ abstract class WalletService {
       tellerId,
       branchId,
       walletId,
+      creditId,
       history: [
         {
           description: "First  Transaction requested",
@@ -165,7 +167,7 @@ abstract class WalletService {
 
     if (traceId) transaction.traceId = traceId;
 
-    return await API.post<Response>({
+    return await API.post<Transaction>({
       endpoint: "/bill/request-transaction",
       payload: { ...transaction, branchId },
     });

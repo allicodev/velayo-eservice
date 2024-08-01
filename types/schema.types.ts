@@ -3,6 +3,7 @@ import {
   BillingsFormField,
   ExceptionItemProps,
 } from "./billings.types";
+import { Credit } from "./service.types";
 
 export type RoleType = "teller" | "encoder" | "accounting" | "admin";
 
@@ -71,6 +72,8 @@ export interface Transaction {
   portal?: string;
   receiverName?: string;
   recieverNum?: string;
+  creditId?: string | Credit | null;
+  dueDate?: Date | null;
 }
 
 export interface TransactionPOS extends Transaction {
@@ -131,7 +134,7 @@ export interface Item {
   sub_categories?: Item[] | ItemData[];
   itemCode: number;
   unit: ItemUnit | undefined;
-  price: number;
+  price: number | null;
   quantity: number;
   cost: number;
 }
@@ -174,12 +177,19 @@ export interface BranchItemUpdate {
 }
 
 // * Log
-export type LogType = "attendance" | "stock" | "credit" | "debit" | "portal";
+export type LogType =
+  | "attendance"
+  | "stock"
+  | "credit"
+  | "debit"
+  | "portal"
+  | "credit_payment";
 export type LogBalanceType = "bills" | "wallet" | "eload";
 export interface Log {
   type: LogType;
   userId: User;
   branchId?: Branch;
+  transactionId?: string;
 
   // for attendance
   timeIn?: Date;
@@ -195,6 +205,13 @@ export interface Log {
   portalId?: Portal;
   amount?: number;
   rebate?: number;
+
+  // credit
+  userCreditId?: string;
+  dueDate?: Date;
+  status?: "pending" | "completed";
+  interest?: number;
+  history?: CreditAmountHistory[];
 
   createdAt?: Date;
 }
@@ -235,4 +252,36 @@ export interface RequestQueue {
   queue: number;
   status: "pending" | "completed" | "rejected";
   extra: Object;
+}
+
+// * Credit
+export interface UserCredit {
+  name: string;
+  middlename: string;
+  lastname: string;
+  address: string;
+  phone: string;
+  maxCredit: number;
+  creditTerm: 7 | 15 | 30;
+}
+
+export interface CreditHistory {
+  userCreditId: UserCreditData | string;
+  transactionId: Transaction | string;
+  status: "pending" | "completed";
+  amount: number;
+  createdAt: Date;
+  history: CreditAmountHistory[];
+}
+
+export interface UserCreditData extends UserCredit {
+  _id: string;
+  history?: CreditHistory[];
+  availableCredit: number;
+}
+
+export interface CreditAmountHistory {
+  amount: number;
+  date: Date;
+  description: string;
 }

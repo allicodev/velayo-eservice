@@ -498,6 +498,7 @@ const Encoder = () => {
           status && ["completed", "failed"].includes(status)
             ? "descending"
             : "ascending",
+        hideCredit: true,
       });
 
       if (res?.success ?? false) {

@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useRef, useState } from "react";
 import {
   Drawer,
   Typography,
@@ -17,6 +17,9 @@ import {
   message,
   Tooltip,
   Alert,
+  Modal,
+  AutoComplete,
+  Popconfirm,
 } from "antd";
 import type { CollapseProps } from "antd";
 import {
@@ -24,11 +27,14 @@ import {
   RightOutlined,
   ReloadOutlined,
   QuestionCircleOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 
 import {
   BillingsFormField,
+  CreditProp,
   GcashCollapseItemButtonProps,
+  UserCreditData,
   Wallet,
   WalletType,
 } from "@/types";
@@ -40,6 +46,9 @@ import EtcService from "@/provider/etc.service";
 import { FloatLabel } from "@/assets/ts";
 import { useUserStore } from "@/provider/context";
 import { Pusher } from "@/provider/utils/pusher";
+import CreditService from "@/provider/credit.service";
+import LogService from "@/provider/log.service";
+import dayjs from "dayjs";
 
 const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>();
@@ -52,10 +61,60 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
   const [searchKey, setSearchKey] = useState("");
   const [error, setError] = useState({});
   const [loading, setLoading] = useState(false);
+  const [openCredit, setOpenCredit] = useState(false);
+  const [users, setUsers] = useState<UserCreditData[]>([]);
+  const [selectedUser, setSelectedUser] = useState<UserCreditData | null>(null);
+  const [_selectedUser, _setSelectedUser] = useState<UserCreditData | null>(
+    null
+  );
+  const [interest, setInterest] = useState<number | null>(null);
+
+  const [credit, setCredit] = useState<CreditProp>({
+    isCredit: false,
+    userId: "",
+    transactionId: "",
+    amount: 0,
+  });
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // for reference tracker
-
   const { currentUser, currentBranch } = useUserStore();
+
+  const processWithTotal = (u: UserCreditData): UserCreditData => {
+    u.availableCredit =
+      u.history == null || u.history.length == 0
+        ? u.maxCredit
+        : u.history.reduce(
+            (p, n) =>
+              p -
+              (n.status == "completed"
+                ? 0
+                : n.history.reduce(
+                    (pp, nn) => pp + parseFloat(nn.amount.toString()),
+                    0
+                  )),
+            u.maxCredit
+          );
+
+    return u;
+  };
+
+  const runTimer = (searchWord: string) => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    timerRef.current = setTimeout(() => searchUser(searchWord), 100);
+  };
+
+  const searchUser = async (searchWord: string) => {
+    let res = await CreditService.getUser({ searchWord });
+
+    if (res?.success ?? false) {
+      setUsers(res?.data?.map((e) => processWithTotal(e)) ?? []);
+    }
+  };
 
   // for dynamic formfields
   const selectedFormFields = () =>
@@ -91,12 +150,15 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
       .map((_) => _[0].toLocaleUpperCase() + _.slice(1))
       .join(" ");
 
+  const updateCredit = (key: string, value: any) =>
+    setCredit({ ...credit, [key]: value });
+
   const handleFinish = async (val: any) => {
     val = { ...val, fee: `${getFee()}_money` };
     if (includeFee) val.amount = `${amount - getFee()}_money`;
 
     // add validation for cashout
-    if (walletType == "cash-out") {
+    if (walletType == "cash-out" && !credit.isCredit) {
       let res = await EtcService.getTransactionFromTraceId(val?.traceId);
       if (res?.success) {
         if (res?.data) {
@@ -106,32 +168,86 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
       }
     }
 
-    setLoading(true);
-    let res = await WalletService.requestWalletTransaction(
-      `${selectedWallet!.name!} ${walletType}`,
-      JSON.stringify({
-        ...val,
-        billerId: selectedWallet?._id,
-        transactionType: "wallet",
-      }),
-      includeFee ? amount - getFee() : amount,
-      getFee(),
-      currentUser?._id ?? "",
-      currentBranch,
-      walletType == "cash-out" ? val?.traceId ?? "" : null,
-      selectedWallet?._id
-    );
+    if (credit.isCredit) {
+      if (selectedUser == null) {
+        message.warning("No selected user");
+        return;
+      }
 
-    if (res?.success ?? false) {
-      setLoading(false);
-      message.success(res?.message ?? "Success");
-      form.resetFields();
-      setSelectedWallet(null);
-      setWalletType(null);
-      setAmount(0);
-      setIncludeFee(false);
-      close();
-    } else setLoading(false);
+      if (getTotal() > selectedUser.availableCredit) {
+        message.error("Cannot proceed. User Credit is insufficient");
+        return;
+      }
+    }
+
+    return new Promise<string | null>(async (resolve, reject) => {
+      if (credit.isCredit && selectedUser != null) {
+        // get user credit via id
+        let userCredit = await CreditService.getUser({
+          _id: selectedUser?._id ?? "",
+        });
+
+        let _res = await LogService.newLog({
+          userId: currentUser?._id ?? "",
+          type: "credit",
+          branchId: currentBranch,
+          userCreditId: selectedUser._id,
+          status: "pending",
+          amount: getTotal(),
+          dueDate: dayjs().add((userCredit.data![0] as any).creditTerm, "day"),
+          interest,
+          history: [
+            {
+              amount: getTotal(),
+              date: new Date(),
+              description: "Credit Initial",
+            },
+          ],
+        });
+
+        return resolve(_res.data?._id ?? "");
+      } else {
+        return resolve(null);
+      }
+    }).then(async (e) => {
+      setLoading(true);
+      let res = await WalletService.requestWalletTransaction(
+        `${selectedWallet!.name!} ${walletType}`,
+        JSON.stringify({
+          ...val,
+          billerId: selectedWallet?._id,
+          transactionType: "wallet",
+        }),
+        includeFee ? amount - getFee() : amount,
+        getFee(),
+        currentUser?._id ?? "",
+        currentBranch,
+        walletType == "cash-out" ? val?.traceId ?? "" : null,
+        selectedWallet?._id,
+        e
+      );
+
+      if (res?.success ?? false) {
+        setLoading(false);
+        message.success(res?.message ?? "Success");
+        form.resetFields();
+        setSelectedWallet(null);
+        setWalletType(null);
+        setAmount(0);
+        setIncludeFee(false);
+
+        if (credit.isCredit && selectedUser != null) {
+          await LogService.updateLog({
+            _id: e,
+            transactionId: res.data?._id ?? "",
+          });
+        }
+        setSelectedUser(null);
+        _setSelectedUser(null);
+        updateCredit("isCredit", false);
+        close();
+      } else setLoading(false);
+    });
   };
 
   const toCollapsibleItemButton = ({
@@ -532,6 +648,97 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
     } else return <></>;
   };
 
+  const showCreditForm = () => {
+    if (selectedUser) {
+      return (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            background: "#5999ff",
+            padding: 10,
+            color: "#fff",
+            borderRadius: 10,
+            marginLeft: 24,
+            marginRight: 24,
+            paddingLeft: 10,
+            paddingRight: 10,
+          }}
+        >
+          <div>
+            <Typography.Title level={3} style={{ color: "#fff" }}>
+              Payment Credit Applied for:{" "}
+            </Typography.Title>
+            <span
+              style={{
+                fontSize: "1.7em",
+              }}
+            >
+              {selectedUser.name +
+                " " +
+                selectedUser.middlename +
+                " " +
+                selectedUser.lastname}
+            </span>
+            <br />
+            <span
+              style={{
+                fontSize: "1.3em",
+              }}
+            >
+              Available Credit: ₱
+              {selectedUser.availableCredit.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+            <br />
+            <span
+              style={{
+                fontSize: "1.3em",
+              }}
+            >
+              Due Date:{" "}
+              {dayjs()
+                .add(selectedUser.creditTerm, "day")
+                .format("MMM DD, YYYY")}{" "}
+              ({selectedUser.creditTerm} days)
+            </span>
+            <br />
+            <span
+              style={{
+                fontSize: "1.3em",
+              }}
+            >
+              Overdue Interest: {interest}% / day
+            </span>
+          </div>
+          <Popconfirm
+            title="Remove Credit"
+            description="Are you sure you want to remove?"
+            okText="Remove"
+            onConfirm={() => {
+              setSelectedUser(null);
+              _setSelectedUser(null);
+              updateCredit("isCredit", false);
+            }}
+          >
+            <Button
+              type="text"
+              size="large"
+              icon={<DeleteOutlined />}
+              style={{ background: "#fff" }}
+              danger
+            >
+              remove
+            </Button>
+          </Popconfirm>
+        </div>
+      );
+    } else return <></>;
+  };
+
   const onClickCashIn = () => {
     setWalletType("cash-in");
     form.resetFields();
@@ -810,7 +1017,7 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
                 >
                   {selectedFormFields()?.map((e) => renderFormFieldSpecific(e))}
                 </div>
-                {walletType == "cash-out" && (
+                {walletType == "cash-out" && !credit.isCredit && (
                   <div>
                     <div
                       style={{
@@ -836,7 +1043,7 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
                         minLength={10}
                         maxLength={10}
                         style={{
-                          width: "100%",
+                          width: "10f0%",
                           height: 70,
                           fontSize: "2em",
                         }}
@@ -862,6 +1069,35 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
                   </div>
                 )}
               </Form>
+              {selectedUser == null && walletType == "cash-in" && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    paddingLeft: 24,
+                    paddingRight: 24,
+                  }}
+                  onClick={() => {
+                    updateCredit("isCredit", !credit.isCredit);
+                    setOpenCredit(true);
+                  }}
+                >
+                  <Checkbox
+                    className="customCheckbox"
+                    checked={credit.isCredit}
+                  />
+                  <span
+                    style={{
+                      fontSize: "2em",
+                      marginLeft: 10,
+                    }}
+                  >
+                    Apply Credit
+                  </span>
+                </div>
+              )}
+              {credit.isCredit && showCreditForm()}
               <Divider
                 style={{
                   background: "#eee",
@@ -885,6 +1121,7 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
                     display: "flex",
                     cursor: "pointer",
                     alignItems: "center",
+                    visibility: credit.isCredit ? "hidden" : "visible",
                   }}
                 >
                   <Checkbox
@@ -929,6 +1166,121 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
           )}
         </Col>
       </Row>
+
+      {/* context */}
+      <Modal
+        open={openCredit}
+        onCancel={() => {
+          setOpenCredit(false);
+          updateCredit("isCredit", false);
+          _setSelectedUser(null);
+        }}
+        footer={null}
+        closable={false}
+        destroyOnClose
+      >
+        <AutoComplete
+          size="large"
+          className="ctmFontSize"
+          placeholder="Search User"
+          style={{
+            width: "100%",
+            height: 50,
+            fontSize: "1.5em",
+            marginTop: 10,
+          }}
+          filterOption={(inputValue, option) =>
+            option!
+              .value!.toString()
+              .toUpperCase()
+              .indexOf(inputValue.toUpperCase()) !== -1
+          }
+          options={users
+            // .filter((e) => selectedItem.map((_) => _._id).some((_) => _ == e._id)) // ! not working
+            .map((e) => ({
+              label: (
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <span>{e.name + " " + e.middlename + " " + e.lastname}</span>
+                  <span>
+                    Available Credits:{" "}
+                    <strong>
+                      ₱
+                      {e.availableCredit?.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </strong>
+                  </span>
+                </div>
+              ),
+              value: e.name + " " + e.middlename + " " + e.lastname,
+              key: e._id,
+            }))}
+          onChange={(e) => {
+            if (e != "") {
+              runTimer(e);
+            } else setSelectedUser(null);
+          }}
+          onSelect={(_, __) => {
+            if (
+              users.filter((e) => e._id == __.key)[0].availableCredit -
+                getTotal() >
+              0
+            )
+              _setSelectedUser(users.filter((e) => e._id == __.key)[0]);
+            else
+              message.error(
+                "Credit cannot applied. Max Credits already reached"
+              );
+          }}
+          autoFocus
+        />
+        {_selectedUser != null && (
+          <div
+            style={{
+              fontSize: "1.5em",
+              marginTop: 10,
+              gap: 10,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <span>Overdue Interest per day:</span>
+            <InputNumber
+              style={{
+                width: 100,
+              }}
+              controls={false}
+              onChange={(e) => {
+                if (e != null && e != "")
+                  setInterest(parseFloat(e.toLocaleString()));
+                else setInterest(null);
+              }}
+              onPressEnter={() => {
+                setOpenCredit(false);
+                setSelectedUser(_selectedUser);
+              }}
+              size="large"
+              addonAfter="%"
+            />
+          </div>
+        )}
+        <Button
+          size="large"
+          type="primary"
+          style={{ marginTop: 10 }}
+          disabled={_selectedUser == null || interest == null}
+          onClick={() => {
+            setOpenCredit(false);
+            setSelectedUser(_selectedUser);
+          }}
+          block
+        >
+          CONFIRM
+        </Button>
+      </Modal>
     </Drawer>
   );
 };

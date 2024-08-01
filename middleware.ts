@@ -8,6 +8,7 @@ export async function middleware(req: NextRequest) {
   const pathname = url.pathname;
   const token = req.cookies.get("token");
   let currentUser;
+
   if (token) {
     try {
       currentUser = await verify(token, JWT_SECRET);

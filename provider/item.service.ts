@@ -90,7 +90,8 @@ abstract class ItemService {
     tellerId: string,
     branchId: string,
     reference: string,
-    online?: OnlinePayment
+    online?: OnlinePayment,
+    creditId?: string | null
   ) {
     let transaction: TransactionPOS = {
       type: "miscellaneous",
@@ -100,6 +101,7 @@ abstract class ItemService {
       amount,
       tellerId,
       branchId,
+      creditId,
       fee,
       ...(online?.isOnlinePayment ?? false ? online : {}),
       history:
@@ -120,7 +122,7 @@ abstract class ItemService {
             ],
     };
 
-    return await API.post<Transaction | Response>({
+    return await API.post<Transaction>({
       endpoint: "/bill/request-transaction",
       payload: { ...transaction, branchId },
     });
