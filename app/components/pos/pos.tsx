@@ -158,7 +158,6 @@ const PosHome = ({
 
     if (res?.success ?? false) {
       setOpenItemOpt({ open: true, data: res?.data ?? null, mode: "new", id });
-      console.log(items.filter((e) => e._id == id)[0]);
       if (res?.data?.price != null) quantityRef.current?.focus();
     }
   };

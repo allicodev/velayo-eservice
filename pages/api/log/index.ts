@@ -37,8 +37,6 @@ async function handler(
       _id,
     } = req.query;
 
-    console.log(req.query);
-
     const _page = Number.parseInt(page!.toString()) - 1;
 
     let query = [],

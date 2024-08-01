@@ -24,11 +24,10 @@ const queueResetter = async () => {
 
 const creditInterestChecker = async () => {
   let creditsLogs = await Log.find({ type: "credit", status: "pending" });
-
   for (let i = 0; i < creditsLogs.length; i++) {
     let log = creditsLogs[i];
 
-    if (dayjs(log.dueDate).isBefore(dayjs())) {
+    if (dayjs(log.dueDate).isAfter(dayjs())) {
       let baseAmount = log.amount;
       let interest = log.interest / 100;
 
