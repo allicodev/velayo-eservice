@@ -125,7 +125,10 @@ async function handler(
   } else {
     let { postType } = req.body;
 
-    if (req.body.type == "credit_payment") await processCreditPayment(req.body);
+    if (req.body.type == "credit_payment")
+      return await processCreditPayment(req.body)
+        .then((e: any) => res.json(e))
+        .catch((e) => res.json(e));
 
     if (postType == "new")
       return await Log.create(req.body)
@@ -148,7 +151,12 @@ async function handler(
     else {
       return await Log.findOneAndUpdate(
         { _id: req.body._id },
-        { $set: req.body }
+        {
+          $set: req.body,
+          ...(![null, undefined].includes(req.body.$push)
+            ? { $push: req.body.$push }
+            : {}),
+        }
       )
         .then(() => res.json({ code: 200, success: true }))
         .catch((e) => {

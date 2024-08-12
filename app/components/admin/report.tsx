@@ -3,7 +3,6 @@ import { Drawer, Layout, Affix, Menu, Typography, Button } from "antd";
 import {
   DownOutlined,
   BarChartOutlined,
-  CalendarOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
 import { GrTransaction } from "react-icons/gr";
@@ -12,7 +11,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
 import { TransactionReportProps } from "@/types";
-import Attendance from "./components/attendance";
 import TransactionHistory from "./components/transaction_history";
 import Portal from "./components/portal";
 import Settings from "./settings";
@@ -59,11 +57,7 @@ const Report = ({ open, close }: TransactionReportProps) => {
                     key: "dashboard",
                     icon: <BarChartOutlined />,
                   },
-                  {
-                    label: "Attendance",
-                    key: "attendance",
-                    icon: <CalendarOutlined />,
-                  },
+
                   {
                     label: "Transactions",
                     key: "transactions",
@@ -99,11 +93,9 @@ const Report = ({ open, close }: TransactionReportProps) => {
               }}
             >
               <Typography.Title level={3}>
-                {activeKey == "attendance" ? "EMPLOYEE " : ""}
                 {activeKey.toLocaleUpperCase()}
               </Typography.Title>
             </div>
-            {activeKey == "attendance" ? <Attendance /> : null}
             {activeKey == "transactions" ? <TransactionHistory /> : null}
             {activeKey == "portal" ? <Portal /> : null}
             {activeKey == "settings" ? <Settings /> : null}

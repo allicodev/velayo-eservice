@@ -17,10 +17,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
       message: "Incorrect Request Method",
     });
 
-  req.body.password = req.body.password = await bcrypt.hash(
-    req.body.password,
-    8
-  );
+  if (![null, undefined, ""].includes(req.body.password))
+    req.body.password = req.body.password = await bcrypt.hash(
+      req.body.password,
+      8
+    );
 
   return await User.findOneAndUpdate({ _id: req.body._id }, { $set: req.body })
     .then(() => {

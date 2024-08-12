@@ -24,7 +24,7 @@ abstract class LogService {
     });
   }
 
-  public static async getLog(props: any): Promise<ExtendedResponse<any[]>> {
+  public static async getLog(props: any): Promise<ExtendedResponse<LogData[]>> {
     return await API.get<any[]>({
       endpoint: "/log",
       query: props,

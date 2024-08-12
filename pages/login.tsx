@@ -38,6 +38,10 @@ const Login = () => {
     const response = await UserService.login(val);
 
     if (response.success) {
+      if (response.data && response.data.role == "admin") {
+        message.warning("Restricted");
+        return;
+      }
       if (response.data && response.data.role == "teller") {
         setUser(response.data);
         setToken(response.data!.token);

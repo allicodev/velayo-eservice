@@ -192,10 +192,11 @@ export interface Log {
   transactionId?: string;
 
   // for attendance
-  timeIn?: Date;
-  timeOut?: Date;
-  timeInPhoto?: string;
-  timeOutPhoto?: string;
+  flexiTime: LogTime[];
+  // timeIn?: Date;
+  // timeOut?: Date;
+  // timeInPhoto?: string;
+  // timeOutPhoto?: string;
 
   // for stock
   stockType?: "stock-in" | "stock-out";
@@ -219,6 +220,12 @@ export interface Log {
 export interface LogData extends Log {
   _id: string;
   createdAt?: Date;
+}
+
+export interface LogTime {
+  type: "time-in" | "time-out";
+  time: Date;
+  photo: String;
 }
 
 // notification

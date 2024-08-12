@@ -17,6 +17,7 @@ import {
   Tooltip,
   Alert,
   Popconfirm,
+  notification,
 } from "antd";
 import {
   DownOutlined,
@@ -44,6 +45,8 @@ import {
   NotDraggingStyle,
 } from "react-beautiful-dnd";
 import PrinterException from "./components/printer_execption";
+import Cookies from "js-cookie";
+import { useUserStore } from "@/provider/context";
 
 const EWalletSettings = ({ open, close }: BillsSettings) => {
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>();
@@ -64,6 +67,8 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
   const [contextName, setContextName] = useState("");
   const [openUpdateName, setOpenUpdateName] = useState(false);
   const [selectedTabs, setSelectedTabs] = useState("fee-settings-tabs");
+  const [api, contextHolder] = notification.useNotification();
+  const { setUser } = useUserStore();
 
   const reorder = (
     list: BillingsFormField[],
@@ -540,14 +545,28 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
 
   const getWallets = () => {
     (async (_) => {
-      let res = await _.getWallet();
-      if (res.success) {
-        setWallets(res?.data ?? []);
+      try {
+        let res = await _.getWallet();
 
-        if (selectedWallet != null) {
-          if (res.data)
-            setSelectedWallet(res.data[wallets.indexOf(selectedWallet)]);
+        if (res.success) {
+          setWallets(res?.data ?? []);
+
+          if (selectedWallet != null) {
+            if (res.data)
+              setSelectedWallet(res.data[wallets.indexOf(selectedWallet)]);
+          }
         }
+      } catch (e) {
+        api.open({
+          type: "warning",
+          message: "Expired Session",
+          description: "Browser need to restart",
+          onClose: () => {
+            Cookies.remove("token");
+            setUser(null);
+            window.location.reload();
+          },
+        });
       }
     })(WalletService);
   };
@@ -699,6 +718,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
 
   return (
     <>
+      {contextHolder}
       <Drawer
         open={open}
         onClose={clearAll}

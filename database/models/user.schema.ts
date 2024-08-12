@@ -26,6 +26,14 @@ const UserSchema = new mongoose.Schema(
     },
     // for employee
     employeeId: String,
+    baseSalary: Number,
+    deductions: Array,
+    // @ this will reference to the auto deduct [deductions]
+    // assume the deduction design look like this
+    // {
+    //   name: String,
+    //   amount: Number
+    // }
   },
   {
     timestamps: true,

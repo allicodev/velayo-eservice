@@ -40,14 +40,14 @@ const WebCamera = ({
   const [disableTime, setDisabledTime] = useState<{
     disableTimeIn?: boolean;
     disableTimeOut?: boolean;
-    timeInTime?: Date | null;
-    timeOutTime?: Date | null;
+    lastTimeIn?: Date | null;
+    lastTimeOut?: Date | null;
     logId?: string;
   }>({
     disableTimeIn: false,
     disableTimeOut: false,
-    timeInTime: null,
-    timeOutTime: null,
+    lastTimeIn: null,
+    lastTimeOut: null,
     logId: "",
   });
   const [imgSrc, setImgSrc] = useState<string | null>(null);
@@ -96,6 +96,7 @@ const WebCamera = ({
             <Input
               className="customInput size-70"
               onChange={(e) => setEmployeeId(e.target.value)}
+              autoFocus
               style={{
                 width: "100%",
                 height: 70,
@@ -268,62 +269,43 @@ const WebCamera = ({
             onClick={() => setStep(2)}
           />
         </Tooltip>
-        <Tooltip
-          title={
-            disableTime.disableTimeIn ? "Already Timed-In for the day" : ""
-          }
+        <Button
+          type="primary"
+          onClick={() => handleTimeUpdate("in")}
+          disabled={disableTime.disableTimeIn || loader == "out"}
+          // loading={loader == "in"}
+          style={{
+            height: 70,
+            fontSize: "2.5em",
+            flex: 3,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
-          <Button
-            type="primary"
-            onClick={() => handleTimeUpdate("in")}
-            disabled={disableTime.disableTimeIn || loader == "out"}
-            loading={loader == "in"}
-            style={{
-              height: 70,
-              fontSize: "2.5em",
-              flex: 3,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {/* <CiLogin style={{ marginRight: 15 }} />*/} Time-In{" "}
-            {disableTime.disableTimeIn
-              ? `(${dayjs(disableTime.timeInTime).format("hh:mm a")})`
-              : ""}
-          </Button>
-        </Tooltip>
-        <Tooltip
-          title={
-            disableTime.disableTimeOut
-              ? disableTime.timeOutTime
-                ? "Already Timed-Out for the day"
-                : "Time-In is needed to Time-Out"
-              : ""
-          }
+          {disableTime.disableTimeIn
+            ? "Last Timed in: " + dayjs(disableTime.lastTimeIn).format("hh:mma")
+            : "Time-In"}
+        </Button>
+        <Button
+          type="primary"
+          disabled={disableTime.disableTimeOut || loader == "in"}
+          onClick={() => handleTimeUpdate("out")}
+          // loading={loader == "out"}
+          style={{
+            height: 70,
+            fontSize: "2.5em",
+            flex: 3,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
-          <Button
-            type="primary"
-            disabled={disableTime.disableTimeOut || loader == "in"}
-            onClick={() => handleTimeUpdate("out")}
-            loading={loader == "out"}
-            style={{
-              height: 70,
-              fontSize: "2.5em",
-              flex: 3,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {/* <CiLogout style={{ marginRight: 15 }} /> */} Time-Out{" "}
-            {disableTime.disableTimeOut
-              ? disableTime.timeOutTime != null
-                ? `(${dayjs(disableTime.timeOutTime).format("hh:mm a")})`
-                : ""
-              : ""}
-          </Button>
-        </Tooltip>
+          {disableTime.disableTimeOut && disableTime.lastTimeOut != null
+            ? "Last Timed out: " +
+              dayjs(disableTime.lastTimeOut).format("hh:mma")
+            : "Time-Out"}
+        </Button>
       </div>
     </div>
   );
@@ -350,59 +332,91 @@ const WebCamera = ({
   };
 
   const handleTimeUpdate = (type: "in" | "out") => {
-    if (type == "in") {
-      setLoader("in");
-      let timeIn = new Date();
+    // if (type == "in") {
+    setLoader(type);
+    let timeIn = new Date();
 
-      (async (_) => {
-        let res = await _.newLog({
-          userId: currentOpenedUser?._id ?? "",
-          type: "attendance",
-          timeInPhoto: imgSrc,
-          timeIn,
-          postType: "new",
-          ...(["admin", "encoder"].includes(currentUser?.role!)
-            ? {}
-            : {
-                branchId: currentBranch,
-              }),
-        });
+    (async (_) => {
+      let { success, data } = await _.getLog({
+        userId: currentOpenedUser?._id ?? "",
+        fromDate: dayjs(),
+        toDate: dayjs(),
+        page: 1,
+        pageSize: 99999,
+      });
 
-        if (res?.success ?? false) {
-          message.success("Successfully Timed-In");
-          setCameraOpen(false);
-          setImgSrc(null);
-          setTimeout(close, 1);
-          setStep(0);
-          setLoader("");
-        } else setLoader("");
-      })(LogService);
-    } else {
-      setLoader("out");
-      let timeOut = new Date();
-      if (
-        timeOut.getHours() > 20 ||
-        (timeOut.getHours() === 20 && timeOut.getMinutes() >= 30)
-      ) {
-        timeOut.setHours(20, 30, 0);
+      if (success) {
+        if ((data?.length ?? 0) > 0) {
+          let res2 = await _.updateLog({
+            _id: data![0]._id,
+            $push: {
+              flexiTime: {
+                type: type == "in" ? "time-in" : "time-out",
+                time: dayjs(),
+                photo: imgSrc,
+              },
+            },
+          });
+
+          if (res2?.success ?? false) {
+            message.success(
+              `Successfully ${type == "in" ? "Timed-Out" : "Timed-in"}`
+            );
+            setCameraOpen(false);
+            setImgSrc(null);
+            setTimeout(close, 1);
+            setStep(0);
+            setLoader("");
+          } else setLoader("");
+        } else {
+          let res = await _.newLog({
+            userId: currentOpenedUser?._id ?? "",
+            type: "attendance",
+            flexiTime: [{ type: "time-in", time: timeIn, photo: imgSrc }],
+            postType: "new",
+            ...(["admin", "encoder"].includes(currentUser?.role!)
+              ? {}
+              : {
+                  branchId: currentBranch,
+                }),
+          });
+          if (res?.success ?? false) {
+            message.success("Successfully Timed-In");
+            setCameraOpen(false);
+            setImgSrc(null);
+            setTimeout(close, 1);
+            setStep(0);
+            setLoader("");
+          } else setLoader("");
+        }
       }
-      (async (_) => {
-        let res = await _.updateLog({
-          _id: disableTime.logId,
-          timeOut,
-          timeOutPhoto: imgSrc,
-        });
+    })(LogService);
+    // } else {
+    //   setLoader("out");
+    //   let timeOut = new Date();
+    //   if (
+    //     timeOut.getHours() > 20 ||
+    //     (timeOut.getHours() === 20 && timeOut.getMinutes() >= 30)
+    //   ) {
+    //     timeOut.setHours(20, 30, 0);
+    //   }
+    //   (async (_) => {
+    //     let res = await _.updateLog({
+    //       _id: disableTime.logId,
+    //       timeOut,
+    //       timeOutPhoto: imgSrc,
+    //     });
 
-        if (res?.success ?? false) {
-          message.success("Successfully Timed-Out");
-          setCameraOpen(false);
-          setImgSrc(null);
-          setTimeout(close, 1);
-          setStep(0);
-          setLoader("");
-        } else setLoader("");
-      })(LogService);
-    }
+    //     if (res?.success ?? false) {
+    //       message.success("Successfully Timed-Out");
+    //       setCameraOpen(false);
+    //       setImgSrc(null);
+    //       setTimeout(close, 1);
+    //       setStep(0);
+    //       setLoader("");
+    //     } else setLoader("");
+    //   })(LogService);
+    // }
   };
 
   const checkIfTimeIsDone = () => {
@@ -417,29 +431,19 @@ const WebCamera = ({
       });
 
       if ((res?.data && res?.data.length > 0) ?? false) {
-        if (res?.data![0]?.timeOut != null ?? false) {
+        if (res?.data![0].flexiTime.at(-1)?.type == "time-in")
           setDisabledTime({
             ...disableTime,
-            disableTimeOut: true,
-            timeOutTime: res?.data![0]?.timeOut ?? null,
-            ...(res?.data![0]?.timeIn != null ?? false
-              ? {
-                  disableTimeIn: true,
-                  timeInTime: res?.data![0]?.timeIn ?? null,
-                }
-              : {}),
-          });
-        } else
-          setDisabledTime({
-            ...disableTime,
+            lastTimeIn: res?.data![0].flexiTime.at(-1)?.time,
+            disableTimeIn: true,
             disableTimeOut: false,
-            logId: res?.data![0]?._id ?? "",
-            ...(res?.data![0]?.timeIn != null ?? false
-              ? {
-                  disableTimeIn: true,
-                  timeInTime: res?.data![0]?.timeIn ?? null,
-                }
-              : {}),
+          });
+        else
+          setDisabledTime({
+            ...disableTime,
+            lastTimeOut: res?.data![0].flexiTime.at(-1)?.time,
+            disableTimeOut: true,
+            disableTimeIn: false,
           });
       } else {
         setDisabledTime({

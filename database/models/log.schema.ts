@@ -6,6 +6,25 @@ import "@/database/models/transaction.schema";
 import "@/database/models/user_credits.schema";
 import { ItemWithStockSchema } from "@/database/models/branch.schema";
 
+const LogTime = new mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: ["time-in", "time-out"],
+      required: true,
+    },
+    time: {
+      type: Date,
+      required: true,
+    },
+    photo: {
+      type: String,
+      required: true,
+    },
+  },
+  { timestamps: false, _id: false }
+);
+
 const LogSchema = new mongoose.Schema(
   {
     type: {
@@ -28,10 +47,13 @@ const LogSchema = new mongoose.Schema(
     branchId: String,
 
     // for attendance
-    timeIn: Date,
-    timeOut: Date,
-    timeInPhoto: String,
-    timeOutPhoto: String,
+    // @ implementing flexi-time attendance
+
+    flexiTime: [LogTime],
+    // timeIn: Date,
+    // timeOut: Date,
+    // timeInPhoto: String,
+    // timeOutPhoto: String,
 
     // for item stock-in | stock-out
     stockType: {

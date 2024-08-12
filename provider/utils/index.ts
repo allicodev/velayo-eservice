@@ -48,54 +48,70 @@ const creditInterestChecker = async () => {
 };
 
 const processCreditPayment = async (body: any) => {
-  let amount = body.amount;
+  return new Promise(async (resolve, reject) => {
+    try {
+      let amount = body.amount;
 
-  let logs = await Log.find({
-    type: "credit",
-    status: "pending",
-    userCreditId: body.userCreditId,
-  }).sort({ dueDate: 1 });
+      let logs = await Log.find({
+        type: "credit",
+        status: "pending",
+        userCreditId: body.userCreditId,
+      }).sort({ dueDate: 1 });
 
-  for (let i = 0; i < logs.length; i++) {
-    const log = logs[i];
-    const logAmountWithInterest = log.history.reduce(
-      (p: any, n: any) => p + parseFloat(n.amount),
-      0
-    );
+      for (let i = 0; i < logs.length; i++) {
+        const log = logs[i];
+        const logAmountWithInterest = log.history.reduce(
+          (p: any, n: any) => p + parseFloat(n.amount),
+          0
+        );
 
-    if (amount >= logAmountWithInterest) {
-      amount -= logAmountWithInterest;
-      await await Log.findOneAndUpdate(
-        { _id: log._id },
-        {
-          $push: {
-            history: {
-              amount: -logAmountWithInterest.toFixed(2),
-              date: new Date(),
-              description: "Payment Received",
-            },
-          },
-          $set: {
-            status: "completed",
-          },
+        if (amount >= logAmountWithInterest) {
+          amount -= logAmountWithInterest;
+          await await Log.findOneAndUpdate(
+            { _id: log._id },
+            {
+              $push: {
+                history: {
+                  amount: -logAmountWithInterest.toFixed(2),
+                  date: new Date(),
+                  description: "Payment Received",
+                },
+              },
+              $set: {
+                status: "completed",
+              },
+            }
+          );
+        } else {
+          await await Log.findOneAndUpdate(
+            { _id: log._id },
+            {
+              $push: {
+                history: {
+                  amount: -amount.toFixed(2),
+                  date: new Date(),
+                  description: "Payment Received",
+                },
+              },
+            }
+          );
+          break;
         }
-      );
-    } else {
-      await await Log.findOneAndUpdate(
-        { _id: log._id },
-        {
-          $push: {
-            history: {
-              amount: -amount.toFixed(2),
-              date: new Date(),
-              description: "Payment Received",
-            },
-          },
-        }
-      );
-      break;
+      }
+
+      resolve({
+        code: 200,
+        success: true,
+        message: "Success",
+      });
+    } catch (e) {
+      reject({
+        code: 500,
+        success: false,
+        message: "There is an error in the Server.",
+      });
     }
-  }
+  });
 };
 
 export { queueResetter, creditInterestChecker, processCreditPayment };
