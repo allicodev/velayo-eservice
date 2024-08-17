@@ -155,7 +155,7 @@ const PosHome = ({
 
   const getItem = async (id: string) => {
     let res = await ItemService.getItemSpecific(id);
-
+    console.log(items.filter((e) => e._id == id)[0]);
     if (res?.success ?? false) {
       setOpenItemOpt({ open: true, data: res?.data ?? null, mode: "new", id });
       if (res?.data?.price != null) quantityRef.current?.focus();
@@ -978,7 +978,7 @@ const PosHome = ({
           },
         }}
       >
-        {[null, 0].includes(
+        {[null, 0, undefined].includes(
           items.filter((e) => e._id == openItemOpt.id)[0]?.price
         ) && (
           <div>

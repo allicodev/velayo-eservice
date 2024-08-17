@@ -360,7 +360,7 @@ const WebCamera = ({
 
           if (res2?.success ?? false) {
             message.success(
-              `Successfully ${type == "in" ? "Timed-Out" : "Timed-in"}`
+              `Successfully ${type == "in" ? "Timed-In" : "Timed-out"}`
             );
             setCameraOpen(false);
             setImgSrc(null);

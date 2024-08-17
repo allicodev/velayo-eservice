@@ -1,3 +1,4 @@
+import authMiddleware from "@/assets/ts/apiMiddleware";
 import dbConnect from "@/database/dbConnect";
 import Branch from "@/database/models/branch.schema";
 import { BranchData, ExtendedResponse } from "@/types";
@@ -55,4 +56,4 @@ async function handler(
     });
 }
 
-export default handler;
+export default authMiddleware(handler);
