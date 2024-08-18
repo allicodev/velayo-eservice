@@ -34,6 +34,8 @@ async function handler(
       branchId,
       stockType,
       portalId,
+      month,
+      year,
       _id,
     } = req.query;
 
@@ -83,6 +85,15 @@ async function handler(
     }
 
     if (balanceType) query.push({ balanceType });
+    if (month)
+      query.push({
+        $expr: {
+          $and: [
+            { $eq: [{ $month: "$createdAt" }, parseInt(month.toString()) + 1] },
+            ...(year ? [{ $eq: [{ $year: "$createdAt" }, year] }] : []),
+          ],
+        },
+      });
 
     const total = await Log.countDocuments(
       query.length > 0 ? { $and: query } : {}
@@ -90,8 +101,7 @@ async function handler(
 
     if (type == "attendance") {
       _logs = await Log.find(query.length > 0 ? { $and: query } : {}, {
-        timeIn: 1,
-        timeOut: 1,
+        flexiTime: 1,
         _id: 0,
       });
     }
