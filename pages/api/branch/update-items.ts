@@ -22,7 +22,8 @@ async function handler(
 
   let { _id, items, type, transactId } = req.body;
 
-  if (typeof items[0] == "string") items = items.map((e: any) => JSON.parse(e));
+  if (items && typeof items[0] == "string")
+    items = items.map((e: any) => JSON.parse(e));
 
   try {
     items.map(async (_item: any) => {
