@@ -1,4 +1,3 @@
-import authMiddleware from "@/assets/ts/apiMiddleware";
 import dbConnect from "@/database/dbConnect";
 import Branch from "@/database/models/branch.schema";
 import { BranchData, ExtendedResponse } from "@/types";
@@ -12,6 +11,8 @@ async function handler(
   await dbConnect();
 
   const { method } = req;
+
+  if (method === "OPTIONS") return res.status(200).end();
 
   if (method != "GET")
     res.json({
@@ -39,4 +40,4 @@ async function handler(
     });
 }
 
-export default authMiddleware(handler);
+export default handler;
