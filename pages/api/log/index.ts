@@ -37,6 +37,7 @@ async function handler(
       month,
       year,
       _id,
+      userCreditId,
     } = req.query;
 
     const _page = Number.parseInt(page!.toString()) - 1;
@@ -73,6 +74,10 @@ async function handler(
 
     if (userId)
       query.push({ userId: new mongoose.Types.ObjectId(userId as any) });
+    if (userCreditId)
+      query.push({
+        userCreditId: new mongoose.Types.ObjectId(userCreditId as any),
+      });
     if (_id) query.push({ _id: new mongoose.Types.ObjectId(_id as any) });
     if (branchId)
       query.push({ branchId: new mongoose.Types.ObjectId(branchId as any) });
