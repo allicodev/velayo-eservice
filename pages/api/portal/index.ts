@@ -21,88 +21,90 @@ async function handler(
     if (assignTo) assignTo = JSON.parse(assignTo as string);
     if (project) project = JSON.parse(project as string);
 
-    return await Portal.aggregate([
-      ...(assignTo
-        ? [
-            {
-              $match: {
-                assignTo: {
-                  $in: assignTo,
+    return await Portal.aggregate(
+      [
+        ...(assignTo
+          ? [
+              {
+                $match: {
+                  assignTo: {
+                    $in: assignTo,
+                  },
                 },
               },
-            },
-          ]
-        : []),
-      {
-        $lookup: {
-          from: "logs",
-          localField: "_id",
-          foreignField: "portalId",
-          pipeline: [
-            {
-              $lookup: {
-                from: "users",
-                localField: "userId",
-                foreignField: "_id",
-                as: "userId",
+            ]
+          : []),
+        {
+          $lookup: {
+            from: "logs",
+            localField: "_id",
+            foreignField: "portalId",
+            pipeline: [
+              {
+                $lookup: {
+                  from: "users",
+                  localField: "userId",
+                  foreignField: "_id",
+                  as: "userId",
+                },
               },
-            },
-            {
-              $unwind: { path: "$userId", preserveNullAndEmptyArrays: true },
-            },
-          ],
-          as: "logs",
+              {
+                $unwind: { path: "$userId", preserveNullAndEmptyArrays: true },
+              },
+            ],
+            as: "logs",
+          },
         },
-      },
-      {
-        $lookup: {
-          from: "requests",
-          localField: "_id",
-          foreignField: "portalId",
-          pipeline: [
-            {
-              $match: {
-                status: "pending",
+        {
+          $lookup: {
+            from: "requests",
+            localField: "_id",
+            foreignField: "portalId",
+            pipeline: [
+              {
+                $match: {
+                  status: "pending",
+                },
               },
-            },
-          ],
-          as: "requests",
+            ],
+            as: "requests",
+          },
         },
-      },
-      {
-        $addFields: {
-          currentBalance: {
-            $reduce: {
-              input: "$logs",
-              initialValue: 0,
-              in: {
-                $add: [
-                  "$$value",
-                  "$$this.amount",
-                  { $ifNull: ["$$this.rebate", 0] },
-                ],
-              },
+        {
+          $addFields: {
+            currentBalance: {
+              $round: [
+                {
+                  $reduce: {
+                    input: "$logs",
+                    initialValue: 0,
+                    in: {
+                      $add: [
+                        "$$value",
+                        { $ifNull: ["$$this.amount", 0] },
+                        { $ifNull: ["$$this.rebate", 0] },
+                      ],
+                    },
+                  },
+                },
+                2,
+              ],
             },
           },
         },
-      },
-      ...(req.query?.sort
-        ? ([
-            {
-              $sort: {
-                currentBalance: Number.parseInt(req.query.sort.toString()),
+
+        ...(project
+          ? ([
+              {
+                $project: project,
               },
-            },
-          ] as any[])
-        : []),
-      ...(project
-        ? [
-            {
-              $project: project,
-            },
-          ]
-        : []),
-    ]).then((e) => {
+            ] as any[])
+          : []),
+      ],
+      { allowDiskUse: true }
+    ).then((e) => {
+      e.sort((a, b) => a.currentBalance - b.currentBalance);
+
       return res.json({ code: 200, success: true, data: e });
     });
   } else {
