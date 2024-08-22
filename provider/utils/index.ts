@@ -27,7 +27,7 @@ const creditInterestChecker = async () => {
   for (let i = 0; i < creditsLogs.length; i++) {
     let log = creditsLogs[i];
 
-    if (dayjs(log.dueDate).isAfter(dayjs())) {
+    if (dayjs(log.dueDate).isBefore(dayjs())) {
       let baseAmount = log.amount;
       let interest = log.interest / 100;
 
