@@ -498,7 +498,7 @@ const Encoder = () => {
           status && ["completed", "failed"].includes(status)
             ? "descending"
             : "ascending",
-        hideCredit: true,
+        hideCredit: false,
       });
 
       if (res?.success ?? false) {
@@ -570,11 +570,11 @@ const Encoder = () => {
       if (res?.success ?? false) setTellers((res?.data as User[]) ?? []);
     })(UserService);
 
-    (async (_) => {
-      let res = await _.getPortal({ sort: 1, project: { logs: 0 } });
+    // (async (_) => {
+    //   let res = await _.getPortal({ sort: 1, project: { logs: 0 } });
 
-      if (res?.success ?? false) setPortals(res?.data ?? []);
-    })(PortalService);
+    //   if (res?.success ?? false) setPortals(res?.data ?? []);
+    // })(PortalService);
   }, [trigger]);
 
   return (

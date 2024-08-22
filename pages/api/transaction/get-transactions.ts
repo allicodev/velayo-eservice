@@ -98,7 +98,7 @@ async function handler(
     query.push({ branchId: new mongoose.Types.ObjectId(branchId as any) });
   if (type) query.push({ type });
 
-  if (hideCredit) {
+  if (hideCredit == "true") {
     query.push({
       $or: [
         {
@@ -134,7 +134,7 @@ async function handler(
       createdAt: typeof order == "string" && order == "descending" ? -1 : 1,
     })
     .populate({ path: "tellerId" })
-    .populate({ path: "branchId" })
+    .populate({ path: "branchId", select: "-items" })
     .populate({
       path: "creditId",
       populate: {

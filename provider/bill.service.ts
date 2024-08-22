@@ -166,7 +166,7 @@ abstract class BillService {
     hideCredit?: boolean;
   }) {
     return await API.get<Transaction[]>({
-      endpoint: "/transaction/get-transactions",
+      endpoint: "transaction/get-transactions",
       query: {
         page,
         pageSize,
