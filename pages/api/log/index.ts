@@ -38,9 +38,13 @@ async function handler(
       year,
       _id,
       userCreditId,
+      fetchTotalTimer,
     } = req.query;
+    let _page = 0;
+    let _pageSize = 10;
 
-    const _page = Number.parseInt(page!.toString()) - 1;
+    if (page) _page = Number.parseInt(page!.toString()) - 1;
+    if (pageSize) _pageSize = Number.parseInt(pageSize!.toString());
 
     let query = [],
       _logs = [];
@@ -104,17 +108,17 @@ async function handler(
       query.length > 0 ? { $and: query } : {}
     );
 
-    if (type == "attendance") {
+    if (type == "attendance" && fetchTotalTimer == "true") {
+      console.log("still reaching here");
       _logs = await Log.find(query.length > 0 ? { $and: query } : {}, {
         flexiTime: 1,
         _id: 0,
       });
     }
-
     if (project) project = JSON.parse(project as string);
     return await Log.find(query.length > 0 ? { $and: query } : {}, project)
-      .skip(_page * Number.parseInt(pageSize!.toString()))
-      .limit(Number.parseInt(pageSize!.toString()))
+      .skip(_page * _pageSize)
+      .limit(_pageSize)
       .populate("userId branchId items.itemId")
       .sort({ createdAt: -1 })
       .then((e) => {
