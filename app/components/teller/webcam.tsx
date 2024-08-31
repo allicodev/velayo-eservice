@@ -343,6 +343,7 @@ const WebCamera = ({
         toDate: dayjs(),
         page: 1,
         pageSize: 99999,
+        type: "attendance",
       });
 
       if (success) {
