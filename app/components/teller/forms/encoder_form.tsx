@@ -333,7 +333,7 @@ const EncoderForm = ({
             ],
             [
               ...(isMobile ? [] : [transaction.type.toLocaleUpperCase()]),
-              `₱${transaction.amount}`,
+              `₱${(transaction.amount ?? 0) + (transaction.fee ?? 0)}`,
 
               ...(transaction.isOnlinePayment
                 ? [
