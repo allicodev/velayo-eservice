@@ -168,3 +168,7 @@ export interface SalesPerMonth {
   Nov: number;
   Dec: number;
 }
+
+export interface BranchState {
+  currentBranch?: any;
+}

@@ -156,10 +156,11 @@ export interface Branch {
   address: string;
   device: string;
   spm: string;
+  balance: number;
   items?: BranchItem[];
 }
 
-export interface BranchData extends Branch {
+export interface BranchData extends Partial<Branch> {
   _id?: string;
   createdAt?: Date;
 }
@@ -183,13 +184,14 @@ export type LogType =
   | "credit"
   | "debit"
   | "portal"
-  | "credit_payment";
+  | "credit_payment"
+  | "disbursement";
 export type LogBalanceType = "bills" | "wallet" | "eload";
 export interface Log {
   type: LogType;
   userId: User;
   branchId?: Branch;
-  transactionId?: string;
+  transactionId?: Transaction | string;
 
   // for attendance
   flexiTime: LogTime[];
@@ -213,6 +215,9 @@ export interface Log {
   status?: "pending" | "completed";
   interest?: number;
   history?: CreditAmountHistory[];
+
+  // cashbox
+  subType?: String;
 
   createdAt?: Date;
 }

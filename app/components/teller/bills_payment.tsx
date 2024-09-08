@@ -26,6 +26,8 @@ import {
   ReloadOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
+import dayjs from "dayjs";
+import { useDispatch } from "react-redux";
 
 import {
   BillingSettingsType,
@@ -35,7 +37,9 @@ import {
   OnlinePayment,
   CreditProp,
   UserCreditData,
+  Log,
 } from "@/types";
+
 import BillService from "@/provider/bill.service";
 import { FloatLabel } from "@/assets/ts";
 import { useUserStore } from "@/provider/context";
@@ -43,7 +47,7 @@ import EtcService from "@/provider/etc.service";
 import { Pusher } from "@/provider/utils/pusher";
 import CreditService from "@/provider/credit.service";
 import LogService from "@/provider/log.service";
-import dayjs from "dayjs";
+import { newLog } from "@/app/state/logs.reducers";
 
 // TODO: auto disabled billing if disabled by encoder
 // TODO: auto disabled wallet if disabled by encoder
@@ -131,6 +135,8 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [loading, setLoading] = useState(false);
+
+  const dispatch = useDispatch();
 
   const updateOP = (key: string, value: any) =>
     setOnlinePaymentInput({ ...onlinePaymentInput, [key]: value });
@@ -300,6 +306,21 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                   _id: e,
                   transactionId: res.data?._id ?? "",
                 });
+              }
+
+              // creating a log for cash box if not online payment
+              if (!onlinePaymentInput.isOnlinePayment && !credit.isCredit) {
+                const { success, data } = await LogService.newLog({
+                  type: "disbursement",
+                  subType: "transaction",
+                  transactionId: res.data?._id ?? "",
+                  userId: currentUser?._id ?? "",
+                  branchId: currentBranch,
+                  amount: amount + getFee(),
+                });
+
+                if (success ?? false)
+                  dispatch(newLog({ key: "cash", log: data as Log }));
               }
               setSelectedUser(null);
               _setSelectedUser(null);
@@ -964,9 +985,15 @@ const BillsPayment = ({ open, close }: DrawerBasicProps) => {
                 cursor: "pointer",
               }}
               onClick={() => {
-                updateCredit("isCredit", !credit.isCredit);
-                updateOP("isOnlinePayment", false);
-                setOpenCredit(true);
+                if (amount > 0) {
+                  updateCredit("isCredit", !credit.isCredit);
+                  updateOP("isOnlinePayment", false);
+                  setOpenCredit(true);
+                } else {
+                  message.warning(
+                    "Cannot proceed to credit if amount is empty."
+                  );
+                }
               }}
             >
               <Checkbox className="customCheckbox" checked={credit.isCredit} />

@@ -21,7 +21,6 @@ import {
   AutoComplete,
   Popconfirm,
 } from "antd";
-import type { CollapseProps } from "antd";
 import {
   LeftOutlined,
   RightOutlined,
@@ -30,10 +29,15 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 
+import dayjs from "dayjs";
+import { useDispatch } from "react-redux";
+import type { CollapseProps } from "antd";
+
 import {
   BillingsFormField,
   CreditProp,
   GcashCollapseItemButtonProps,
+  Log,
   UserCreditData,
   Wallet,
   WalletType,
@@ -48,7 +52,7 @@ import { useUserStore } from "@/provider/context";
 import { Pusher } from "@/provider/utils/pusher";
 import CreditService from "@/provider/credit.service";
 import LogService from "@/provider/log.service";
-import dayjs from "dayjs";
+import { newLog } from "@/app/state/logs.reducers";
 
 const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>();
@@ -77,6 +81,8 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
   });
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const dispatch = useDispatch();
 
   // for reference tracker
   const { currentUser, currentBranch } = useUserStore();
@@ -242,6 +248,24 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
             transactionId: res.data?._id ?? "",
           });
         }
+
+        // creating a log for cash box
+        const { success, data } = await LogService.newLog({
+          type: "disbursement",
+          subType: "transaction",
+          transactionId: res.data?._id ?? "",
+          userId: currentUser?._id ?? "",
+          branchId: currentBranch,
+          amount:
+            (includeFee ? amount - getFee() : amount) *
+            (walletType == "cash-out" ? -1 : 1),
+        });
+
+        if (success ?? false) {
+          (data as any).transactionId = res.data;
+          dispatch(newLog({ key: "cash", log: data as Log }));
+        }
+
         setSelectedUser(null);
         _setSelectedUser(null);
         updateCredit("isCredit", false);
@@ -1079,8 +1103,14 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
                     paddingRight: 24,
                   }}
                   onClick={() => {
-                    updateCredit("isCredit", !credit.isCredit);
-                    setOpenCredit(true);
+                    if (amount > 0) {
+                      updateCredit("isCredit", !credit.isCredit);
+                      setOpenCredit(true);
+                    } else {
+                      message.warning(
+                        "Cannot proceed to credit if amount is empty."
+                      );
+                    }
                   }}
                 >
                   <Checkbox

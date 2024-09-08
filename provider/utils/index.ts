@@ -2,6 +2,7 @@ import Settings from "@/database/models/settings.schema";
 import Branch from "@/database/models/branch.schema";
 import Log from "@/database/models/log.schema";
 import dayjs from "dayjs";
+import balance from "@/pages/api/portal/balance";
 
 const queueResetter = async () => {
   // if exist
@@ -114,4 +115,20 @@ const processCreditPayment = async (body: any) => {
   });
 };
 
-export { queueResetter, creditInterestChecker, processCreditPayment };
+const resetBranchInitialBalance = async () => {
+  return await Branch.updateMany(
+    {},
+    {
+      $set: {
+        balance: 0,
+      },
+    }
+  );
+};
+
+export {
+  queueResetter,
+  creditInterestChecker,
+  processCreditPayment,
+  resetBranchInitialBalance,
+};

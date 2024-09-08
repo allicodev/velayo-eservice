@@ -37,6 +37,9 @@ const LogSchema = new mongoose.Schema(
         "portal",
         "credit",
         "credit_payment",
+        "disbursement",
+        "error",
+        "ca",
       ],
       required: true,
     },
@@ -44,7 +47,10 @@ const LogSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    branchId: String,
+    branchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Branch",
+    },
 
     // for attendance
     // @ implementing flexi-time attendance
@@ -85,18 +91,19 @@ const LogSchema = new mongoose.Schema(
       enum: ["pending", "completed"],
     },
 
-    // * for credit
-    // {
-    //   status: "requested", // completed
-    //   date:  Date(),
-    // }
     userCreditId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "UserCredit",
     },
+
+    // cashbox
+    subType: String,
+
     interest: Number,
     dueDate: Date,
     history: Array,
+
+    remarks: String,
   },
   { timestamps: true }
 );

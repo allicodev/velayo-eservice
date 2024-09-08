@@ -19,7 +19,7 @@ import {
 } from "antd";
 import { EyeOutlined } from "@ant-design/icons";
 
-import { LogData, UserCreditData } from "@/types";
+import { LogData, Transaction, UserCreditData } from "@/types";
 import CreditService from "@/provider/credit.service";
 import dayjs from "dayjs";
 import LogService from "@/provider/log.service";
@@ -367,7 +367,7 @@ const CreditTracker = ({ open, close }: MyProp) => {
                   return {
                     onClick: async () =>
                       await (TransactionHistory as any).openTransaction(
-                        data.transactionId
+                        (data.transactionId as Transaction)._id
                       ),
                   };
                 }}

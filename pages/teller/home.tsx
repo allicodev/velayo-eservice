@@ -1,10 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button, Col, Row, Tag, Typography, message, notification } from "antd";
+import { useDispatch } from "react-redux";
+import Webcam from "react-webcam";
+import dayjs from "dayjs";
+
+// icons
 import { WalletOutlined } from "@ant-design/icons";
 import { MdOutlineSendToMobile } from "react-icons/md";
 import { FaMoneyBills } from "react-icons/fa6";
-import Webcam from "react-webcam";
-import dayjs from "dayjs";
 
 import { UserBadge, DashboardBtn } from "@/app/components";
 import {
@@ -29,6 +32,14 @@ import ModalQueue from "@/app/components/teller/modal_queue";
 import WebCamera from "@/app/components/teller/webcam";
 import COTracker from "@/app/components/teller/cashout_tracker";
 import CreditTracker from "@/app/components/teller/credit-tracker";
+import BranchBalanceInit from "@/app/components/teller/forms/balance_init";
+
+// redux actions
+import { setBranch, updateBalance } from "@/app/state/branch.reducer";
+import CashboxCard from "@/app/components/teller/cashbox/cashbox_card";
+import Cashbox from "@/app/components/teller/cashbox/cashbox";
+import LogService from "@/provider/log.service";
+import { setLogs } from "@/app/state/logs.reducers";
 
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
@@ -38,6 +49,9 @@ const Teller = () => {
   const [openQueue, setOpenQueue] = useState(false);
   const [openWebcam, setOpenWebCam] = useState(false);
   const [openCOTracker, setOpenCOTracker] = useState(false);
+  const [openBranchBalanceInit, setOpenBranchBalanceInit] = useState(false);
+  const [openCashBox, setOpenCashBox] = useState(false);
+
   const [transactionDetailsOpt, setTransactionOpt] =
     useState<TransactionOptProps>({
       open: false,
@@ -50,6 +64,8 @@ const Teller = () => {
     useUserStore();
   const { setItems, lastDateUpdated, setLastDateUpdated, items } =
     useItemStore();
+
+  const dispatch = useDispatch();
 
   const menu = [
     {
@@ -203,6 +219,27 @@ const Teller = () => {
     }
   }
 
+  const handleOnSubmitBalance = async (val: number) => {
+    setOpenBranchBalanceInit(false);
+
+    let { success, message: apiMessage } = await BranchService.updateBranch({
+      _id: currentBranch,
+      balance: val,
+    });
+
+    if (success ?? false) {
+      dispatch(
+        updateBalance({
+          balance: val,
+          cb: (res) => {
+            if (res)
+              message.success("Successfully Set the cashbox balance for today");
+          },
+        })
+      );
+    } else message.error(apiMessage ?? "There is an error in the Server");
+  };
+
   useEffect(() => {
     return initPusherProvider();
   }, []);
@@ -231,9 +268,20 @@ const Teller = () => {
   useEffect(() => {
     const minutes = 5; // change this to update the items per (x) minutes
     (async (_) => {
-      let res = await _.getBranchSpecific(currentBranch);
+      let { success, data } = await _.getBranch({});
 
-      if (res?.success ?? false) setBrans(res?.data ?? null);
+      if (success ?? false) {
+        const _branch = data!.find((ea) => ea._id == currentBranch);
+
+        if (_branch) {
+          dispatch(
+            setBranch({
+              branch: _branch,
+            })
+          );
+          if (_branch.balance == 0) setOpenBranchBalanceInit(true);
+        }
+      }
     })(BranchService);
 
     (async (_) => {
@@ -269,6 +317,28 @@ const Teller = () => {
         }
       })(ItemService);
     }
+
+    (async (_) => {
+      let {
+        success,
+        data,
+        message: ApiMessage,
+      } = await _.getLog({
+        type: "disbursement",
+        branchId: currentBranch,
+        project: JSON.stringify({
+          userId: 0,
+          items: 0,
+        }),
+      });
+
+      if (success) {
+        if ((data || []).length > 0)
+          dispatch(setLogs({ key: "cash", logs: data! }));
+      } else {
+        message.error(ApiMessage ?? "Error in the Server");
+      }
+    })(LogService);
   }, []);
 
   return (
@@ -304,28 +374,45 @@ const Teller = () => {
           <div>
             <div
               style={{
-                marginLeft: 20,
-                fontFamily: "abel",
-                fontSize: "1.2em",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "end",
               }}
             >
-              Latest transaction queue:{" "}
-              <span
+              <div
                 style={{
-                  background: "#98c04b",
-                  color: "#fff",
-                  paddingTop: 3,
-                  paddingBottom: 3,
-                  paddingRight: 7,
-                  paddingLeft: 7,
-                  fontWeight: 700,
-                  borderRadius: 2,
-                  cursor: "pointer",
+                  marginLeft: 20,
+                  fontFamily: "abel",
+                  fontSize: "1.2em",
                 }}
-                onClick={() => setOpenQueue(true)}
               >
-                {lastQueue}
-              </span>
+                Latest transaction queue:{" "}
+                <span
+                  style={{
+                    background: "#98c04b",
+                    color: "#fff",
+                    paddingTop: 3,
+                    paddingBottom: 3,
+                    paddingRight: 7,
+                    paddingLeft: 7,
+                    fontWeight: 700,
+                    borderRadius: 2,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setOpenQueue(true)}
+                >
+                  {lastQueue}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  marginRight: 20,
+                }}
+                onClick={() => setOpenCashBox(true)}
+              >
+                <CashboxCard />
+              </div>
             </div>
             <Row gutter={[32, 32]} style={{ padding: 20 }}>
               {menu.map((e, i) => (
@@ -502,6 +589,15 @@ const Teller = () => {
       <CreditTracker
         open={openedMenu == "credit"}
         close={() => setOpenedMenu("")}
+      />
+      <BranchBalanceInit
+        open={openBranchBalanceInit}
+        onSubmit={handleOnSubmitBalance}
+      />
+      <Cashbox
+        open={openCashBox}
+        close={() => setOpenCashBox(false)}
+        setTransactionOpt={setTransactionOpt}
       />
     </>
   );

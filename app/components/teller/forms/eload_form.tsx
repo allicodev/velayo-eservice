@@ -13,6 +13,7 @@ import {
   message,
 } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
+import { useDispatch } from "react-redux";
 import dayjs from "dayjs";
 
 import type {
@@ -20,7 +21,7 @@ import type {
   Eload,
   EloadProps,
   EloadSettings,
-  Transaction,
+  Log,
   UserCreditData,
 } from "@/types";
 
@@ -30,6 +31,7 @@ import EtcService from "@/provider/etc.service";
 import CreditService from "@/provider/credit.service";
 import LogService from "@/provider/log.service";
 import { useUserStore } from "@/provider/context";
+import { newLog } from "@/app/state/logs.reducers";
 
 // lodash
 const _ = (__: any) => [null, undefined, ""].includes(__);
@@ -48,6 +50,8 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { currentUser, currentBranch } = useUserStore();
+
+  const dispatch = useDispatch();
 
   const [credit, setCredit] = useState<CreditProp>({
     isCredit: false,
@@ -215,6 +219,24 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
               transactionId: a.data?._id ?? "",
             });
           }
+
+          // creating a log for cash box if not credit
+          if (!credit.isCredit) {
+            const { success, data } = await LogService.newLog({
+              type: "disbursement",
+              subType: "transaction",
+              transactionId: a.data?._id ?? "",
+              userId: currentUser?._id ?? "",
+              branchId: currentBranch,
+              amount: eload.amount! + getFee()!,
+            });
+
+            if (success ?? false) {
+              (data as any).transactionId = a.data;
+              dispatch(newLog({ key: "cash", log: data as Log }));
+            }
+          }
+
           setSelectedUser(null);
           _setSelectedUser(null);
           updateCredit("isCredit", false);
@@ -363,13 +385,19 @@ const Eload = ({ open, close, onSubmit }: EloadProps) => {
                 cursor: "pointer",
               }}
               onClick={() => {
-                if (!credit.isCredit) {
-                  updateCredit("isCredit", true);
-                  setOpenCredit(true);
+                if ((eload.amount ?? 0) > 0) {
+                  if (!credit.isCredit) {
+                    updateCredit("isCredit", true);
+                    setOpenCredit(true);
+                  } else {
+                    updateCredit("isCredit", false);
+                    setSelectedUser(null);
+                    _setSelectedUser(null);
+                  }
                 } else {
-                  updateCredit("isCredit", false);
-                  setSelectedUser(null);
-                  _setSelectedUser(null);
+                  message.warning(
+                    "Cannot proceed to credit if amount is empty."
+                  );
                 }
               }}
             >

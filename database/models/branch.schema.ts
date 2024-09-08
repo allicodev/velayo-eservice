@@ -34,6 +34,7 @@ const BranchSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    balance: Number,
     items: [ItemWithStockSchema],
   },
   { timestamps: true }

@@ -1,6 +1,10 @@
 import dbConnect from "@/database/dbConnect";
 import Log from "@/database/models/log.schema";
-import { queueResetter, creditInterestChecker } from "@/provider/utils";
+import {
+  queueResetter,
+  creditInterestChecker,
+  resetBranchInitialBalance,
+} from "@/provider/utils";
 import { ExtendedResponse, Response } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -27,6 +31,7 @@ async function handler(
 
   await queueResetter();
   await creditInterestChecker();
+  await resetBranchInitialBalance();
 
   return await Log.find(
     {

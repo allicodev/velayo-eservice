@@ -30,7 +30,7 @@ const Branch = ({
   const handleNewBranch = (mode: string, obj: Branch | BranchData) => {
     (async (_) => {
       let res;
-      if (mode == "new") res = await _.newBranch(obj);
+      if (mode == "new") res = await _.newBranch(obj as any);
       else res = await _.updateBranch(obj as BranchData);
 
       if (res?.success ?? false) {

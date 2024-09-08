@@ -34,6 +34,7 @@ import {
   BranchData,
   CreditProp,
   ItemData,
+  Log,
   OnlinePayment,
   UserCreditData,
 } from "@/types";
@@ -51,6 +52,7 @@ import PrinterService from "@/provider/printer.service";
 import EtcService from "@/provider/etc.service";
 import CreditService from "@/provider/credit.service";
 import LogService from "@/provider/log.service";
+import { newLog } from "@/app/state/logs.reducers";
 
 // TODO: reduce the item quantity on api after POS transact
 
@@ -447,6 +449,20 @@ const PosHome = ({
               _id: e,
               transactionId: res.data?._id ?? "",
             });
+          }
+
+          if (!onlinePaymentInput.isOnlinePayment && !credit.isCredit) {
+            const { success, data } = await LogService.newLog({
+              type: "disbursement",
+              subType: "transaction",
+              transactionId: res.data?._id ?? "",
+              userId: currentUser?._id ?? "",
+              branchId: currentBranch,
+              amount: getTotal(),
+            });
+
+            if (success ?? false)
+              dispatch(newLog({ key: "cash", log: res.data as any as Log }));
           }
           setSelectedUser(null);
           _setSelectedUser(null);

@@ -109,17 +109,25 @@ async function handler(
     );
 
     if (type == "attendance" && fetchTotalTimer == "true") {
-      console.log("still reaching here");
       _logs = await Log.find(query.length > 0 ? { $and: query } : {}, {
         flexiTime: 1,
         _id: 0,
       });
     }
+
     if (project) project = JSON.parse(project as string);
     return await Log.find(query.length > 0 ? { $and: query } : {}, project)
       .skip(_page * _pageSize)
       .limit(_pageSize)
-      .populate("userId branchId items.itemId")
+      .populate({ path: "userId" })
+      .populate({ path: "transactionId" })
+      .populate({
+        path: "items",
+        populate: {
+          path: "itemId",
+        },
+      })
+      .populate({ path: "branchId", select: "name" })
       .sort({ createdAt: -1 })
       .then((e) => {
         return res.json({

@@ -14,12 +14,12 @@ import {
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import Cookies from "js-cookie";
 import axios from "axios";
-
-import { BranchData, UserLoginProps } from "@/types";
-import UserService from "@/provider/user.service";
-import { useUserStore, useAuthStore } from "@/provider/context";
-import WebCamera from "@/app/components/teller/webcam";
 import Webcam from "react-webcam";
+
+import WebCamera from "@/app/components/teller/webcam";
+import UserService from "@/provider/user.service";
+import { BranchData, UserLoginProps } from "@/types";
+import { useUserStore, useAuthStore } from "@/provider/context";
 
 const Login = () => {
   const [form] = Form.useForm();
@@ -198,9 +198,10 @@ const Login = () => {
         branches={branches}
         onSelectedBranch={(e) => {
           message.success("Logged in successfully");
-          setBranch(e?._id ?? "");
           setAccessToken(token);
           Cookies.set("token", token);
+          setBranch(e?._id ?? "");
+
           window.location.reload();
         }}
       />
