@@ -27,7 +27,7 @@ abstract class UserService {
   }
 
   public static async updateUser(
-    payload: User
+    payload: Partial<User>
   ): Promise<ExtendedResponse<User>> {
     return await API.post<User>({
       endpoint: "/user/update-user",

@@ -461,8 +461,9 @@ const PosHome = ({
               amount: getTotal(),
             });
 
-            if (success ?? false)
-              dispatch(newLog({ key: "cash", log: res.data as any as Log }));
+            if (success ?? false) {
+              dispatch(newLog({ key: "cash", log: data as any as Log }));
+            }
           }
           setSelectedUser(null);
           _setSelectedUser(null);

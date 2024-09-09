@@ -8,38 +8,12 @@ const branchSlice = createSlice({
   name: "branch",
   initialState,
   reducers: {
-    setBranch: (
-      state,
-      action: PayloadAction<{
-        branch: BranchData;
-      }>
-    ) => {
-      state.currentBranch = action.payload.branch;
-
-      return state;
-    },
-    setBalance: (state, action: PayloadAction<UpdateBalance>) => {
-      const { balance, cb } = action.payload;
-
-      if (state.currentBranch) state.currentBranch.balance = balance;
-      else throw new Error("No branch to set the balance");
-
-      if (cb != null) cb(true);
-
-      return state;
-    },
-    updateBalance: (state, action: PayloadAction<UpdateBalance>) => {
-      const { balance, cb } = action.payload;
-
-      if (state.currentBranch) state.currentBranch.balance += balance;
-      else throw new Error("No branch to set the balance");
-
-      if (cb != null) cb(true);
-
+    setBranch: (state, action: PayloadAction<BranchData>) => {
+      state.currentBranch = action.payload;
       return state;
     },
   },
 });
 
-export const { setBranch, setBalance, updateBalance } = branchSlice.actions;
+export const { setBranch } = branchSlice.actions;
 export default branchSlice.reducer;

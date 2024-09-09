@@ -2,7 +2,7 @@ import dbConnect from "@/database/dbConnect";
 import {
   queueResetter,
   creditInterestChecker,
-  resetBranchInitialBalance,
+  resetTellerInitialBalance,
   attendancePhotoResetter,
 } from "@/provider/utils";
 import { ExtendedResponse, Response } from "@/types";
@@ -26,7 +26,7 @@ async function handler(
 
   await queueResetter();
   await creditInterestChecker();
-  await resetBranchInitialBalance();
+  await resetTellerInitialBalance();
   await attendancePhotoResetter(res);
 }
 

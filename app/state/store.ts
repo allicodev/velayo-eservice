@@ -2,15 +2,17 @@ import { configureStore } from "@reduxjs/toolkit";
 
 import counterReducer from "./counterSlice";
 import branchItemReducer from "./itemSlice";
-import branchReducer from "./branch.reducer";
+import tellerReducer from "./teller.reducer";
 import logsReducers from "./logs.reducers";
+import branchReducer from "./branch.reducer";
 
 export const store = configureStore({
   reducer: {
     item: counterReducer,
     branchItem: branchItemReducer,
-    branch: branchReducer,
+    teller: tellerReducer,
     logs: logsReducers,
+    branch: branchReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }),

@@ -28,6 +28,7 @@ const UserSchema = new mongoose.Schema(
     employeeId: String,
     baseSalary: Number,
     deductions: Array,
+    balance: Number,
     // @ this will reference to the auto deduct [deductions]
     // assume the deduction design look like this
     // {
@@ -41,9 +42,10 @@ const UserSchema = new mongoose.Schema(
 );
 
 UserSchema.pre("findOneAndUpdate", function (next) {
-  (this.getUpdate() as any).$set.role = (
-    this.getUpdate() as any
-  ).$set.role.toLocaleLowerCase();
+  if ((this.getUpdate() as any).$set.role != undefined)
+    (this.getUpdate() as any).$set.role = (
+      this.getUpdate() as any
+    ).$set.role.toLocaleLowerCase();
   next();
 });
 

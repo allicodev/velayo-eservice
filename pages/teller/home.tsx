@@ -22,6 +22,7 @@ import {
   Eload as EloadProp,
   Transaction,
   TransactionOptProps,
+  User,
 } from "@/types";
 import { useItemStore, useUserStore } from "@/provider/context";
 import { Pusher } from "@/provider/utils/pusher";
@@ -29,7 +30,6 @@ import Eload from "@/app/components/teller/forms/eload_form";
 import ShoppeForm from "@/app/components/teller/shoppe_form";
 
 import BillService from "@/provider/bill.service";
-import BranchService from "@/provider/branch.service";
 import PosHome from "@/app/components/pos/pos";
 import ItemService from "@/provider/item.service";
 import EtcService from "@/provider/etc.service";
@@ -40,17 +40,17 @@ import CreditTracker from "@/app/components/teller/credit-tracker";
 import BranchBalanceInit from "@/app/components/teller/forms/balance_init";
 
 // redux actions
-import { setBranch, updateBalance } from "@/app/state/branch.reducer";
+import { setBalance, updateBalance } from "@/app/state/teller.reducer";
 import CashboxCard from "@/app/components/teller/cashbox/cashbox_card";
 import Cashbox from "@/app/components/teller/cashbox/cashbox";
 import LogService from "@/provider/log.service";
 import { setLogs } from "@/app/state/logs.reducers";
 import { RootState } from "@/app/state/store";
+import UserService from "@/provider/user.service";
 
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
   const [api, contextHolder] = notification.useNotification();
-  const [brans, setBrans] = useState<BranchData | null>(null);
   const [lastQueue, setLastQueue] = useState(0);
   const [openQueue, setOpenQueue] = useState(false);
   const [openWebcam, setOpenWebCam] = useState(false);
@@ -230,8 +230,8 @@ const Teller = () => {
   const handleOnSubmitBalance = async (val: number) => {
     setOpenBranchBalanceInit(false);
 
-    let { success, message: apiMessage } = await BranchService.updateBranch({
-      _id: currentBranch,
+    const { success, message: apiMessage } = await UserService.updateUser({
+      _id: currentUser?._id ?? "",
       balance: val,
     });
 
@@ -275,22 +275,39 @@ const Teller = () => {
 
   useEffect(() => {
     const minutes = 5; // change this to update the items per (x) minutes
+
     (async (_) => {
-      let { success, data } = await _.getBranch({});
+      let { success, data } = await _.getUsers({
+        page: 1,
+        pageSize: 999999,
+        employeeId: currentUser?.employeeId ?? "",
+      });
 
       if (success ?? false) {
-        const _branch = data!.find((ea) => ea._id == currentBranch);
+        let user = data as any as User;
 
-        if (_branch) {
-          dispatch(
-            setBranch({
-              branch: _branch,
-            })
-          );
-          if (_branch.balance == 0) setOpenBranchBalanceInit(true);
-        }
+        if ((user?.balance ?? 0) == 0) setOpenBranchBalanceInit(true);
+
+        dispatch(setBalance({ balance: user?.balance ?? 0 }));
       }
-    })(BranchService);
+    })(UserService);
+
+    // (async (_) => {
+    //   let { success, data } = await _.getBranch({});
+
+    //   if (success ?? false) {
+    //     const _branch = data!.find((ea) => ea._id == currentBranch);
+
+    //     if (_branch) {
+    //       dispatch(
+    //         setBranch({
+    //           branch: _branch,
+    //         })
+    //       );
+    //       if (_branch.balance == 0) setOpenBranchBalanceInit(true);
+    //     }
+    //   }
+    // })(BranchService);
 
     (async (_) => {
       let res = await _.getLastQueue(currentBranch);
@@ -334,6 +351,7 @@ const Teller = () => {
       } = await _.getLog({
         type: "disbursement",
         branchId: currentBranch,
+        userId: currentUser?._id ?? null,
         project: JSON.stringify({
           userId: 0,
           items: 0,

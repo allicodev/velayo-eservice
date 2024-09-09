@@ -17,6 +17,9 @@ export interface User {
   createdAt: Date;
   updatedAt: Date;
   employeeId?: string;
+
+  // only applicable if teller
+  balance?: number;
 }
 
 export interface ProtectedUser {
@@ -156,7 +159,6 @@ export interface Branch {
   address: string;
   device: string;
   spm: string;
-  balance: number;
   items?: BranchItem[];
 }
 

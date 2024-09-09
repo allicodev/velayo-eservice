@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TableProps as ATableProps, Button, message, Tooltip } from "antd";
+import { TableProps as ATableProps, Button, message, Tag, Tooltip } from "antd";
 import { EyeOutlined } from "@ant-design/icons";
 import {
   useDispatch,
@@ -20,12 +20,13 @@ export const useSelector: TypedUseSelectorHook<RootState> = useReduxSelector;
 const useCashbox = (props: CashBoxProps) => {
   const { setTransactionOpt } = props;
   const [loading, setLoading] = useState("");
-  const [reduxLogs, reduxBranch] = useSelector((state: RootState) => [
+
+  const [reduxLogs, reduxTeller] = useSelector((state: RootState) => [
     state.logs.cash,
-    state.branch.currentBranch,
+    state.teller,
   ]);
 
-  const { currentUser } = useUserStore();
+  const { currentUser, currentBranch } = useUserStore();
   const dispatch = useDispatch<AppDispatch>();
 
   const clearLoading = () => setLoading("");
@@ -46,6 +47,23 @@ const useCashbox = (props: CashBoxProps) => {
           maximumFractionDigits: 2,
         })}`}</span>
       ),
+    },
+    {
+      title: "Status",
+      align: "center",
+      dataIndex: "transactionId",
+      render: (_) => {
+        const transaction = _ as Transaction;
+        const status = transaction?.history?.at(-1)?.status ?? "";
+        const color =
+          status == "completed"
+            ? "green-inverse"
+            : status == "pending"
+            ? "orange-inverse"
+            : "red-inverse";
+
+        return <Tag color={color}>{status.toLocaleUpperCase()}</Tag>;
+      },
     },
     {
       title: "Date",
@@ -84,7 +102,7 @@ const useCashbox = (props: CashBoxProps) => {
       type: "disbursement",
       subType: "manual",
       userId: currentUser?._id ?? "",
-      branchId: reduxBranch?._id ?? "",
+      branchId: currentBranch,
       amount,
     });
 
@@ -98,7 +116,14 @@ const useCashbox = (props: CashBoxProps) => {
   };
 
   const getCurrentBalance = () =>
-    reduxBranch?.balance + reduxLogs.reduce((p, n) => p + (n.amount ?? 0), 0);
+    (reduxTeller?.balance ?? 0) +
+    reduxLogs.reduce((p, n) => {
+      const transaction = n.transactionId as Transaction;
+      const status = transaction?.history?.at(-1)?.status ?? "";
+
+      if (status == "failed") return p;
+      return p + (n.amount ?? 0);
+    }, 0);
 
   const tableProps: TableProps = {
     columns,
@@ -109,7 +134,7 @@ const useCashbox = (props: CashBoxProps) => {
     tableProps,
     logs: reduxLogs,
     loading,
-    initBalance: reduxBranch?.balance ?? 0,
+    initBalance: reduxTeller?.balance ?? 0,
     currentBalance: getCurrentBalance(),
   };
 };

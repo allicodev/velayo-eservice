@@ -1,5 +1,6 @@
 import dbConnect from "@/database/dbConnect";
 import Log from "@/database/models/log.schema";
+import Transaction from "@/database/models/transaction.schema";
 import { ExtendedResponse, LogData } from "@/types";
 
 import dayjs from "dayjs";
@@ -165,14 +166,16 @@ async function handler(
 
     if (postType == "new")
       return await Log.create(req.body)
-        .then((e) =>
-          res.json({
+        .then(async (e) => {
+          let _ = await Transaction.findOne({ _id: e.transactionId });
+          e.transactionId = _;
+          return res.json({
             code: 200,
             success: true,
             data: e,
             message: "Successfully added",
-          })
-        )
+          });
+        })
         .catch((e) => {
           console.log(e);
           return res.json({

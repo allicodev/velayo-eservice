@@ -1,6 +1,7 @@
 import Settings from "@/database/models/settings.schema";
 import Branch from "@/database/models/branch.schema";
 import Log from "@/database/models/log.schema";
+import User from "@/database/models/user.schema";
 import dayjs from "dayjs";
 import { NextApiResponse } from "next";
 import { ExtendedResponse, Response } from "@/types";
@@ -116,9 +117,11 @@ const processCreditPayment = async (body: any) => {
   });
 };
 
-const resetBranchInitialBalance = async () => {
-  return await Branch.updateMany(
-    {},
+const resetTellerInitialBalance = async () => {
+  return await User.updateMany(
+    {
+      role: "teller",
+    },
     {
       $set: {
         balance: 0,
@@ -168,6 +171,6 @@ export {
   queueResetter,
   creditInterestChecker,
   processCreditPayment,
-  resetBranchInitialBalance,
+  resetTellerInitialBalance,
   attendancePhotoResetter,
 };

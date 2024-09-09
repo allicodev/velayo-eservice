@@ -1,13 +1,13 @@
+import { RootState } from "@/app/state/store";
+import { Log, TellerState } from "@/types";
 import { useSelector } from "react-redux";
 
 const useCashBoxCard = () => {
-  const [reduxBranch, reduxLogs] = useSelector((state: any) => [
-    state.branch.currentBranch,
-    state.logs.cash,
-  ]);
-
+  const [reduxTeller, reduxLogs]: [TellerState, Log[]] = useSelector(
+    (state: RootState) => [state.teller, state.logs.cash]
+  );
   const getCurrentBalance = () =>
-    reduxBranch?.balance +
+    reduxTeller?.balance +
     reduxLogs.reduce((p: any, n: any) => p + (n.amount ?? 0), 0);
 
   return { currentBalance: getCurrentBalance() };

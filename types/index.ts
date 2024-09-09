@@ -1,5 +1,5 @@
 import { UserProps } from "./props.types";
-import { ItemUnit, Transaction } from "./schema.types";
+import { ItemUnit, Transaction, User } from "./schema.types";
 
 type TransactionHistoryDataType_type =
   | "request"
@@ -167,6 +167,10 @@ export interface SalesPerMonth {
   Oct: number;
   Nov: number;
   Dec: number;
+}
+
+export interface TellerState extends Partial<User> {
+  balance?: number;
 }
 
 export interface BranchState {
