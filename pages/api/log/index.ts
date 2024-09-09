@@ -120,7 +120,13 @@ async function handler(
       .skip(_page * _pageSize)
       .limit(_pageSize)
       .populate({ path: "userId" })
-      .populate({ path: "transactionId" })
+      .populate({ path: "userId" })
+      .populate({
+        path: "transactionId",
+        populate: {
+          path: "tellerId",
+        },
+      })
       .populate({
         path: "items",
         populate: {

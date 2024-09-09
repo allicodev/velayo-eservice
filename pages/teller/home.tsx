@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button, Col, Row, Tag, Typography, message, notification } from "antd";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Webcam from "react-webcam";
 import dayjs from "dayjs";
 
@@ -17,7 +17,12 @@ import {
   BillsPayment,
 } from "@/app/components/teller";
 
-import { BranchData, Eload as EloadProp, TransactionOptProps } from "@/types";
+import {
+  BranchData,
+  Eload as EloadProp,
+  Transaction,
+  TransactionOptProps,
+} from "@/types";
 import { useItemStore, useUserStore } from "@/provider/context";
 import { Pusher } from "@/provider/utils/pusher";
 import Eload from "@/app/components/teller/forms/eload_form";
@@ -40,6 +45,7 @@ import CashboxCard from "@/app/components/teller/cashbox/cashbox_card";
 import Cashbox from "@/app/components/teller/cashbox/cashbox";
 import LogService from "@/provider/log.service";
 import { setLogs } from "@/app/state/logs.reducers";
+import { RootState } from "@/app/state/store";
 
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
@@ -64,6 +70,8 @@ const Teller = () => {
     useUserStore();
   const { setItems, lastDateUpdated, setLastDateUpdated, items } =
     useItemStore();
+
+  const reduxBranch = useSelector((state: RootState) => state.branch);
 
   const dispatch = useDispatch();
 
@@ -334,7 +342,18 @@ const Teller = () => {
 
       if (success) {
         if ((data || []).length > 0)
-          dispatch(setLogs({ key: "cash", logs: data! }));
+          dispatch(
+            setLogs({
+              key: "cash",
+              logs: (data || []).map((ea) => ({
+                ...ea,
+                transactionId: {
+                  ...(ea.transactionId as Transaction),
+                  branchId: ea.branchId,
+                },
+              })) as any,
+            })
+          );
       } else {
         message.error(ApiMessage ?? "Error in the Server");
       }
@@ -453,7 +472,7 @@ const Teller = () => {
                         padding: 5,
                       }}
                     >
-                      {brans?.name}
+                      {reduxBranch.currentBranch?.name ?? ""}
                     </Tag>
                   </div>
                   <div className="printer-container">
