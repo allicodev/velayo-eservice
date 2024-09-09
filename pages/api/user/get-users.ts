@@ -34,7 +34,6 @@ async function handler(
   }
 
   if (employeeId) {
-    delete req.query.employeeId;
     return await User.findOne(req.query)
       .then((e) => {
         return res.json({
