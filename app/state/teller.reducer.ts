@@ -13,22 +13,18 @@ const branchSlice = createSlice({
       return state;
     },
     setBalance: (state, action: PayloadAction<UpdateBalance>) => {
-      const { balance, cb } = action.payload;
+      const { balance } = action.payload;
 
       if (state) state.balance = balance;
       else throw new Error("No branch to set the balance");
 
-      if (cb != null) cb(true);
-
       return state;
     },
     updateBalance: (state, action: PayloadAction<UpdateBalance>) => {
-      const { balance, cb } = action.payload;
+      const { balance } = action.payload;
 
       if (typeof state.balance == "number") state.balance += balance;
       else throw new Error("No branch to set the balance");
-
-      if (cb != null) cb(true);
 
       return state;
     },

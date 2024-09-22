@@ -8,19 +8,14 @@ const logSlice = createSlice({
   initialState,
   reducers: {
     setLogs: (state, action: PayloadAction<SetLogs>) => {
-      const { cb, logs, key } = action.payload;
+      const { key } = action.payload;
       state[key] = action.payload.logs;
-
-      if (cb != null) cb(true, logs);
       return state;
     },
 
     newLog: (state, action: PayloadAction<NewLog>) => {
-      const { cb, log, key } = action.payload;
+      const { log, key } = action.payload;
       state[key].unshift(log);
-
-      if (cb != null) cb(true, log);
-
       return state;
     },
   },

@@ -26,6 +26,7 @@ import EtcService from "@/provider/etc.service";
 import { useUserStore } from "@/provider/context";
 import PortalService from "@/provider/portal.service";
 import LogService from "@/provider/log.service";
+import BranchService from "@/provider/branch.service";
 
 const EncoderForm = ({
   open,
@@ -155,6 +156,21 @@ const EncoderForm = ({
 
       (async (_) => {
         if (_transaction) {
+          // update item branch quantity
+          if (_transaction.type == "miscellaneous") {
+            await BranchService.updateItemBranch(
+              _transaction.branchId._id,
+              "misc",
+              JSON.parse(_transaction.transactionDetails ?? "[]").map(
+                (e: any) => ({
+                  _id: e._id ?? "",
+                  count: -e.quantity,
+                })
+              ),
+              _transaction._id
+            );
+          }
+
           let res = await _.updateTransaction({
             ..._transaction,
             type: _transaction.type,
@@ -171,7 +187,6 @@ const EncoderForm = ({
 
           if (res?.success ?? false) {
             // create a log that would negate the balance from portal balance
-
             let res2 = await LogService.newLog({
               userId: (transaction?.tellerId as any)?._id ?? "",
               type: "portal",

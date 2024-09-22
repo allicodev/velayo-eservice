@@ -1,25 +1,36 @@
-import React, { useState } from "react";
-import { Button, InputNumber, Modal, Typography } from "antd";
+import React from "react";
+import { Button, Input, InputNumber, Modal, Typography } from "antd";
 
 import { CashboxFormProps } from "../cashbox.types";
+import useUpdateForm from "./update_form.hooks";
 
 const UpdateCashForm = (props: CashboxFormProps) => {
-  const { open, close, updateType, updateBalance } = props;
-
-  const [input, setInput] = useState<number | null>();
-
-  const handleSubmit = () => {
-    updateBalance(updateType!, input! * (updateType == "add" ? 1 : -1));
-    setInput(null);
-    close();
-  };
+  const {
+    open,
+    close,
+    updateType,
+    canSubmit,
+    data,
+    onManualCashUpdate,
+    updateBalance,
+  } = useUpdateForm(props);
 
   return (
     <Modal
       open={open}
       onCancel={close}
       closable={false}
-      footer={null}
+      footer={
+        <Button
+          size="large"
+          type="primary"
+          disabled={canSubmit}
+          onClick={updateBalance}
+          block
+        >
+          SUBMIT
+        </Button>
+      }
       title={
         <Typography.Title
           level={3}
@@ -30,6 +41,7 @@ const UpdateCashForm = (props: CashboxFormProps) => {
       styles={{
         body: {
           display: "flex",
+          flexDirection: "column",
           gap: 8,
         },
       }}
@@ -40,30 +52,32 @@ const UpdateCashForm = (props: CashboxFormProps) => {
         size="large"
         prefix="₱"
         min={0}
-        value={input}
+        value={data.cash}
+        placeholder="Amount"
         formatter={(value: any) =>
           value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
         }
         parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
         style={{
-          width: 150,
+          width: "100%",
         }}
         onKeyDown={(e) => {
-          if (e.code == "Enter") handleSubmit();
+          // if (e.code == "Enter") handleSubmit();
         }}
-        onChange={(e) => {
-          if (e) setInput(e);
-          else setInput(null);
-        }}
+        onChange={(e) => onManualCashUpdate("cash", e ?? null)}
       />
-      <Button
-        size="large"
-        type="primary"
-        disabled={input == 0 || input == null || input == undefined}
-        onClick={handleSubmit}
-      >
-        SUBMIT
-      </Button>
+      <Input.TextArea
+        placeholder="Reason"
+        autoSize={{ minRows: 3, maxRows: 7 }}
+        value={data?.reason ?? ""}
+        onChange={(e) => onManualCashUpdate("reason", e.target.value ?? null)}
+      />
+      <Input.TextArea
+        placeholder="Cash from"
+        autoSize={{ minRows: 1, maxRows: 3 }}
+        value={data?.cashFrom ?? ""}
+        onChange={(e) => onManualCashUpdate("cashFrom", e.target.value ?? null)}
+      />
     </Modal>
   );
 };

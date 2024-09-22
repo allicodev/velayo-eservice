@@ -219,8 +219,10 @@ export interface Log {
   history?: CreditAmountHistory[];
 
   // cashbox
-  subType?: String;
+  subType?: string;
 
+  remarks?: string;
+  attributes?: string;
   createdAt?: Date;
 }
 

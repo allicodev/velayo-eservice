@@ -12,7 +12,7 @@ import {
 abstract class WalletService {
   public static async getWallet(_id?: string | null) {
     return await API.get<Wallet[]>({
-      endpoint: "/wallet/get-wallet",
+      endpoint: "wallet/get-wallet",
       query: { _id },
     });
   }
@@ -21,7 +21,7 @@ abstract class WalletService {
     payload: Wallet
   ): Promise<ExtendedResponse<Wallet>> {
     return await API.post<Wallet>({
-      endpoint: "/wallet/new-wallet",
+      endpoint: "wallet/new-wallet",
       payload,
     });
   }
@@ -33,7 +33,7 @@ abstract class WalletService {
     if (payload.cashoutFeeValue == null) payload.cashoutFeeValue = 0;
 
     return await API.post<Wallet>({
-      endpoint: "/wallet/update-wallet-option",
+      endpoint: "wallet/update-wallet-option",
       payload: {
         id: payload._id,
         walletOption: payload,
@@ -46,7 +46,7 @@ abstract class WalletService {
     name: string
   ): Promise<ExtendedResponse<Wallet>> {
     return await API.post<Wallet>({
-      endpoint: "/wallet/update-name",
+      endpoint: "wallet/update-name",
       payload: {
         id,
         name,
@@ -63,7 +63,7 @@ abstract class WalletService {
       .replaceAll(" ", "_")
       .toLocaleLowerCase();
     return await API.post<Wallet>({
-      endpoint: "/wallet/new-option",
+      endpoint: "wallet/new-option",
       payload: {
         id: billId,
         formField: formfield,
@@ -82,7 +82,7 @@ abstract class WalletService {
       .replaceAll(" ", "_")
       .toLocaleLowerCase();
     return await API.post<Wallet>({
-      endpoint: "/wallet/update-wallet",
+      endpoint: "wallet/update-wallet",
       payload: {
         id: billId,
         formField: formfield,
@@ -97,7 +97,7 @@ abstract class WalletService {
     walletOption: Wallet
   ) {
     return await API.post<Wallet>({
-      endpoint: "/wallet/update-wallet-option",
+      endpoint: "wallet/update-wallet-option",
       payload: {
         id: walletId,
         walletOption,
@@ -111,7 +111,7 @@ abstract class WalletService {
     type: WalletType
   ) {
     return await API.post<Wallet>({
-      endpoint: "/wallet/mark-as-main",
+      endpoint: "wallet/mark-as-main",
       payload: {
         id: billId,
         index,
@@ -126,7 +126,7 @@ abstract class WalletService {
     type: WalletType
   ) {
     return await API.get<Wallet>({
-      endpoint: "/wallet/delete-wallet-option",
+      endpoint: "wallet/delete-wallet-option",
       query: {
         id: billId,
         index,
@@ -168,14 +168,14 @@ abstract class WalletService {
     if (traceId) transaction.traceId = traceId;
 
     return await API.post<Transaction>({
-      endpoint: "/bill/request-transaction",
+      endpoint: "bill/request-transaction",
       payload: { ...transaction, branchId },
     });
   }
 
   public static async deleteWallet(_id: string): Promise<Response> {
     return await API.get<Response>({
-      endpoint: "/wallet/delete-wallet",
+      endpoint: "wallet/delete-wallet",
       query: { _id },
     });
   }
@@ -187,7 +187,7 @@ abstract class WalletService {
     excludeItems: ExceptionItemProps[]
   ): Promise<Response> {
     return await API.post<Response>({
-      endpoint: "/wallet/update-exception",
+      endpoint: "wallet/update-exception",
       payload: { _id, direction, excludeItems, type },
     });
   }

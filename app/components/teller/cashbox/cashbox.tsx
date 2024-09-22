@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Col, Modal, Row, Spin, Table, Typography } from "antd";
+import { Button, Col, Flex, Modal, Row, Spin, Table, Typography } from "antd";
 import { PlusOutlined, MinusOutlined } from "@ant-design/icons";
 
 import useCashbox from "./cashbox.hooks";
@@ -8,16 +8,18 @@ import { CashBoxProps, UpdateType } from "./cashbox.types";
 
 const Cashbox = (props: CashBoxProps) => {
   const { open, close } = props;
-  const { tableProps, logs, loading, initBalance, currentBalance } =
-    useCashbox(props);
-
-  const [openUpdateForm, setOpenUpdateForm] = useState<{
-    open: boolean;
-    updateType: UpdateType | null;
-  }>({
-    open: false,
-    updateType: null,
-  });
+  const {
+    tableProps,
+    logs,
+    loading,
+    initBalance,
+    currentBalance,
+    manualCashUpdateHandler,
+    openUpdateForm,
+    setOpenUpdateForm,
+    closeAndReset,
+    exportExcel,
+  } = useCashbox(props);
 
   return (
     <>
@@ -26,15 +28,26 @@ const Cashbox = (props: CashBoxProps) => {
         onCancel={close}
         closable={false}
         footer={null}
-        width={700}
+        width={1000}
         title={
-          <Typography.Title level={3}>Disbursement/Cash Box</Typography.Title>
+          <Flex justify="space-between">
+            <Typography.Title level={3}>Disbursement/Cash Box</Typography.Title>
+            <Button size="large" onClick={exportExcel} type="primary">
+              Export/Download CB Report
+            </Button>
+          </Flex>
         }
         zIndex={1}
       >
         <Spin spinning={loading == "adding"}>
           <Row gutter={16}>
-            <Col span={5}>
+            <Col
+              span={9}
+              style={{
+                display: "flex",
+                gap: 8,
+              }}
+            >
               <div
                 style={{
                   border: "1px solid #d9d9d9",
@@ -53,6 +66,7 @@ const Cashbox = (props: CashBoxProps) => {
                     style={{
                       fontFamily: "abel",
                       margin: 0,
+                      textWrap: "nowrap",
                     }}
                   >
                     Current cash
@@ -63,6 +77,7 @@ const Cashbox = (props: CashBoxProps) => {
                     padding: 10,
                     fontSize: "1.5em",
                     textAlign: "end",
+                    textWrap: "nowrap",
                   }}
                 >
                   ₱{" "}
@@ -71,8 +86,6 @@ const Cashbox = (props: CashBoxProps) => {
                   })}
                 </div>
               </div>
-            </Col>
-            <Col span={5}>
               <div
                 style={{
                   border: "1px solid #d9d9d9",
@@ -110,7 +123,7 @@ const Cashbox = (props: CashBoxProps) => {
                 </div>
               </div>
             </Col>
-            <Col span={8}>
+            <Col span={6} offset={9}>
               <div
                 style={{
                   display: "flex",
@@ -157,9 +170,9 @@ const Cashbox = (props: CashBoxProps) => {
 
       {/* context */}
       <UpdateCashForm
-        close={() => setOpenUpdateForm({ open: false, updateType: null })}
-        updateBalance={tableProps.updateBalance}
+        close={closeAndReset}
         {...openUpdateForm}
+        {...manualCashUpdateHandler}
       />
     </>
   );

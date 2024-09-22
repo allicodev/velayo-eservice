@@ -6,7 +6,7 @@ abstract class LogService {
     ...props
   }: NewLog): Promise<ExtendedResponse<LogData>> {
     return await API.post<LogData>({
-      endpoint: "/log",
+      endpoint: "log",
       payload: {
         postType: "new",
         ...props,
@@ -16,7 +16,7 @@ abstract class LogService {
 
   public static async updateLog({ ...props }: { [key: string]: any }) {
     return await API.post<Response>({
-      endpoint: "/log",
+      endpoint: "log",
       payload: {
         postType: "update",
         ...props,
@@ -26,7 +26,7 @@ abstract class LogService {
 
   public static async getLog(props: any): Promise<ExtendedResponse<LogData[]>> {
     return await API.get<any[]>({
-      endpoint: "/log",
+      endpoint: "log",
       query: props,
     });
   }

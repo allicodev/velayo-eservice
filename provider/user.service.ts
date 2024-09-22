@@ -14,14 +14,14 @@ abstract class UserService {
     payload: UserLoginProps
   ): Promise<ExtendedResponse<UserWithToken>> {
     return await API.post<UserWithToken>({
-      endpoint: "/auth/login",
+      endpoint: "auth/login",
       payload,
     });
   }
 
   public static async newUser(payload: User): Promise<ExtendedResponse<User>> {
     return await API.post<User>({
-      endpoint: "/user/new-user",
+      endpoint: "user/new-user",
       payload,
     });
   }
@@ -30,7 +30,7 @@ abstract class UserService {
     payload: Partial<User>
   ): Promise<ExtendedResponse<User>> {
     return await API.post<User>({
-      endpoint: "/user/update-user",
+      endpoint: "user/update-user",
       payload,
     });
   }
@@ -41,14 +41,14 @@ abstract class UserService {
     let role: any = prop.role;
     if (prop.role) role = JSON.stringify(prop.role);
     return await API.get<ProtectedUser[] | User[]>({
-      endpoint: "/user/get-users",
+      endpoint: "user/get-users",
       query: { ...prop, role },
     });
   }
 
   public static async deleteUser({ id }: { id: string }): Promise<Response> {
     return await API.get<Response>({
-      endpoint: "/user/remove-user",
+      endpoint: "user/remove-user",
       query: {
         id,
       },

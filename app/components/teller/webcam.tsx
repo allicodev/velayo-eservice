@@ -377,9 +377,11 @@ const WebCamera = ({
             postType: "new",
             ...(["admin", "encoder"].includes(currentUser?.role!)
               ? {}
-              : {
+              : currentBranch != ""
+              ? {
                   branchId: currentBranch,
-                }),
+                }
+              : {}),
           });
           if (res?.success ?? false) {
             message.success("Successfully Timed-In");

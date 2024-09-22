@@ -101,6 +101,21 @@ const CreditTracker = ({ open, close }: MyProp) => {
       render: (_) => _ + "% / day",
     },
     {
+      title: "type",
+      render: (_, row) => {
+        if (row.transactionId)
+          return (
+            <>{(row.transactionId as Transaction).type.toLocaleUpperCase()}</>
+          );
+        else
+          return (
+            <Typography.Text type="secondary" italic>
+              N/A
+            </Typography.Text>
+          );
+      },
+    },
+    {
       title: "Status",
       dataIndex: "status",
       align: "center",
@@ -117,7 +132,7 @@ const CreditTracker = ({ open, close }: MyProp) => {
     {
       title: "Due Date",
       dataIndex: "dueDate",
-      render: (_) => dayjs(_).format("MMM DD, YYYY - hh:mma"),
+      render: (_) => dayjs(_).format("MMM DD, YYYY"),
     },
   ];
 
@@ -265,7 +280,7 @@ const CreditTracker = ({ open, close }: MyProp) => {
         }}
         footer={null}
         closable={false}
-        width={650}
+        width={750}
         zIndex={1}
         destroyOnClose
       >
@@ -367,7 +382,7 @@ const CreditTracker = ({ open, close }: MyProp) => {
                   return {
                     onClick: async () =>
                       await (TransactionHistory as any).openTransaction(
-                        (data.transactionId as Transaction)._id
+                        data.transactionId as Transaction
                       ),
                   };
                 }}

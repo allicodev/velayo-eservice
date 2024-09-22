@@ -1,60 +1,80 @@
 import React, { useState } from "react";
-import { Button, InputNumber, Modal, Typography } from "antd";
+import { Button, Input, InputNumber, Modal, Typography } from "antd";
+import usebalanceInit, { MyProps } from "./balance_init.hook";
 
-interface MyProps {
-  open: boolean;
-  onSubmit: (bal: number) => void;
-}
+const BranchBalanceInit = (props: MyProps) => {
+  const {
+    open,
+    handleOnSubmitBalance,
+    onManualCashUpdate,
+    manualCashOpt,
+    checkValidation,
+  } = usebalanceInit(props);
 
-const BranchBalanceInit = ({ open, onSubmit }: MyProps) => {
-  const [input, setInput] = useState<number | null>();
   return (
-    <Modal open={open} closable={false} footer={null} width={300}>
-      <Typography.Title
-        level={4}
-        style={{ display: "block", textAlign: "center" }}
-      >
-        Please set an initial balance for disbursement/cash box
-      </Typography.Title>
-      <div
-        style={{
+    <Modal
+      open={open}
+      closable={false}
+      width={300}
+      title={
+        <Typography.Title
+          level={4}
+          style={{ display: "block", textAlign: "center" }}
+        >
+          Please set an initial balance for disbursement/cash box
+        </Typography.Title>
+      }
+      styles={{
+        body: {
           display: "flex",
+          flexDirection: "column",
           gap: 8,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <InputNumber<number>
-          controls={false}
-          className="customInput"
-          size="large"
-          prefix="₱"
-          min={0}
-          value={input}
-          formatter={(value: any) =>
-            value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-          }
-          parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
-          style={{
-            width: 250,
-          }}
-          onKeyDown={(e) => {
-            if (e.code == "Enter") onSubmit(input!);
-          }}
-          onChange={(e) => {
-            if (e) setInput(e);
-            else setInput(null);
-          }}
-        />
+        },
+      }}
+      footer={
         <Button
           size="large"
           type="primary"
-          disabled={input == 0 || input == null || input == undefined}
-          onClick={() => onSubmit(input!)}
+          disabled={!checkValidation()}
+          onClick={handleOnSubmitBalance}
         >
           SUBMIT
         </Button>
-      </div>
+      }
+    >
+      <InputNumber<number>
+        controls={false}
+        className="customInput"
+        size="large"
+        prefix="₱"
+        min={0}
+        value={manualCashOpt.cash}
+        formatter={(value: any) =>
+          value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+        }
+        parser={(value: any) => value.replace(/\$\s?|(,*)/g, "")}
+        style={{
+          width: 250,
+        }}
+        onKeyDown={(e) => {
+          if (e.code == "Enter") handleOnSubmitBalance();
+        }}
+        onChange={(e) => onManualCashUpdate("cash", e ?? null)}
+      />
+      <Input.TextArea
+        placeholder="Reason"
+        size="large"
+        autoSize={{ minRows: 3, maxRows: 7 }}
+        value={manualCashOpt?.reason ?? ""}
+        onChange={(e) => onManualCashUpdate("reason", e.target.value ?? null)}
+      />
+      <Input.TextArea
+        placeholder="Cash from"
+        size="large"
+        autoSize={{ minRows: 2, maxRows: 3 }}
+        value={manualCashOpt?.cashFrom ?? ""}
+        onChange={(e) => onManualCashUpdate("cashFrom", e.target.value ?? null)}
+      />
     </Modal>
   );
 };

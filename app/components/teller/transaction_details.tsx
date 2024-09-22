@@ -189,6 +189,7 @@ const TransactionDetails = ({
   };
 
   useEffect(() => {
+    console.log(transaction);
     if (open && transaction) {
       if (transaction.transactionDetails) {
         let _ = JSON.parse(transaction.transactionDetails);
@@ -209,7 +210,9 @@ const TransactionDetails = ({
                     "Sender Number/Account Number",
                   ]
                 : []),
-              ...(transaction.creditId != null ? [] : ["Current Status"]),
+              ...(transaction.creditId != null
+                ? ["Credit Details**", "Name"]
+                : ["Current Status"]),
             ],
             [
               transaction.type.toLocaleUpperCase(),
@@ -248,7 +251,22 @@ const TransactionDetails = ({
                   ]
                 : []),
               ...(transaction.creditId != null
-                ? []
+                ? [
+                    "",
+                    (
+                      (transaction.creditId as Credit)
+                        .userCreditId as UserCreditData
+                    ).name +
+                      (
+                        (transaction.creditId as Credit)
+                          .userCreditId as UserCreditData
+                      ).middlename +
+                      " " +
+                      (
+                        (transaction.creditId as Credit)
+                          .userCreditId as UserCreditData
+                      ).lastname,
+                  ]
                 : [getStatusBadge(latestHistory()!.status)]),
             ],
           ]);
@@ -287,7 +305,7 @@ const TransactionDetails = ({
                   ]
                 : []),
               ...(transaction.creditId != null
-                ? ["Credit Details**", "Name", "Status"]
+                ? ["Credit Details**", "Name"]
                 : []),
             ],
             [
@@ -343,18 +361,6 @@ const TransactionDetails = ({
                         (transaction.creditId as Credit)
                           .userCreditId as UserCreditData
                       ).lastname,
-                    getStatusBadgeCredit(
-                      (transaction.creditId as Credit).status,
-                      dayjs(transaction.createdAt)
-                        .add(
-                          (
-                            (transaction.creditId as Credit)
-                              .userCreditId as UserCreditData
-                          ).creditTerm,
-                          "day"
-                        )
-                        .isBefore(dayjs())
-                    ),
                   ]
                 : []),
             ],

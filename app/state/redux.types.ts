@@ -9,20 +9,16 @@ export interface ReduxLogs {
 // end
 
 // action types
-export interface UpdateBalance extends CB {
+export interface UpdateBalance {
   balance: number;
 }
 
-export interface SetLogs extends CB {
+export interface SetLogs {
   key: string;
   logs: Log[];
 }
 
-export interface NewLog extends CB {
+export interface NewLog {
   key: string;
   log: Log;
-}
-
-interface CB {
-  cb?: (_?: any, __?: any) => any | void;
 }

@@ -22,14 +22,14 @@ abstract class BranchService {
     _id?: string;
   }): Promise<ExtendedResponse<BranchData[]>> {
     return await API.get<BranchData[]>({
-      endpoint: "/branch",
+      endpoint: "branch",
       query: { _id },
     });
   }
 
   public static async updateBranch({ ...props }: BranchData) {
     return await API.post<Response>({
-      endpoint: "/branch",
+      endpoint: "branch",
       payload: props,
     });
   }
@@ -38,14 +38,14 @@ abstract class BranchService {
     _id: string
   ): Promise<ExtendedResponse<BranchData>> {
     return await API.get<BranchData>({
-      endpoint: "/branch/get-branch",
+      endpoint: "branch/get-branch",
       query: { _id },
     });
   }
 
   public static async newItemBranch(_id: string, itemIds: string[]) {
     return await API.post<BranchData>({
-      endpoint: "/branch/new-item",
+      endpoint: "branch/new-item",
       payload: { _id, itemIds },
     });
   }
@@ -57,14 +57,14 @@ abstract class BranchService {
     transactId?: string
   ) {
     return await API.post<BranchData>({
-      endpoint: "/branch/update-items",
+      endpoint: "branch/update-items",
       payload: { _id, items, type, transactId },
     });
   }
 
   public static async getItemSpecific(branchId: string, itemId: string) {
     let branch = await API.get<BranchData>({
-      endpoint: "/branch/get-item-specific",
+      endpoint: "branch/get-item-specific",
       query: { branchId },
     });
 
@@ -72,7 +72,7 @@ abstract class BranchService {
   }
   public static async removeBranchItem(branchId: string, itemId: string) {
     return await API.get<Response>({
-      endpoint: "/branch/remove-item",
+      endpoint: "branch/remove-item",
       query: { branchId, itemId },
     });
   }

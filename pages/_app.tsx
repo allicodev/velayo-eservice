@@ -2,7 +2,7 @@ import type { AppProps } from "next/app";
 import "reflect-metadata";
 
 import "@/styles/globals.css";
-import "@/styles//main.styles.css";
+import "@/styles/main.styles.css";
 import { ConfigProvider } from "antd";
 import { Provider } from "react-redux";
 import { store } from "@/app/state/store";

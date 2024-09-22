@@ -11,6 +11,8 @@ import {
   Select,
   DatePicker,
   Tooltip,
+  Input,
+  Divider,
 } from "antd";
 import { DownOutlined, CopyOutlined, ReloadOutlined } from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
@@ -67,11 +69,15 @@ const TransactionHistory = ({
     id: any,
     requestId?: string
   ) => {
-    await getTransaction({ page: 1, pageSize: 99999 }).then((__: any) => {
-      if (onCellClick) {
-        onCellClick(__.filter((e: any) => e._id == id)[0], requestId);
-      } else null;
-    });
+    if (typeof id == "string")
+      await getTransaction({ page: 1, pageSize: 99999 }).then((__: any) => {
+        if (onCellClick) {
+          onCellClick(__.filter((e: any) => e._id == id)[0], requestId);
+        } else null;
+      });
+    else {
+      if (onCellClick) onCellClick(id, requestId);
+    }
   };
 
   const getStatusBadge = (str: TransactionHistoryStatus | null) => {
@@ -96,8 +102,28 @@ const TransactionHistory = ({
   const columns: TableProps<Transaction>["columns"] = [
     {
       title: "ID",
-      dataIndex: "queue",
-      render: (_, row, i) => i + 1,
+      dataIndex: "_id",
+      render: (_) => {
+        const id = _.substr(-6);
+        return (
+          <Typography.Link
+            onClick={async (e) => {
+              e.stopPropagation();
+              e.preventDefault();
+
+              try {
+                await navigator.clipboard
+                  .writeText(id)
+                  .then(() => message.success("Copied Sucessfully"));
+              } catch (err) {
+                console.error("Failed to copy text: ", err);
+              }
+            }}
+          >
+            {id}
+          </Typography.Link>
+        );
+      },
     },
     {
       title: "Transaction Type",
@@ -436,15 +462,18 @@ const TransactionHistory = ({
       zIndex={1}
       extra={[
         <Space key="extra-container">
+          <div>
+            <Input size="large" placeholder="Search a Transaction" />
+          </div>
+          <Divider type="vertical" />
           <div style={{ display: "flex", flexDirection: "row" }}>
             <div key="fromDate" style={{ marginRight: 10 }}>
-              <label htmlFor="fromDate" style={{ marginRight: 5 }}>
-                From
-              </label>
               <DatePicker
                 id="fromDate"
                 format="MMMM DD, YYYY"
                 value={fromDate}
+                placeholder="From"
+                size="large"
                 onChange={(e: Dayjs) => {
                   if (e) setFromDate(e);
                   else setFromDate(null);
@@ -453,12 +482,14 @@ const TransactionHistory = ({
             </div>
             <div key="toDate">
               <label htmlFor="toDate" style={{ marginRight: 5 }}>
-                To
+                -
               </label>
               <DatePicker
                 id="toDate"
                 format="MMMM DD, YYYY"
                 value={toDate}
+                placeholder="To"
+                size="large"
                 onChange={(e: Dayjs) => {
                   if (e) {
                     if (e.isBefore(fromDate)) {
@@ -474,9 +505,11 @@ const TransactionHistory = ({
               />
             </div>
           </div>
+          <Divider type="vertical" />
           <Tooltip title="RESET">
             <Button
               icon={<ReloadOutlined />}
+              size="large"
               onClick={() => {
                 setToDate(null);
                 setFromDate(null);
@@ -485,6 +518,7 @@ const TransactionHistory = ({
           </Tooltip>
           <Button
             type="primary"
+            size="large"
             onClick={() => {
               (async () => {
                 await getTransaction({

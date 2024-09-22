@@ -10,7 +10,7 @@ abstract class CreditService {
     searchWord?: string;
   }) {
     return API.get<UserCreditData[]>({
-      endpoint: "/credit",
+      endpoint: "credit",
       query: {
         _id,
         searchWord,
@@ -19,7 +19,7 @@ abstract class CreditService {
   }
 
   public static async newCreditUser(creditUser: UserCredit) {
-    return API.post({ endpoint: "/credit", payload: creditUser });
+    return API.post({ endpoint: "credit", payload: creditUser });
   }
 }
 

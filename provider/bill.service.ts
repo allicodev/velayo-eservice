@@ -15,14 +15,14 @@ import { Dayjs } from "dayjs";
 abstract class BillService {
   public static async getBill(_id?: string | null) {
     return await API.get<BillingSettingsType[]>({
-      endpoint: "/bill/get-bill",
+      endpoint: "bill/get-bill",
       query: { _id },
     });
   }
 
   public static async newBill(name: string) {
     return await API.post<BillingSettingsType>({
-      endpoint: "/bill/new-bill",
+      endpoint: "bill/new-bill",
       payload: {
         name,
       },
@@ -37,7 +37,7 @@ abstract class BillService {
       .replaceAll(" ", "_")
       .toLocaleLowerCase();
     return await API.post<BillingSettingsType>({
-      endpoint: "/bill/new-option",
+      endpoint: "bill/new-option",
       payload: {
         id: billId,
         formField: formfield,
@@ -55,7 +55,7 @@ abstract class BillService {
       .toLocaleLowerCase();
 
     return await API.post<BillingSettingsType>({
-      endpoint: "/bill/update-option",
+      endpoint: "bill/update-option",
       payload: {
         id: billId,
         formField: formfield,
@@ -69,7 +69,7 @@ abstract class BillService {
     billOption: BillingSettingsType
   ) {
     return await API.post<BillingSettingsType>({
-      endpoint: "/bill/update-bill-option",
+      endpoint: "bill/update-bill-option",
       payload: {
         id: billId,
         billOption,
@@ -79,7 +79,7 @@ abstract class BillService {
 
   public static async removeOptionIndexed(billId: string, index: number) {
     return await API.get<BillingSettingsType>({
-      endpoint: "/bill/delete-option",
+      endpoint: "bill/delete-option",
       query: {
         id: billId,
         index,
@@ -89,7 +89,7 @@ abstract class BillService {
 
   public static async updateBillName(billId: string, name: string) {
     return await API.get<BillingSettingsType>({
-      endpoint: "/bill/update-bill",
+      endpoint: "bill/update-bill",
       query: {
         id: billId,
         name,
@@ -131,7 +131,7 @@ abstract class BillService {
     };
 
     return await API.post<Transaction>({
-      endpoint: "/bill/request-transaction",
+      endpoint: "bill/request-transaction",
       payload: { ...transaction, branchId },
     });
   }
@@ -187,21 +187,21 @@ abstract class BillService {
 
   public static async updateTransaction(transaction: any) {
     return await API.post<Response>({
-      endpoint: "/transaction/update-transaction",
+      endpoint: "transaction/update-transaction",
       payload: transaction,
     });
   }
 
   public static async updateTransactionSpecific(transaction: any) {
     return await API.post<Response>({
-      endpoint: "/transaction/update-transaction-specific",
+      endpoint: "transaction/update-transaction-specific",
       payload: transaction,
     });
   }
 
   public static async markMainAmount(billId: string, index: number) {
     return await API.post<BillingSettingsType>({
-      endpoint: "/bill/mark-as-main",
+      endpoint: "bill/mark-as-main",
       payload: {
         id: billId,
         index,
@@ -211,7 +211,7 @@ abstract class BillService {
 
   public static async updateFee(fee: UpdateFeeProps) {
     return await API.get<BillingSettingsType>({
-      endpoint: "/bill/update-fee",
+      endpoint: "bill/update-fee",
       query: fee,
     });
   }
@@ -230,6 +230,7 @@ abstract class BillService {
       amount,
       fee: eload.fee,
       tellerId: eload.tellerId,
+      creditId: eload.creditId,
       branchId,
       history: [
         {
@@ -241,7 +242,7 @@ abstract class BillService {
     };
 
     return await API.post<Transaction>({
-      endpoint: "/bill/request-transaction",
+      endpoint: "bill/request-transaction",
       payload: { ...transaction, branchId },
     });
   }
@@ -270,14 +271,14 @@ abstract class BillService {
     };
 
     return await API.post<Response>({
-      endpoint: "/bill/request-transaction",
+      endpoint: "bill/request-transaction",
       payload: { ...transaction, branchId },
     });
   }
 
   public static async deleteBiller(_id: string): Promise<Response> {
     return await API.get<Response>({
-      endpoint: "/bill/delete-biller",
+      endpoint: "bill/delete-biller",
       query: { _id },
     });
   }
@@ -288,7 +289,7 @@ abstract class BillService {
     excludeItems: ExceptionItemProps[]
   ): Promise<Response> {
     return await API.post<Response>({
-      endpoint: "/bill/update-exception",
+      endpoint: "bill/update-exception",
       payload: { _id, direction, excludeItems },
     });
   }

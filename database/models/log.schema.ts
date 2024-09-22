@@ -104,6 +104,7 @@ const LogSchema = new mongoose.Schema(
     history: Array,
 
     remarks: String,
+    attributes: String, // @@ this is different from remarks, attributes is a stringified object where you can add additonal data for the Log data
   },
   { timestamps: true }
 );

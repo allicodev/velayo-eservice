@@ -35,7 +35,7 @@ abstract class EtcService {
         });
     });
     return await API.post<Response>({
-      endpoint: "/etc/update-bill-wallet",
+      endpoint: "etc/update-bill-wallet",
       payload: {
         wallets: _wallets,
         bills: _bills,
@@ -45,7 +45,7 @@ abstract class EtcService {
 
   public static async checkIfDisabled(type: string, id: string) {
     return await API.get<Response>({
-      endpoint: "/etc/check-disabled",
+      endpoint: "etc/check-disabled",
       query: {
         type,
         id,
@@ -55,7 +55,7 @@ abstract class EtcService {
 
   public static async getTransactionFromTraceId(traceId: string) {
     return await API.get<Transaction>({
-      endpoint: "/transaction/search-transaction",
+      endpoint: "transaction/search-transaction",
       query: {
         traceId,
       },
@@ -64,26 +64,26 @@ abstract class EtcService {
 
   public static async checkSettings() {
     return await API.get<Response>({
-      endpoint: "/etc/check-settings",
+      endpoint: "etc/check-settings",
     });
   }
 
   public static async getEloadSettings() {
     return await API.get<EloadSettings>({
-      endpoint: "/etc/eload-settings",
+      endpoint: "etc/eload-settings",
     });
   }
 
   public static async updateEloadSettings(payload: any) {
     return await API.post<Response>({
-      endpoint: "/etc/eload-settings-update",
+      endpoint: "etc/eload-settings-update",
       payload,
     });
   }
 
   public static async getLastQueue(branchId: string) {
     return await API.get<number>({
-      endpoint: "/etc/check-last-queue",
+      endpoint: "etc/check-last-queue",
       query: {
         branchId,
       },
@@ -92,7 +92,7 @@ abstract class EtcService {
 
   public static async getQueueRequest(branchId: string, queue?: number) {
     return await API.get<RequestQueue[]>({
-      endpoint: "/etc/requests-queue",
+      endpoint: "etc/requests-queue",
       query: {
         branchId,
         queue,
@@ -102,7 +102,7 @@ abstract class EtcService {
 
   public static async markCompleted(_id: string) {
     return await API.get<RequestQueue[]>({
-      endpoint: "/etc/request-completed",
+      endpoint: "etc/request-completed",
       query: {
         _id,
       },

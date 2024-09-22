@@ -14,14 +14,14 @@ import {
 abstract class ItemService {
   public static async getItems(query?: any) {
     return await API.get<BranchData[] | ItemData[]>({
-      endpoint: "/item/all",
+      endpoint: "item/all",
       query,
     });
   }
 
   public static async newItem(str: any, parentId?: string) {
     return await API.post<Response>({
-      endpoint: "/item/new",
+      endpoint: "item/new",
       payload: {
         ...str,
         parentId,
@@ -31,13 +31,13 @@ abstract class ItemService {
 
   public static async getLastItemcode() {
     return await API.get<ItemCode>({
-      endpoint: "/item/get-last-itemcode",
+      endpoint: "item/get-last-itemcode",
     });
   }
 
   public static async getItemSpecific(id: string) {
     return await API.get<ItemData>({
-      endpoint: "/item/specific",
+      endpoint: "item/specific",
       query: {
         id,
       },
@@ -46,7 +46,7 @@ abstract class ItemService {
 
   public static async deleteItem(id: string) {
     return await API.get<Item>({
-      endpoint: "/item/delete",
+      endpoint: "item/delete",
       query: {
         id,
       },
@@ -55,7 +55,7 @@ abstract class ItemService {
 
   public static async updateItem(id: string, item: InputProps) {
     return await API.post<ItemData>({
-      endpoint: "/item/update",
+      endpoint: "item/update",
       payload: {
         ...item,
         id,
@@ -65,7 +65,7 @@ abstract class ItemService {
 
   public static async searchItem(search: string) {
     return await API.get<ItemData[]>({
-      endpoint: "/item/search",
+      endpoint: "item/search",
       query: {
         search,
       },
@@ -74,7 +74,7 @@ abstract class ItemService {
 
   public static async purgeItem(id: string) {
     const response = await API.get<ItemData[]>({
-      endpoint: "/item/purge-item",
+      endpoint: "item/purge-item",
       query: {
         id,
       },
@@ -123,7 +123,7 @@ abstract class ItemService {
     };
 
     return await API.post<Transaction>({
-      endpoint: "/bill/request-transaction",
+      endpoint: "bill/request-transaction",
       payload: { ...transaction, branchId },
     });
   }

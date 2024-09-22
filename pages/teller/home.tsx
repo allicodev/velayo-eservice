@@ -22,7 +22,6 @@ import {
   Eload as EloadProp,
   Transaction,
   TransactionOptProps,
-  User,
 } from "@/types";
 import { useItemStore, useUserStore } from "@/provider/context";
 import { Pusher } from "@/provider/utils/pusher";
@@ -40,13 +39,11 @@ import CreditTracker from "@/app/components/teller/credit-tracker";
 import BranchBalanceInit from "@/app/components/teller/forms/balance_init";
 
 // redux actions
-import { setBalance, updateBalance } from "@/app/state/teller.reducer";
 import CashboxCard from "@/app/components/teller/cashbox/cashbox_card";
 import Cashbox from "@/app/components/teller/cashbox/cashbox";
 import LogService from "@/provider/log.service";
 import { setLogs } from "@/app/state/logs.reducers";
 import { RootState } from "@/app/state/store";
-import UserService from "@/provider/user.service";
 
 const Teller = () => {
   const [openedMenu, setOpenedMenu] = useState("");
@@ -135,6 +132,26 @@ const Teller = () => {
 
   const handleNotify = (data: any) => {
     let { queue, id } = data;
+
+    (async (_) => {
+      let res = await _.getItems({ _id: currentBranch });
+
+      if (res?.success ?? false) {
+        let items = (res.data as BranchData[])?.at(0)?.items;
+        let updatedData: any[] = [];
+
+        (items ?? []).map((e) => {
+          updatedData.push({
+            ...e.itemId,
+            quantity: e.stock_count,
+          });
+        });
+        console.log(updatedData);
+        setItems(updatedData);
+        setLastDateUpdated(dayjs());
+        console.log("Items are refreshed");
+      }
+    })(ItemService);
 
     api.info({
       // message: `Transaction ID #${queue} has been updated`,
@@ -227,27 +244,6 @@ const Teller = () => {
     }
   }
 
-  const handleOnSubmitBalance = async (val: number) => {
-    setOpenBranchBalanceInit(false);
-
-    const { success, message: apiMessage } = await UserService.updateUser({
-      _id: currentUser?._id ?? "",
-      balance: val,
-    });
-
-    if (success ?? false) {
-      dispatch(
-        updateBalance({
-          balance: val,
-          cb: (res) => {
-            if (res)
-              message.success("Successfully Set the cashbox balance for today");
-          },
-        })
-      );
-    } else message.error(apiMessage ?? "There is an error in the Server");
-  };
-
   useEffect(() => {
     return initPusherProvider();
   }, []);
@@ -275,39 +271,6 @@ const Teller = () => {
 
   useEffect(() => {
     const minutes = 5; // change this to update the items per (x) minutes
-
-    (async (_) => {
-      let { success, data } = await _.getUsers({
-        page: 1,
-        pageSize: 999999,
-        employeeId: currentUser?.employeeId ?? "",
-      });
-
-      if (success ?? false) {
-        let user = data as any as User;
-
-        if ((user?.balance ?? 0) == 0) setOpenBranchBalanceInit(true);
-
-        dispatch(setBalance({ balance: user?.balance ?? 0 }));
-      }
-    })(UserService);
-
-    // (async (_) => {
-    //   let { success, data } = await _.getBranch({});
-
-    //   if (success ?? false) {
-    //     const _branch = data!.find((ea) => ea._id == currentBranch);
-
-    //     if (_branch) {
-    //       dispatch(
-    //         setBranch({
-    //           branch: _branch,
-    //         })
-    //       );
-    //       if (_branch.balance == 0) setOpenBranchBalanceInit(true);
-    //     }
-    //   }
-    // })(BranchService);
 
     (async (_) => {
       let res = await _.getLastQueue(currentBranch);
@@ -352,6 +315,8 @@ const Teller = () => {
         type: "disbursement",
         branchId: currentBranch,
         userId: currentUser?._id ?? null,
+        fromDate: new Date(),
+        toDate: new Date(),
         project: JSON.stringify({
           userId: 0,
           items: 0,
@@ -359,19 +324,36 @@ const Teller = () => {
       });
 
       if (success) {
-        if ((data || []).length > 0)
-          dispatch(
-            setLogs({
-              key: "cash",
-              logs: (data || []).map((ea) => ({
-                ...ea,
-                transactionId: {
-                  ...(ea.transactionId as Transaction),
-                  branchId: ea.branchId,
-                },
-              })) as any,
-            })
-          );
+        if ((data || []).length > 0) {
+          const balance = (data || []).reduce((p, n) => p + (n.amount ?? 0), 0);
+
+          if (balance <= 0) setOpenBranchBalanceInit(true);
+          else {
+            // sort it out via is_initial_balance before dispatch
+
+            data = (data || []).sort((a, b) => {
+              let _a = JSON.parse(a.attributes ?? "{}");
+              let _b = JSON.parse(b.attributes ?? "{}");
+
+              if (_a.is_initial_balance) return -1;
+              if (_b.is_initial_balance) return 1;
+              return 0;
+            });
+
+            dispatch(
+              setLogs({
+                key: "cash",
+                logs: (data || []).map((ea) => ({
+                  ...ea,
+                  transactionId: {
+                    ...(ea.transactionId as Transaction),
+                    branchId: ea.branchId,
+                  },
+                })) as any,
+              })
+            );
+          }
+        } else setOpenBranchBalanceInit(true);
       } else {
         message.error(ApiMessage ?? "Error in the Server");
       }
@@ -629,7 +611,7 @@ const Teller = () => {
       />
       <BranchBalanceInit
         open={openBranchBalanceInit}
-        onSubmit={handleOnSubmitBalance}
+        close={() => setOpenBranchBalanceInit(false)}
       />
       <Cashbox
         open={openCashBox}

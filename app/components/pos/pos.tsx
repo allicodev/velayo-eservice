@@ -157,7 +157,6 @@ const PosHome = ({
 
   const getItem = async (id: string) => {
     let res = await ItemService.getItemSpecific(id);
-    console.log(items.filter((e) => e._id == id)[0]);
     if (res?.success ?? false) {
       setOpenItemOpt({ open: true, data: res?.data ?? null, mode: "new", id });
       if (res?.data?.price != null) quantityRef.current?.focus();
@@ -342,6 +341,7 @@ const PosHome = ({
           quantity: e.quantity,
           unit: e.unit,
           cost: e.cost,
+          _id: e._id,
         }))
       );
       let cash = amount;
@@ -368,17 +368,17 @@ const PosHome = ({
         );
 
         if (res?.success ?? false) {
-          await BranchService.updateItemBranch(
-            branchId,
-            "misc",
-            selectedItem.map((e) => ({
-              _id: e._id ?? "",
-              count: -e.quantity,
-            })),
-            (res.data as any)._id
-          );
+          if (!online.isOnlinePayment) {
+            await BranchService.updateItemBranch(
+              branchId,
+              "misc",
+              selectedItem.map((e) => ({
+                _id: e._id ?? "",
+                count: -e.quantity,
+              })),
+              (res.data as any)._id
+            );
 
-          if (!online.isOnlinePayment)
             modal.confirm({
               title: "Do you want to print the receipt ?",
               okText: "PRINT",
@@ -437,7 +437,7 @@ const PosHome = ({
                 message.success("New Transaction Successfully Added");
               },
             });
-          else {
+          } else {
             message.success(res?.message ?? "Success");
             setOpenTender(false);
             setAmount(null);
@@ -1143,7 +1143,7 @@ const PosHome = ({
         <div>
           {!credit.isCredit && (
             <Row>
-              <Col span={12}>
+              <Col span={12} style={{ display: "flex", alignItems: "center" }}>
                 <span
                   style={{
                     fontSize: "2.5em",
@@ -1291,9 +1291,10 @@ const PosHome = ({
                 borderLeft: "1px solid #eee",
                 borderBottom: "1px solid #eee",
                 borderTop: "1px solid #eee",
+                fontWeight: 900,
               }}
             >
-              Amount
+              AMOUNT
             </Col>
             <Col
               span={20}
@@ -1321,9 +1322,10 @@ const PosHome = ({
                 borderLeft: "1px solid #eee",
                 borderBottom: "1px solid #eee",
                 borderBottomLeftRadius: 10,
+                fontWeight: 900,
               }}
             >
-              Change
+              CHANGE
             </Col>
             <Col
               span={20}

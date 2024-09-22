@@ -124,9 +124,17 @@ async function handler(
       .populate({ path: "userId" })
       .populate({
         path: "transactionId",
-        populate: {
-          path: "tellerId",
-        },
+        populate: [
+          {
+            path: "tellerId",
+          },
+          {
+            path: "creditId",
+            populate: {
+              path: "userCreditId",
+            },
+          },
+        ],
       })
       .populate({
         path: "items",
