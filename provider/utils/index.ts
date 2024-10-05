@@ -41,7 +41,7 @@ const creditInterestChecker = async () => {
             history: {
               amount: (baseAmount * interest).toFixed(2),
               date: new Date(),
-              description: "Interest",
+              description: "Interest (auto generated)",
             },
           },
         }

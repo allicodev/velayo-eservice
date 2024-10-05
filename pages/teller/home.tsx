@@ -146,7 +146,6 @@ const Teller = () => {
             quantity: e.stock_count,
           });
         });
-        console.log(updatedData);
         setItems(updatedData);
         setLastDateUpdated(dayjs());
         console.log("Items are refreshed");

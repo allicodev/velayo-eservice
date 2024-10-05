@@ -1,5 +1,6 @@
 import dbConnect from "@/database/dbConnect";
 import User from "@/database/models/user.schema";
+import UserCredit from "@/database/models/user_credits.schema";
 import { ExtendedResponse, ProtectedUser } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -22,6 +23,33 @@ async function handler(
       success: false,
       message: "Incorrect Request Method",
     });
+
+  const { type } = req.query;
+
+  if (type == "credit") {
+    let { page = 1, pageSize = 10 } = req.query;
+    page = Number.parseInt(page.toString()) - 1;
+
+    return UserCredit.find()
+      .skip(page * Number.parseInt(pageSize.toString()))
+      .limit(Number.parseInt(pageSize.toString()))
+      .then((e) => {
+        return res.json({
+          code: 200,
+          success: true,
+          message: "Fetched Successfully",
+          data: e,
+        });
+      })
+      .catch((e) => {
+        console.log(e);
+        return res.json({
+          code: 500,
+          success: false,
+          message: "Error in the Server",
+        });
+      });
+  }
 
   let { page, pageSize, employeeId, role, notRole, searchKey } = req.query;
   var re;
