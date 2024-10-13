@@ -51,7 +51,8 @@ async function handler(
       });
   }
 
-  let { page, pageSize, employeeId, role, notRole, searchKey } = req.query;
+  let { page, pageSize, employeeId, role, notRole, searchKey, userId } =
+    req.query;
   var re;
 
   if (role) role = JSON.parse(role as string);
@@ -63,7 +64,26 @@ async function handler(
 
   if (employeeId) {
     delete req.query.employeeId;
-    return await User.findOne({ _id: req.query._id })
+    return await User.findOne({ employeeId })
+      .then((e) => {
+        return res.json({
+          code: 200,
+          success: true,
+          message: "Fetched Successfully",
+          data: e,
+        });
+      })
+      .catch((e) => {
+        console.log(e);
+        return res.json({
+          code: 500,
+          success: false,
+          message: "Error in the Server",
+        });
+      });
+  } else if (userId) {
+    delete req.query.userId;
+    return await User.findOne({ _id: userId })
       .then((e) => {
         return res.json({
           code: 200,
