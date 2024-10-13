@@ -63,7 +63,7 @@ async function handler(
 
   if (employeeId) {
     delete req.query.employeeId;
-    return await User.findOne({ employeeId })
+    return await User.findOne({ _id: req.query._id })
       .then((e) => {
         return res.json({
           code: 200,
