@@ -409,7 +409,7 @@ const PosHome = ({
                         `3772-${parseInt(
                           (res.data as any)._id.slice(-8).toString(),
                           16
-                        )}` ?? "",
+                        )}` || "",
                       refNo: "",
                     },
                     tellerId: currentUser?.name ?? "",

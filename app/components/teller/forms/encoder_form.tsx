@@ -356,13 +356,15 @@ const EncoderForm = ({
                     transaction.portal!,
                     transaction.receiverName!,
                     transaction.recieverNum!,
-                    `${transaction.traceId?.slice(
-                      0,
-                      2
-                    )}-${transaction.traceId?.slice(
-                      2,
-                      6
-                    )}-${transaction.traceId?.slice(6, 10)}` ?? "N/A",
+                    transaction.traceId
+                      ? `${transaction.traceId.slice(
+                          0,
+                          2
+                        )}-${transaction.traceId.slice(
+                          2,
+                          6
+                        )}-${transaction.traceId.slice(6, 10)}`
+                      : "N/A",
                   ]
                 : []),
               "",
@@ -453,13 +455,15 @@ const EncoderForm = ({
                     transaction.portal,
                     transaction.receiverName,
                     transaction.recieverNum,
-                    `${transaction.traceId?.slice(
-                      0,
-                      2
-                    )}-${transaction.traceId?.slice(
-                      2,
-                      6
-                    )}-${transaction.traceId?.slice(6, 10)}` ?? "N/A",
+                    transaction.traceId
+                      ? `${transaction.traceId.slice(
+                          0,
+                          2
+                        )}-${transaction.traceId.slice(
+                          2,
+                          6
+                        )}-${transaction.traceId.slice(6, 10)}`
+                      : "N/A",
                   ]
                 : []),
               "",
@@ -539,8 +543,7 @@ const EncoderForm = ({
             >
               Transaction Details
             </Typography.Title>
-            {transaction?.type == "miscellaneous" &&
-            transaction.history?.length == 1 &&
+            {transaction?.history?.length == 1 &&
             lastStatus() == "completed" ? (
               <></>
             ) : (
@@ -600,7 +603,7 @@ const EncoderForm = ({
                   flex: 2,
                   marginTop:
                     _.includes("**") ||
-                    ((transaction?.type == "miscellaneous" ?? false) &&
+                    ((transaction?.type == "miscellaneous" || false) &&
                       _.toLocaleLowerCase() == "current status")
                       ? 10
                       : 0,

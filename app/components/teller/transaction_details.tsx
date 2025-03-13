@@ -151,7 +151,7 @@ const TransactionDetails = ({
                 `3772-${parseInt(
                   transaction!._id!.slice(-8).toString(),
                   16
-                )}` ?? "",
+                )}` || "",
               refNo: "",
             },
             tellerId: currentUser?.name ?? "",
@@ -218,7 +218,7 @@ const TransactionDetails = ({
               transaction.type.toLocaleUpperCase(),
               `${(transaction.tellerId as User)?.name ?? "No Teller"} (${
                 (transaction.branchId as Branch)?.name ?? "No Branch"
-              })` ?? "No Teller",
+              })`,
               dayjs(transaction?.createdAt).format("MMMM DD, YYYY - hh:mma"),
               "",
               ..._.map((e: any) => (
@@ -313,7 +313,7 @@ const TransactionDetails = ({
               transaction.sub_type?.toLocaleUpperCase() ?? "N/A",
               `${(transaction.tellerId as User)?.name ?? "No Teller"} (${
                 (transaction.branchId as Branch)?.name ?? "No Branch"
-              })` ?? "No Teller",
+              })`,
               dayjs(transaction?.createdAt).format("MMMM DD, YYYY - hh:mma"),
               ...(transaction.creditId != null
                 ? []
@@ -391,7 +391,7 @@ const TransactionDetails = ({
                   fontSize: 20,
                   marginTop:
                     _.includes("**") ||
-                    ((transaction?.type == "miscellaneous" ?? false) &&
+                    ((transaction?.type == "miscellaneous" || false) &&
                       _.toLocaleLowerCase() == "current status")
                       ? 10
                       : 0,
@@ -405,7 +405,7 @@ const TransactionDetails = ({
                   width: 300,
                   fontSize: 20,
                   marginTop:
-                    (transaction?.type == "miscellaneous" ?? false) &&
+                    (transaction?.type == "miscellaneous" || false) &&
                     _.toLocaleLowerCase() == "current status"
                       ? 10
                       : 0,

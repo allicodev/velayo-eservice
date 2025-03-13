@@ -225,7 +225,7 @@ abstract class BillService {
 
     let transaction: Transaction = {
       type: "eload",
-      sub_type: `${provider} LOAD` ?? "",
+      sub_type: `${provider} LOAD`,
       transactionDetails: JSON.stringify(eload),
       amount,
       fee: eload.fee,

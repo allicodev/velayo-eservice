@@ -653,7 +653,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                         height: 60,
                         background: e.isDisabled
                           ? "#eee"
-                          : selectedBiller?._id == e._id ?? false
+                          : selectedBiller && selectedBiller._id === e._id
                           ? "#294B0F"
                           : "#fff",
                       }}
@@ -667,7 +667,7 @@ const BillingSettings = ({ open, close }: BillsSettings) => {
                           fontSize: 30,
                           color: e.isDisabled
                             ? "#aaa"
-                            : selectedBiller?._id == e._id ?? false
+                            : selectedBiller && selectedBiller._id === e._id
                             ? "#fff"
                             : "#000",
                           maxWidth: 270,

@@ -836,7 +836,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                         height: 60,
                         background: e.isDisabled
                           ? "#eee"
-                          : selectedWallet?._id == e._id ?? false
+                          : selectedWallet?._id == e._id || false
                           ? "#294B0F"
                           : "#fff",
                       }}
@@ -850,7 +850,7 @@ const EWalletSettings = ({ open, close }: BillsSettings) => {
                           fontSize: 30,
                           color: e.isDisabled
                             ? "#aaa"
-                            : selectedWallet?._id == e._id ?? false
+                            : selectedWallet?._id == e._id || false
                             ? "#fff"
                             : "#000",
                           maxWidth: 270,

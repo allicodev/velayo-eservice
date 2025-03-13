@@ -366,7 +366,7 @@ const Accounting = () => {
         ),
         fee: totals
           .filter((e: any) => e?.fee != undefined)
-          .reduce((p: any, n: any) => p + n?.fee ?? 0, 0),
+          .reduce((p: any, n: any) => p + (n?.fee ?? 0), 0),
       });
     } else {
       setTotalOpt({ amount: 0, fee: 0 });
