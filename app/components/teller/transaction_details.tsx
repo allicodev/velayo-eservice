@@ -145,7 +145,7 @@ const TransactionDetails = ({
           await _.printReceiptPos({
             printData: {
               itemDetails: transaction.transactionDetails,
-              amount: transaction?.amount ?? 0,
+              amount: (transaction?.amount ?? 0) + (transaction?.fee ?? 0),
               cash: (transaction as TransactionPOS).cash,
               receiptNo:
                 `3772-${parseInt(
