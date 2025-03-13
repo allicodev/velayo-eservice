@@ -4,6 +4,7 @@ import { ExtendedResponse, User as UserProps } from "@/types";
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import bcrypt from "bcryptjs";
+import { ApiMiddleware } from "@/assets/ts";
 
 async function handler(
   req: NextApiRequest,
@@ -63,4 +64,4 @@ async function handler(
     });
 }
 
-export default handler;
+export default ApiMiddleware(handler);
