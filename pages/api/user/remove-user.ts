@@ -1,3 +1,4 @@
+import { ApiMiddleware } from "@/assets/ts";
 import dbConnect from "@/database/dbConnect";
 import User from "@/database/models/user.schema";
 import { ExtendedResponse, ProtectedUser } from "@/types";
@@ -38,4 +39,4 @@ async function handler(
     });
 }
 
-export default handler;
+export default ApiMiddleware(handler);

@@ -1,3 +1,4 @@
+import { ApiMiddleware } from "@/assets/ts";
 import dbConnect from "@/database/dbConnect";
 import User from "@/database/models/user.schema";
 import { Response } from "@/types";
@@ -41,4 +42,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
     });
 }
 
-export default handler;
+export default ApiMiddleware(handler);
