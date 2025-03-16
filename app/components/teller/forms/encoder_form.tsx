@@ -66,14 +66,13 @@ const EncoderForm = ({
   const getFlex = (_: string, i: number) => {
     if (transaction?.type == "eload") {
       return ["Phone", "Amount", "Teller"].includes(_)
-        ? lastStatus() == "completed" ||
-          ["Teller", "Branch", "Amount"].includes(_)
+        ? lastStatus() == "completed" || ["Teller", "Branch"].includes(_)
           ? 3
           : 2
         : 3;
     } else if (transaction?.type == "wallet") {
       return (transaction?.sub_type?.includes("cash-out") ?? false) ||
-        ["Type", "Biller", "Name", "Teller", "Branch"].includes(_)
+        ["Type", "Biller", "Fee", "Teller", "Branch"].includes(_)
         ? 3
         : 2;
     } else {
@@ -105,7 +104,7 @@ const EncoderForm = ({
     if (transaction?.type == "wallet") {
       return transaction?.sub_type?.includes("cash-out") ?? false
         ? false
-        : !["Type", "Biller", "Name", "Teller", "Branch"].includes(_);
+        : !["Type", "Biller", "Fee", "Teller", "Branch"].includes(_);
     } else
       return (
         transaction &&
@@ -118,7 +117,6 @@ const EncoderForm = ({
           "Portal",
           "Sender Name",
           "Sender Number/Account Number",
-          "Amount",
           "Fee",
           "Biller",
           "Trace ID",
