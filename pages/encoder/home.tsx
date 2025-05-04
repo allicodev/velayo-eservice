@@ -298,11 +298,17 @@ const Encoder = () => {
       title: isMobile ? "Type" : "Transaction Type",
       dataIndex: "name",
       key: "name",
-      render: (_, { type }) => (
+      render: (_, { type, sub_type }) => (
         <Tag
           color={
             type == "wallet"
-              ? "#297BFA"
+              ? sub_type?.toLocaleLowerCase().includes("maya")
+                ? "#800080"
+                : sub_type?.toLocaleLowerCase().includes("gcash")
+                ? sub_type?.toLocaleLowerCase().includes("cash-out")
+                  ? "#FFC0CB"
+                  : "#297BFA"
+                : "#297BFA"
               : type == "bills"
               ? "#28a745"
               : type == "shopee"

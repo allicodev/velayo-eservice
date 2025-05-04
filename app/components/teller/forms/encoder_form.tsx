@@ -506,7 +506,17 @@ const EncoderForm = ({
             style={{
               background:
                 transaction?.type == "wallet"
-                  ? "#297BFA"
+                  ? transaction?.sub_type?.toLocaleLowerCase().includes("maya")
+                    ? "#800080"
+                    : transaction?.sub_type
+                        ?.toLocaleLowerCase()
+                        .includes("gcash")
+                    ? transaction?.sub_type
+                        ?.toLocaleLowerCase()
+                        .includes("cash-out")
+                      ? "#FFC0CB"
+                      : "#297BFA"
+                    : "#297BFA"
                   : transaction?.type == "bills"
                   ? "#28a745"
                   : transaction?.type == "shopee"
