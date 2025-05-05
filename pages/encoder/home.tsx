@@ -303,11 +303,15 @@ const Encoder = () => {
           color={
             type == "wallet"
               ? sub_type?.toLocaleLowerCase().includes("maya")
-                ? "#800080"
+                ? sub_type?.toLocaleLowerCase().includes("cash-out")
+                  ? "#800080"
+                  : "#FFA500"
                 : sub_type?.toLocaleLowerCase().includes("gcash")
                 ? sub_type?.toLocaleLowerCase().includes("cash-out")
                   ? "#FFC0CB"
                   : "#297BFA"
+                : sub_type?.toLocaleLowerCase().includes("mwplay")
+                ? "#F00"
                 : "#297BFA"
               : type == "bills"
               ? "#28a745"

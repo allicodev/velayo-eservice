@@ -507,7 +507,11 @@ const EncoderForm = ({
               background:
                 transaction?.type == "wallet"
                   ? transaction?.sub_type?.toLocaleLowerCase().includes("maya")
-                    ? "#800080"
+                    ? transaction?.sub_type
+                        ?.toLocaleLowerCase()
+                        .includes("cash-out")
+                      ? "#800080"
+                      : "#FFA500"
                     : transaction?.sub_type
                         ?.toLocaleLowerCase()
                         .includes("gcash")
@@ -516,6 +520,10 @@ const EncoderForm = ({
                         .includes("cash-out")
                       ? "#FFC0CB"
                       : "#297BFA"
+                    : transaction?.sub_type
+                        ?.toLocaleLowerCase()
+                        .includes("mwplay")
+                    ? "#F00"
                     : "#297BFA"
                   : transaction?.type == "bills"
                   ? "#28a745"
