@@ -1,4 +1,3 @@
-import authMiddleware from "@/assets/ts/apiMiddleware";
 import dbConnect from "@/database/dbConnect";
 import Wallet from "@/database/models/wallet.schema";
 import { ExtendedResponse, Wallet as WalletProp } from "@/types";
@@ -14,7 +13,7 @@ async function handler(
   const { method } = req;
 
   if (method != "POST")
-    return res.json({
+    res.json({
       code: 405,
       success: false,
       message: "Incorrect Request Method",
@@ -41,4 +40,4 @@ async function handler(
     });
 }
 
-export default authMiddleware(handler);
+export default handler;
