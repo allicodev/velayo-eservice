@@ -781,7 +781,7 @@ const Encoder = () => {
                               }}
                             >
                               ₱
-                              {e.currentBalance.toLocaleString(undefined, {
+                              {e?.currentBalance?.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
                               })}

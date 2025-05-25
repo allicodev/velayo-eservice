@@ -34,27 +34,27 @@ async function handler(
               },
             ]
           : []),
-        {
-          $lookup: {
-            from: "logs",
-            localField: "_id",
-            foreignField: "portalId",
-            pipeline: [
-              {
-                $lookup: {
-                  from: "users",
-                  localField: "userId",
-                  foreignField: "_id",
-                  as: "userId",
-                },
-              },
-              {
-                $unwind: { path: "$userId", preserveNullAndEmptyArrays: true },
-              },
-            ],
-            as: "logs",
-          },
-        },
+        // {
+        //   $lookup: {
+        //     from: "logs",
+        //     localField: "_id",
+        //     foreignField: "portalId",
+        //     pipeline: [
+        //       {
+        //         $lookup: {
+        //           from: "users",
+        //           localField: "userId",
+        //           foreignField: "_id",
+        //           as: "userId",
+        //         },
+        //       },
+        //       {
+        //         $unwind: { path: "$userId", preserveNullAndEmptyArrays: true },
+        //       },
+        //     ],
+        //     as: "logs",
+        //   },
+        // },
         {
           $lookup: {
             from: "requests",
@@ -70,28 +70,28 @@ async function handler(
             as: "requests",
           },
         },
-        {
-          $addFields: {
-            currentBalance: {
-              $round: [
-                {
-                  $reduce: {
-                    input: "$logs",
-                    initialValue: 0,
-                    in: {
-                      $add: [
-                        "$$value",
-                        { $ifNull: ["$$this.amount", 0] },
-                        { $ifNull: ["$$this.rebate", 0] },
-                      ],
-                    },
-                  },
-                },
-                2,
-              ],
-            },
-          },
-        },
+        // {
+        //   $addFields: {
+        //     currentBalance: {
+        //       $round: [
+        //         {
+        //           $reduce: {
+        //             input: "$logs",
+        //             initialValue: 0,
+        //             in: {
+        //               $add: [
+        //                 "$$value",
+        //                 { $ifNull: ["$$this.amount", 0] },
+        //                 { $ifNull: ["$$this.rebate", 0] },
+        //               ],
+        //             },
+        //           },
+        //         },
+        //         2,
+        //       ],
+        //     },
+        //   },
+        // },
 
         ...(project
           ? ([
