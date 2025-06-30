@@ -28,9 +28,9 @@ async function handler(
       message: "Type or ID is undefined",
     });
 
-  const payload = { cashinFeeType, cashoutFeeType };
+  const payload: any = { cashinFeeType, cashoutFeeType };
 
-  const filteredPayload = {};
+  const filteredPayload: any = {};
   Object.keys(payload).forEach((key: any) => {
     if (payload[key]) filteredPayload[key] = payload[key];
   });
