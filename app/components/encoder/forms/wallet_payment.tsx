@@ -38,6 +38,7 @@ import {
   CreditProp,
   GcashCollapseItemButtonProps,
   Log,
+  ThresholdFees,
   UserCreditData,
   Wallet,
   WalletType,
@@ -53,6 +54,7 @@ import { Pusher } from "@/provider/utils/pusher";
 import CreditService from "@/provider/credit.service";
 import LogService from "@/provider/log.service";
 import { newLog } from "@/app/state/logs.reducers";
+import FeeService from "@/provider/fee.service";
 
 const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>();
@@ -79,6 +81,7 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
     transactionId: "",
     amount: 0,
   });
+  const [thresholds, setThresholds] = useState<ThresholdFees[]>([]);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -129,16 +132,29 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
       : selectedWallet?.cashOutFormField;
 
   const getFee = () => {
-    if (walletType == "cash-in") {
-      return Math.ceil(
-        selectedWallet?.cashinType == "fixed"
-          ? selectedWallet?.cashinFeeValue!
-          : amount * (selectedWallet?.cashinFeeValue! / 100)
-      );
+    if (selectedWallet?.type && selectedWallet.type == "fixed-percentage") {
+      if (walletType == "cash-in") {
+        return Math.ceil(
+          selectedWallet?.cashinType == "fixed"
+            ? selectedWallet?.cashinFeeValue!
+            : amount * (selectedWallet?.cashinFeeValue! / 100)
+        );
+      } else {
+        return selectedWallet?.cashoutType == "fixed"
+          ? selectedWallet?.cashoutFeeValue!
+          : Math.ceil(amount * (selectedWallet?.cashoutFeeValue! / 100));
+      }
     } else {
-      return selectedWallet?.cashoutType == "fixed"
-        ? selectedWallet?.cashoutFeeValue!
-        : Math.ceil(amount * (selectedWallet?.cashoutFeeValue! / 100));
+      const filteredThresholds = thresholds.filter(
+        (e) => e.subType == walletType
+      );
+
+      const fee = filteredThresholds.find(
+        (e) => amount >= e.minAmount && amount <= e.maxAmount
+      );
+      if (!fee) return 0;
+
+      return fee?.charge ?? 0;
     }
   };
 
@@ -823,8 +839,18 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
   useEffect(() => {
     setWindow(window);
 
-    if (open) getWallets();
-  }, [open]);
+    if (open) {
+      getWallets();
+
+      if (selectedWallet && selectedWallet.type == "threshold") {
+        (async (_) => {
+          let res = await _.getFeeThreshold("wallet", selectedWallet._id!);
+
+          if (res?.success ?? false) setThresholds(res?.data ?? []);
+        })(FeeService);
+      }
+    }
+  }, [open, selectedWallet]);
 
   return (
     <Drawer

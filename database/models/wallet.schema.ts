@@ -33,6 +33,7 @@ const WalletSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    type: String,
   },
   {
     timestamps: true,

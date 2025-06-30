@@ -107,6 +107,8 @@ export interface Wallet {
   cashInexceptFormField?: ExceptionItemProps[];
   cashOutexceptFormField?: ExceptionItemProps[];
   isDisabled?: boolean;
+  type: "fixed-percentage" | "threshold";
+  subType?: string;
 }
 
 export interface Fee {
@@ -300,4 +302,14 @@ export interface CreditAmountHistory {
   amount: number;
   date: Date;
   description: string;
+}
+
+export interface ThresholdFees {
+  _id?: string;
+  type: "bills" | "wallet";
+  subType?: string;
+  link_id: string;
+  minAmount: number;
+  maxAmount: number;
+  charge: number;
 }
