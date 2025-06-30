@@ -107,7 +107,8 @@ export interface Wallet {
   cashInexceptFormField?: ExceptionItemProps[];
   cashOutexceptFormField?: ExceptionItemProps[];
   isDisabled?: boolean;
-  type: "fixed-percentage" | "threshold";
+  cashinFeeType?: string;
+  cashoutFeeType?: string;
   subType?: string;
 }
 

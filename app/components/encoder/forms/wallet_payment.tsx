@@ -132,7 +132,12 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
       : selectedWallet?.cashOutFormField;
 
   const getFee = () => {
-    if (selectedWallet?.type && selectedWallet.type == "fixed-percentage") {
+    if (
+      (walletType == "cash-in" &&
+        selectedWallet?.cashinFeeType == "fixed-percentage") ||
+      (walletType == "cash-out" &&
+        selectedWallet?.cashoutFeeType == "fixed-percentage")
+    ) {
       if (walletType == "cash-in") {
         return Math.ceil(
           selectedWallet?.cashinType == "fixed"
@@ -842,7 +847,11 @@ const WalletForm = ({ open, close }: { open: boolean; close: () => void }) => {
     if (open) {
       getWallets();
 
-      if (selectedWallet && selectedWallet.type == "threshold") {
+      if (
+        selectedWallet &&
+        (selectedWallet?.cashinFeeType == "threshold" ||
+          selectedWallet?.cashoutFeeType == "threshold")
+      ) {
         (async (_) => {
           let res = await _.getFeeThreshold("wallet", selectedWallet._id!);
 

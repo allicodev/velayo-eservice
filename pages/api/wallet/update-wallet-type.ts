@@ -13,27 +13,32 @@ async function handler(
   const { method } = req;
 
   if (method != "POST")
-    res.json({
+    return res.json({
       code: 405,
       success: false,
       message: "Incorrect Request Method",
     });
 
-  let { id, type } = req.body;
+  let { id, cashinFeeType, cashoutFeeType } = req.body;
 
-  if (!type || !id)
+  if (!(cashinFeeType || cashoutFeeType) || !id)
     return res.json({
       code: 500,
       success: false,
-      message: "Type of ID is undefined",
+      message: "Type or ID is undefined",
     });
+
+  const payload = { cashinFeeType, cashoutFeeType };
+
+  const filteredPayload = {};
+  Object.keys(payload).forEach((key: any) => {
+    if (payload[key]) filteredPayload[key] = payload[key];
+  });
 
   return await Wallet.findOneAndUpdate(
     { _id: id },
     {
-      $set: {
-        type,
-      },
+      $set: filteredPayload,
     },
     { new: true }
   )
